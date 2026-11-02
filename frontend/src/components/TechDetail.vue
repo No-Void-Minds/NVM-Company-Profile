@@ -4,6 +4,7 @@ import type { Tech } from '@/api/types'
 import AppButton from '@/components/AppButton.vue'
 import FabricProbeView from '@/components/FabricProbeView.vue'
 import SpecLabel from '@/components/SpecLabel.vue'
+import SwatchView from '@/components/SwatchView.vue'
 import { collectionUrl, isNeedKey, pad2, techName } from '@/composables/site'
 import { useI18n } from '@/i18n'
 
@@ -31,6 +32,14 @@ const sizeLink = computed(() => ({
     </div>
 
     <h2 class="mt-2 text-h2">{{ techName(tech.name) }}</h2>
+
+    <!-- Remounted per tech, so weave plays the Re-weave whenever the tech changes -->
+    <figure class="mt-2" data-swatch-host>
+      <span class="block h-[96px] border border-line">
+        <SwatchView :tech="tech" weave />
+      </span>
+      <figcaption class="spec-label mt-1">{{ t.probe.label }}</figcaption>
+    </figure>
     <p class="mt-1 text-h3">{{ tech.tagline }}</p>
 
     <dl class="mt-3 grid grid-cols-2 gap-2 border-y border-line py-2">

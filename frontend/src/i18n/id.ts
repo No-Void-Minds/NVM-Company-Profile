@@ -142,6 +142,8 @@ export const id = {
     buyersCta: 'Baca semua testimoni',
     galleryTitle: 'Galeri',
     galleryCta: 'Buka galeri lengkap',
+    swatchTitle: 'Contoh kain per system',
+    swatchLoading: 'Memuat contoh kain',
   },
 
   brand: {

@@ -6,6 +6,7 @@ import AppButton from '@/components/AppButton.vue'
 import FormField from '@/components/FormField.vue'
 import IconSvg from '@/components/IconSvg.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
+import SizeRuler from '@/components/SizeRuler.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
@@ -280,6 +281,14 @@ if (!import.meta.env.SSR) {
             </template>
           </p>
 
+          <!-- Height in Mode A, tee width in Mode B: the number the table is matched on -->
+          <SizeRuler
+            :value="mode === 'height' ? height : garmentWidth"
+            :min="mode === 'height' ? 140 : 40"
+            :max="mode === 'height' ? 210 : 70"
+            class="mt-2"
+          />
+
           <div
             ref="tableWrap"
             class="scroll-x relative mt-2 border border-line"
@@ -372,8 +381,15 @@ if (!import.meta.env.SSR) {
   min-width: 560px;
   background: var(--raised);
   border-left: 2px solid var(--signal);
+  /* Waits for the ruler needle (400 ms), then points at the row */
   transition:
-    transform 240ms ease,
-    height 240ms ease;
+    transform 240ms ease 400ms,
+    height 240ms ease 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .size-marker {
+    transition-delay: 0s;
+  }
 }
 </style>

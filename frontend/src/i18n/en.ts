@@ -140,6 +140,8 @@ export const en: Messages = {
     buyersCta: 'Read all testimonials',
     galleryTitle: 'Gallery',
     galleryCta: 'Open the full gallery',
+    swatchTitle: 'Fabric swatches per system',
+    swatchLoading: 'Loading swatches',
   },
 
   brand: {

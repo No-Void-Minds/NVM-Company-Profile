@@ -7,7 +7,8 @@ import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { pad2, SHOP_URL } from '@/composables/site'
+import SwatchView from '@/components/SwatchView.vue'
+import { pad2, SHOP_URL, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { formatDate, useI18n } from '@/i18n'
 import { KnitField } from '@/motion/KnitField'
@@ -26,6 +27,7 @@ onMounted(() => {
 onBeforeUnmount(() => field?.destroy())
 
 const stats = useAsync(() => api.labStats())
+const techs = useAsync(() => api.techs(lang.value))
 // These two only decide whether a section exists, so a failure just hides it (FR-13).
 const gallery = useAsync(() => api.gallery(lang.value).catch(() => []))
 const testimonials = useAsync(() => api.testimonials().catch(() => []))
@@ -37,7 +39,7 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
 </script>
 
 <template>
-  <section ref="hero" class="hero relative overflow-hidden border-b border-line">
+  <section ref="hero" class="hero measure-grid relative overflow-hidden border-b border-line">
     <canvas ref="canvas" aria-hidden="true" class="absolute inset-0 h-full w-full"></canvas>
     <div class="wrap pointer-events-none relative py-8 lg:py-12">
       <p class="spec-label">Engineered to perfection</p>
@@ -79,6 +81,46 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
         <dt class="spec-label mt-1">{{ t.home.founded }}</dt>
       </div>
     </dl>
+  </section>
+
+  <KnitDivider />
+
+  <section aria-labelledby="swatch-strip-title" class="wrap section">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 id="swatch-strip-title" class="spec-label">{{ t.home.swatchTitle }}</h2>
+      <p class="spec-label">{{ t.probe.label }}</p>
+    </div>
+    <StateLoading
+      v-if="techs.loading.value"
+      :label="t.home.swatchLoading"
+      height="160px"
+      class="mt-3"
+    />
+    <StateError
+      v-else-if="techs.error.value"
+      :message="techs.error.value"
+      class="mt-3"
+      @retry="techs.run"
+    />
+    <StateEmpty
+      v-else-if="(techs.data.value ?? []).length === 0"
+      :title="t.tech.empty"
+      class="mt-3"
+    />
+    <ul v-else class="swatch-strip mt-3">
+      <li v-for="tech in techs.data.value" :key="tech.key">
+        <RouterLink
+          :to="`${to('/teknologi')}#lab-${tech.key}`"
+          class="swatch-link"
+          data-swatch-host
+        >
+          <span class="swatch-frame">
+            <SwatchView :tech="tech" />
+          </span>
+          <span class="mt-1 block">{{ techName(tech.name) }}</span>
+        </RouterLink>
+      </li>
+    </ul>
   </section>
 
   <KnitDivider />
@@ -143,6 +185,33 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
 </template>
 
 <style scoped>
+.swatch-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.swatch-link {
+  display: block;
+  min-height: 44px;
+}
+
+.swatch-frame {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+}
+
+.swatch-link:active .swatch-frame {
+  border-color: var(--fg);
+}
+
+@media (hover: hover) {
+  .swatch-link:hover .swatch-frame {
+    border-color: var(--line-strong);
+  }
+}
+
 /* Vertical swipes must still scroll the page on touch screens */
 .hero {
   touch-action: pan-y;

@@ -28,7 +28,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 12 | Token semantik dua tema, tombol tema, anti-kedip + hash CSP, logo, kanvas ikut tema | M | selesai |
 | 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | selesai |
 | 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | selesai |
-| 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | belum |
+| 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | selesai |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | belum |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | belum |
 
@@ -304,3 +304,12 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 - Keputusan: admin belum bisa mengubah teks tech per bahasa. SRS tidak meminta editor, jadi perubahan teks tech lewat migrasi seperti seed.
 - Koreksi proses: laporan ini sempat ter-commit rusak di `b68261a`, karena backtick di string shell ikut dijalankan. Salah satunya `migrate up` tanpa `-database`, yang hanya mencetak bantuan, jadi tidak ada migrasi yang berjalan.
 - Menunggu user: cek terjemahan tech di `docs/terjemahan.md` (bagian tech (seed)), lalu `migrate up` di VM saat Sprint 17.
+
+### Sprint 15
+
+- Dibuat: `motion/Swatch.ts` + `SwatchView` (panel Teknologi dengan Re-weave 400 ms, baris tech di Produk, strip 11 swatch di Beranda), `SizeRuler` di Size (jarum ke tinggi badan di Mode A, lebar kaos di Mode B), utilitas `.measure-grid` di hero dan ruler.
+- Keputusan: kerapatan dari generasi, pola dari kebutuhan (hot berpori dengan aliran udara, shape berusuk kaku, move bergelombang melar 4 arah, soft simpul mengembang, cold lapisan belakang, layer cangkang). Variasi kecil dari hash key agar CURFLEX dan FLEXE, serta PUFFMAX dan MELTWRAP, tetap berbeda.
+- Keputusan: swatch menggambar satu frame diam. Peragaan hanya sekali saat hover atau fokus pada link atau baris pembungkusnya (`data-swatch-host`). Berhenti di luar viewport dan saat tab tersembunyi, diam saat reduced motion, dan menggambar ulang saat tema berganti. Semua swatch diberi label "Ilustrasi, bukan hasil uji".
+- Keputusan: ruler disembunyikan dari pembaca layar, karena nilainya sudah ada di input. Size marker menunggu 400 ms sampai jarum tiba, tanpa jeda saat reduced motion.
+- Catatan: build dan prerender 20 halaman lolos. Perbedaan visual 11 swatch, kontras, dan Lighthouse baru dicek di Sprint 16 (AC-22, AC-23).
+- Menunggu user: tidak ada.

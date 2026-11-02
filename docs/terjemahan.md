@@ -130,6 +130,8 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `home.buyersCta` | Read all testimonials | Baca semua testimoni |
 | `home.galleryTitle` | Gallery | Galeri |
 | `home.galleryCta` | Open the full gallery | Buka galeri lengkap |
+| `home.swatchTitle` | Fabric swatches per system | Contoh kain per system |
+| `home.swatchLoading` | Loading swatches | Memuat contoh kain |
 
 ## brand
 

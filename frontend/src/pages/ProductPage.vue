@@ -6,6 +6,7 @@ import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
+import SwatchView from '@/components/SwatchView.vue'
 import { collectionUrl, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useI18n } from '@/i18n'
@@ -39,6 +40,7 @@ const fits = computed(() =>
           }}</AppButton>
         </div>
         <p class="mt-1 max-w-[56ch] text-muted">{{ t.product.coreBody }}</p>
+        <p class="spec-label mt-1">{{ t.probe.label }}</p>
 
         <StateLoading
           v-if="techs.loading.value"
@@ -77,11 +79,16 @@ const fits = computed(() =>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="tech in techs.data.value" :key="tech.key">
+              <tr v-for="tech in techs.data.value" :key="tech.key" data-swatch-host>
                 <th scope="row" class="font-normal whitespace-nowrap">
-                  <RouterLink :to="`${to('/teknologi')}#lab-${tech.key}`" class="text-link">
-                    {{ techName(tech.name) }}
-                  </RouterLink>
+                  <span class="flex items-center gap-2">
+                    <span class="block h-4 w-6 flex-none border border-line">
+                      <SwatchView :tech="tech" />
+                    </span>
+                    <RouterLink :to="`${to('/teknologi')}#lab-${tech.key}`" class="text-link">
+                      {{ techName(tech.name) }}
+                    </RouterLink>
+                  </span>
                 </th>
                 <td v-if="tech.fits.length === 0" :colspan="fits.length">
                   <a

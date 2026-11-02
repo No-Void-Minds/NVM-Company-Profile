@@ -156,6 +156,14 @@
       0 0;
   }
 
+  /* Measuring grid of the lab notebook (SRS 14.1), behind the hero and the Size ruler */
+  .measure-grid {
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
   .field-label {
     display: block;
     margin-bottom: 8px;
