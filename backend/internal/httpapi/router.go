@@ -67,10 +67,14 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 
 	r.GET("/media/:name", s.serveMedia)
 
-	api.POST("/admin/login", s.login)
+	adminRoot := adminGroup(api)
+	adminRoot.POST("/login", s.login)
 
-	admin := api.Group("/admin", s.requireSession)
+	admin := adminRoot.Group("", s.requireSession)
 	admin.GET("/me", s.me)
+	// Same data as the public routes, but uncached, so the admin sees a toggle right after reload.
+	admin.GET("/techs", s.listTechs)
+	admin.GET("/collabs", s.listCollabs)
 	admin.GET("/gallery", s.adminListGallery)
 	admin.GET("/testimonials", s.adminListTestimonials)
 	admin.GET("/size-charts", s.adminListSizeCharts)
@@ -107,6 +111,18 @@ func (s *server) health(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "database": "ok"})
+}
+
+// Every /api/admin route, login included, is kept out of browser and proxy caches.
+func adminGroup(api *gin.RouterGroup) *gin.RouterGroup {
+	return api.Group("/admin", noStore())
+}
+
+func noStore() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Cache-Control", "no-store")
+		c.Next()
+	}
 }
 
 func publicCache() gin.HandlerFunc {

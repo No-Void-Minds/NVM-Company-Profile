@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { adminApi, api, ApiError, errorMessage } from '@/api/client'
+import { adminApi, ApiError, errorMessage } from '@/api/client'
 import type { SizeChart } from '@/api/types'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import FormField from '@/components/FormField.vue'
@@ -12,7 +12,7 @@ import { useAsync } from '@/composables/useAsync'
 import { parseSizeChart } from '@/composables/useSizeRecommendation'
 
 const { data, error, loading, run } = useAsync(() => adminApi.sizeCharts())
-const techs = useAsync(() => api.techs().catch(() => []))
+const techs = useAsync(() => adminApi.techs().catch(() => []))
 const items = computed(() => data.value ?? [])
 
 const keyOptions = computed(() =>

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/config"
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/db/sqlc"
 )
 
@@ -82,6 +83,46 @@ func TestRequireCSRF(t *testing.T) {
 				t.Fatalf("status %d, seharusnya %d", rec.Code, tc.status)
 			}
 		})
+	}
+}
+
+// A 200 from the admin group is the case respondError cannot cover on its own.
+func TestAdminGroupIsNoStore(t *testing.T) {
+	r := gin.New()
+	adminGroup(r.Group("/api")).GET("/techs", func(c *gin.Context) {
+		c.JSON(http.StatusOK, []string{})
+	})
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/admin/techs", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d", rec.Code)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control %q", got)
+	}
+}
+
+// Routes that answer without a database, through the real router.
+func TestAdminRoutesAreNoStore(t *testing.T) {
+	r, err := NewRouter(config.Config{GinMode: gin.TestMode, MediaDir: t.TempDir()}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ method, path string }{
+		{http.MethodPost, "/api/admin/login"},
+		{http.MethodGet, "/api/admin/me"},
+		{http.MethodGet, "/api/admin/techs"},
+		{http.MethodGet, "/api/admin/collabs"},
+		{http.MethodPatch, "/api/admin/techs/therco"},
+	} {
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, httptest.NewRequest(tc.method, tc.path, nil))
+		if rec.Code == http.StatusNotFound {
+			t.Errorf("%s %s tidak terdaftar", tc.method, tc.path)
+		}
+		if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+			t.Errorf("%s %s: Cache-Control %q", tc.method, tc.path, got)
+		}
 	}
 }
 

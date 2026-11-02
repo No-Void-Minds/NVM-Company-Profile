@@ -324,6 +324,69 @@ test('FR-94 toggle tech dan collab lalu kembali ke seed', async ({ browser }) =>
   await context.close()
 })
 
+const statusLabel = (onRack: boolean) => (onRack ? 'On the rack' : 'Belum tersedia')
+
+test('FR-94 status on the rack tetap setelah reload', async ({ browser }) => {
+  const { context, page } = await adminPage(browser)
+  const tech = page.getByRole('button', { name: 'THERCO' })
+  // The starting value is read, not assumed, so the test also runs after an admin changed it.
+  const initial = (await (await page.request.get('/api/admin/techs')).json()).find(
+    (t: { key: string }) => t.key === 'therco',
+  ).on_rack as boolean
+  try {
+    await page.goto('/admin/katalog')
+    await settled(page)
+    await expect(tech).toContainText(statusLabel(initial))
+    const saved = page.waitForResponse(
+      (r) => r.url().endsWith('/api/admin/techs/therco') && r.request().method() === 'PATCH',
+    )
+    await tech.click()
+    expect((await saved).status()).toBe(200)
+    await expect(tech).toContainText(statusLabel(!initial))
+
+    await page.reload()
+    await settled(page)
+    await expect(tech).toContainText(statusLabel(!initial))
+
+    await tech.click()
+    await expect(tech).toContainText(statusLabel(initial))
+    await page.reload()
+    await settled(page)
+    await expect(tech).toContainText(statusLabel(initial))
+  } finally {
+    // Restores the starting value even when an assertion above failed midway.
+    const me = await (await page.request.get('/api/admin/me')).json()
+    await page.request.patch('/api/admin/techs/therco', {
+      headers: { 'X-CSRF-Token': me.csrf_token },
+      data: { on_rack: initial },
+    })
+    await context.close()
+  }
+})
+
+test('FR-94 PATCH gagal tidak mengubah tombol dan menampilkan pesan', async ({ browser }) => {
+  const { context, page } = await adminPage(browser)
+  await page.route('**/api/admin/techs/therco', (route) =>
+    route.request().method() === 'PATCH'
+      ? route.fulfill({
+          status: 500,
+          json: { error: { code: 'INTERNAL', message: 'Terjadi kesalahan di server.' } },
+        })
+      : route.continue(),
+  )
+  await page.goto('/admin/katalog')
+  await settled(page)
+  const tech = page.getByRole('button', { name: 'THERCO' })
+  const before = (await tech.textContent())?.includes('On the rack')
+    ? 'On the rack'
+    : 'Belum tersedia'
+  await tech.click()
+  await expect(page.locator('[aria-live="assertive"]')).toContainText('Status tidak tersimpan')
+  await expect(tech).toContainText(before)
+  await expect(tech).toHaveAttribute('aria-busy', 'false')
+  await context.close()
+})
+
 test('FR-96 log audit menampilkan perubahan', async ({ browser }) => {
   const { context, page } = await adminPage(browser)
   await page.goto('/admin/audit')

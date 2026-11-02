@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { adminApi, api, ApiError, errorMessage } from '@/api/client'
+import { adminApi, ApiError, errorMessage } from '@/api/client'
 import type { AdminTestimonial, TestimonialSource } from '@/api/types'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import FormField from '@/components/FormField.vue'
@@ -16,7 +16,7 @@ const SOURCE_LABEL: Record<TestimonialSource, string> = {
 }
 
 const { data, error, loading, run } = useAsync(() => adminApi.testimonials())
-const techs = useAsync(() => api.techs().catch(() => []))
+const techs = useAsync(() => adminApi.techs().catch(() => []))
 const items = computed(() => data.value ?? [])
 
 const blank = () => ({

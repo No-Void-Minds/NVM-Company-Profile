@@ -143,6 +143,9 @@ export const adminApi = {
   deleteSizeChart: (key: string) =>
     request<void>(`/api/admin/size-charts/${encodeURIComponent(key)}`, { method: 'DELETE' }),
 
+  // Admin pages read these instead of the public routes, which are cached for 60 seconds.
+  techs: () => request<Tech[]>('/api/admin/techs'),
+  collabs: () => request<Collab[]>('/api/admin/collabs'),
   setTechOnRack: (key: string, onRack: boolean) =>
     request<Tech>(`/api/admin/techs/${key}`, { method: 'PATCH', json: { on_rack: onRack } }),
   setCollabAvailable: (key: string, available: boolean) =>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { adminApi, api, errorMessage } from '@/api/client'
+import { adminApi, errorMessage } from '@/api/client'
 import type { Collab, Tech } from '@/api/types'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
@@ -8,31 +8,42 @@ import StateLoading from '@/components/state/StateLoading.vue'
 import { techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 
-const techs = useAsync(() => api.techs())
-const collabs = useAsync(() => api.collabs())
+const techs = useAsync(() => adminApi.techs())
+const collabs = useAsync(() => adminApi.collabs())
 const actionError = ref('')
+// Keys of rows waiting for the server, so a row cannot be toggled twice at once.
+const saving = ref(new Set<string>())
 
-// Public responses are cached for 60 seconds, so the toggled row is patched locally.
-async function toggleTech(tech: Tech) {
+// No optimistic update: the row only changes to what the PATCH response says was saved,
+// so a failed request leaves the button on its previous status.
+async function save<T extends { key: string }>(
+  key: string,
+  request: () => Promise<T>,
+  rows: { value: T[] | null },
+) {
+  if (saving.value.has(key)) return
   actionError.value = ''
+  saving.value.add(key)
   try {
-    const updated = await adminApi.setTechOnRack(tech.key, !tech.on_rack)
-    techs.data.value = (techs.data.value ?? []).map((t) => (t.key === updated.key ? updated : t))
+    const updated = await request()
+    rows.value = (rows.value ?? []).map((row) => (row.key === updated.key ? updated : row))
   } catch (err) {
-    actionError.value = errorMessage(err)
+    actionError.value = `Status tidak tersimpan: ${errorMessage(err)}`
+  } finally {
+    saving.value.delete(key)
   }
 }
 
-async function toggleCollab(collab: Collab) {
-  actionError.value = ''
-  try {
-    const updated = await adminApi.setCollabAvailable(collab.key, !collab.available)
-    collabs.data.value = (collabs.data.value ?? []).map((c) =>
-      c.key === updated.key ? updated : c,
-    )
-  } catch (err) {
-    actionError.value = errorMessage(err)
-  }
+function toggleTech(tech: Tech) {
+  return save(`tech:${tech.key}`, () => adminApi.setTechOnRack(tech.key, !tech.on_rack), techs.data)
+}
+
+function toggleCollab(collab: Collab) {
+  return save(
+    `collab:${collab.key}`,
+    () => adminApi.setCollabAvailable(collab.key, !collab.available),
+    collabs.data,
+  )
 }
 </script>
 
@@ -41,7 +52,9 @@ async function toggleCollab(collab: Collab) {
   <p class="mt-2 max-w-[60ch] text-muted">
     Perubahan terlihat di situs publik paling lama satu menit kemudian.
   </p>
-  <p v-if="actionError" role="alert" class="field-error">{{ actionError }}</p>
+  <div aria-live="assertive">
+    <p v-if="actionError" class="field-error">{{ actionError }}</p>
+  </div>
 
   <div class="mt-4 grid gap-6 lg:grid-cols-2">
     <section aria-labelledby="catalog-tech">
@@ -65,7 +78,12 @@ async function toggleCollab(collab: Collab) {
           class="flex items-center justify-between gap-2 border-b border-line py-1"
         >
           <span>{{ techName(tech.name) }}</span>
-          <button type="button" class="btn btn-secondary min-h-[44px]" @click="toggleTech(tech)">
+          <button
+            type="button"
+            class="btn btn-secondary min-h-[44px]"
+            :aria-busy="saving.has(`tech:${tech.key}`)"
+            @click="toggleTech(tech)"
+          >
             <span class="sr-only">{{ tech.name }}: </span>
             {{ tech.on_rack ? 'On the rack' : 'Belum tersedia' }}
           </button>
@@ -97,6 +115,7 @@ async function toggleCollab(collab: Collab) {
           <button
             type="button"
             class="btn btn-secondary min-h-[44px]"
+            :aria-busy="saving.has(`collab:${collab.key}`)"
             @click="toggleCollab(collab)"
           >
             <span class="sr-only">{{ collab.name }}: </span>

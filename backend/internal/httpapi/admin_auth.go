@@ -117,8 +117,6 @@ func sessionOf(c *gin.Context) sqlc.GetActiveSessionRow {
 }
 
 func (s *server) requireSession(c *gin.Context) {
-	c.Header("Cache-Control", "no-store")
-
 	token, err := c.Cookie(auth.CookieName)
 	if err != nil || token == "" {
 		respondError(c, http.StatusUnauthorized, codeUnauthorized, "Silakan masuk dulu.", nil)
