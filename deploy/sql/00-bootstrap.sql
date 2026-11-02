@@ -1,5 +1,5 @@
 -- Dijalankan user sekali sebagai superuser dengan psql, bukan oleh aplikasi:
---   psql -U postgres -f 00-bootstrap.sql
+--   psql -U <superuser> -d postgres -f 00-bootstrap.sql
 -- Password diminta interaktif agar tidak tertinggal di riwayat shell.
 -- Boleh juga diberikan lewat -v migrator_password=... -v app_password=...
 

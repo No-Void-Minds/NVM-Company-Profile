@@ -63,11 +63,12 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
    set -a; source deploy/.env; set +a
    ```
 
-2. Buat role dan database, sekali saja. Password diminta interaktif:
+2. Buat role dan database, sekali saja. Superuser tidak selalu bernama `postgres`, jadi cari dulu namanya, lalu pakai sebagai `<superuser>`. Password diminta interaktif:
 
    ```bash
+   docker exec "$PG_CONTAINER" printenv POSTGRES_USER
    docker cp deploy/sql/00-bootstrap.sql "$PG_CONTAINER":/tmp/00-bootstrap.sql
-   docker exec -it "$PG_CONTAINER" psql -U postgres -f /tmp/00-bootstrap.sql
+   docker exec -it "$PG_CONTAINER" psql -U <superuser> -d postgres -f /tmp/00-bootstrap.sql
    docker exec "$PG_CONTAINER" rm /tmp/00-bootstrap.sql
    ```
 
@@ -104,6 +105,19 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
 
 `COOKIE_SECURE` tetap `false` selama akses lewat HTTP LAN.
+
+Bila container backend restart terus, baca lognya lalu periksa binary di dalam image. Image distroless tidak punya shell, jadi binary disalin keluar dulu:
+
+```bash
+docker compose -f deploy/docker-compose.yml logs --tail=20 backend
+id=$(docker create nvm-compro-backend)
+docker cp "$id":/usr/local/bin/server /tmp/server-cek
+docker rm "$id"
+file /tmp/server-cek
+rm /tmp/server-cek
+```
+
+Hasil yang benar memuat `statically linked`. Kalau log berisi `no such file or directory` dan `file` menampilkan `dynamically linked`, periksa perintah build di `backend/Dockerfile`: harus memakai `CGO_ENABLED=0` dan `-tags nodynamic`.
 
 ## Kredit
 
