@@ -18,7 +18,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 3 | Auth admin, API admin, media, ekspor, CLI | M | selesai |
 | 4 | Kerangka frontend dan komponen state | M | selesai |
 | 5 | Beranda (Knit Field), Brand, Teknologi | M | selesai |
-| 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | belum |
+| 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | selesai |
 | 7 | Galeri, Testimoni, halaman admin | M | belum |
 | 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | belum |
 | 9 | Docker Compose dan deploy LAN | M | belum |
@@ -169,4 +169,12 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: `@theme static`, agar semua token tersedia sebagai variabel CSS untuk `app.css` dan kanvas.
 - Temuan: `public/fonts/D-DIN.ttf` isinya WOFF2 (signature `wOF2`, 20 KB). `@font-face` memakai `format('woff2')`. Cakupan glyph perlu dilihat di Sprint 10.
 - Catatan: FR-16 hanya menampilkan "2021, Bandung". SRS 8 tidak punya tabel garis waktu, jadi entri tambahan lewat data belum bisa.
+- Menunggu user: tidak ada.
+
+### Sprint 6
+
+- Dibuat: Produk (matriks dan daftar collab), B2B (formulir dan layar sukses), Size (, Mode A dan B, Size marker), Kontak, Privasi, 404.
+- Keputusan: tinggi tepat di batas (contoh 170) dianggap di antara dua ukuran (M dan L). Seri selisih di Mode B juga.
+- Keputusan: tech tanpa fit tampil di matriks sebagai satu sel "Tanpa pilihan fit" ke . Link matriks tidak bergantung on_rack (FR-31).
+- Catatan: foto collab (FR-32) belum tampil, SRS 8 tidak punya kolom gambar di .
 - Menunggu user: tidak ada.

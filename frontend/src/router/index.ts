@@ -111,7 +111,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: ':pathMatch(.*)*',
-        component: pending,
+        component: () => import('@/pages/NotFoundPage.vue'),
         meta: {
           title: 'Halaman tidak ditemukan',
           description: 'Alamat yang kamu buka tidak ada di situs No Void Minds.',
