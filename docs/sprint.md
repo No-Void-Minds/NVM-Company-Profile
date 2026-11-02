@@ -29,7 +29,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | selesai |
 | 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | selesai |
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | selesai |
-| 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | belum |
+| 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | belum |
 
 ---
@@ -313,3 +313,33 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 - Keputusan: ruler disembunyikan dari pembaca layar, karena nilainya sudah ada di input. Size marker menunggu 400 ms sampai jarum tiba, tanpa jeda saat reduced motion.
 - Catatan: build dan prerender 20 halaman lolos. Perbedaan visual 11 swatch, kontras, dan Lighthouse baru dicek di Sprint 16 (AC-22, AC-23).
 - Menunggu user: tidak ada.
+
+### Sprint 16
+
+- Hasil: build dan prerender 20 halaman lolos. `go test` dan Vitest lolos (Vitest 50). curl API 196/196 terhadap `nvm_compro_test`. Playwright di dev: 105 lolos, 23 dilewati karena hanya berlaku di build produksi. Di build produksi: 128/128. Lighthouse mobile Beranda ID dan EN, tema terang, tiga kali masing-masing: 100/100/100/100 (LCP 0,8 s, CLS 0, TBT 0 ms).
+- Migrasi 0003 di `nvm_compro_test` (dicek read-only): `tech_i18n` 22 baris (en 11, id 11), baris en sama dengan kolom `techs`, kolom baru punya default, `compro_app` bisa SELECT dan INSERT.
+- AC-20: `darkTheme` dihapus sementara dari `en.ts`, `vue-tsc` gagal dengan TS2741, file dipulihkan tanpa diff. Ditambah test Vitest kunci kamus sama dan tanpa teks kosong.
+- Diperbaiki: nama aksesibel tombol ID / EN tidak memuat teks yang terlihat (axe label-content-name-mismatch di semua halaman). Peragaan swatch berakhir dengan partikel udara tersisa, bukan frame diam.
+- Disesuaikan: test lama untuk teks Indonesia baru, cincin fokus `--signal` tema aktif, `color-scheme` terang default, pola route dengan `?lang`, label admin yang kini ambigu.
+- Keputusan: `swatchPattern` dipisah dari kanvas agar 11 pola bisa diuji di Vitest. Perbedaan pikselnya diuji di Playwright pada kedua tema.
+- Keputusan: test storage diblokir hanya dinilai di build produksi, karena klien dev Vite ikut membaca localStorage dan memunculkan error yang tidak ada di situs.
+- Temuan: tanpa `VITE_PUBLIC_BASE_URL`, canonical dan hreflang relatif sehingga SEO Lighthouse 83. Dengan variabel itu (diwajibkan compose di VM) SEO 100. Test AC-21 menerima keduanya.
+- Belum diverifikasi: image Docker dan Nginx asli untuk v1.2 (Sprint 17), Firefox, Safari, perangkat fisik.
+- Menunggu user: cek `docs/terjemahan.md`, logo resmi versi gelap atau SVG (favicon), lalu deploy Sprint 17.
+
+#### Delivery Gate v1.2
+
+| Poin AntiSlop | Hasil | Bukti |
+|---|---|---|
+| Tanpa em dash | PASS | Pindai `dist`, sumber, dokumen, dan pesan commit sejak Sprint 12: 0 temuan |
+| Tanpa emoji | PASS | Pindai rentang Unicode emoji di 176 berkas: 0 temuan |
+| Target sentuh 44 px | PASS | `smallTargets` di 11 halaman publik ID, 11 EN (320 dan 1440), 6 admin, 5 lebar, 2 tema: 0 temuan |
+| Tanpa scroll horizontal dari 320 | PASS | `scrollWidth` di set yang sama: 0 |
+| Fokus terlihat | PASS | Outline 2px `--signal` tema aktif dicek per Tab di Beranda dan formulir B2B |
+| Keyboard penuh | PASS | Skip link, menu, tombol tema dan bahasa, panel Teknologi, tab Size, formulir B2B, lightbox, dialog, login admin |
+| State loading, kosong, error | PASS | Termasuk strip swatch Beranda. Error dari kode diuji di ID dan EN (FR-116) |
+| CTA spesifik | PASS | Grep Get Started, Learn More, Selengkapnya, Read more, Submit: 0 temuan |
+| Hover punya padanan tap | PASS | Aturan hover baru (swatch, tombol) ada di `@media (hover: hover)` dengan `:active` (tinjauan kode) |
+| Komentar kode | PASS | Grep TODO, FIXME, banner, label CAPS: 0 temuan (kualitas isi tidak diukur) |
+| Warna, motif, gerak | PASS | Hex di luar `tokens.css` hanya dua nilai `--bg` di skrip anti-kedip. `#FF5A36` di tema terang: 0 elemen di 17 halaman. Shadow, blur, glow: 0. Gradien hanya pola rajut dan grid ukur. Swatch, ruler, dan kanvas diam saat reduced motion |
+| Axe dan kontras dua tema (AC-18) | PASS | Axe wcag2a sampai wcag22aa termasuk color-contrast: 0 pelanggaran di semua kombinasi di atas |
