@@ -37,6 +37,42 @@ interface Frame {
 
 const REST: Frame = { deform: 0, progress: 0, reveal: 1 }
 
+export interface SwatchPattern {
+  porous: boolean
+  ribbed: boolean
+  stretchy: boolean
+  lofty: boolean
+  backed: boolean
+  shelled: boolean
+  pitch: number
+  slant: number
+  wave: number
+  waveFrequency: number
+  loopAspect: number
+  poreEvery: number
+}
+
+// Pure, so the difference between the 11 swatches can be tested without a canvas (AC-22).
+export function swatchPattern(source: SwatchSource): SwatchPattern {
+  const needs = new Set(source.needs)
+  const stretchy = needs.has('move')
+  return {
+    porous: needs.has('hot'),
+    ribbed: needs.has('shape'),
+    stretchy,
+    lofty: needs.has('soft'),
+    backed: needs.has('cold'),
+    shelled: needs.has('layer'),
+    // A later generation is a finer, denser knit
+    pitch: Math.max(6, 10 - 2 * (source.generation - 1)),
+    slant: (hash(source.key, 1) - 0.5) * 0.5,
+    wave: stretchy ? 1 + hash(source.key, 2) * 2.5 : 0,
+    waveFrequency: 0.08 + hash(source.key, 3) * 0.12,
+    loopAspect: 0.7 + hash(source.key, 4) * 0.8,
+    poreEvery: 3 + Math.floor(hash(source.key, 5) * 2),
+  }
+}
+
 export class Swatch {
   private readonly ctx: CanvasRenderingContext2D
   private width = 0
@@ -47,18 +83,7 @@ export class Swatch {
   private inViewport = true
   private colors = { stitch: '', accent: '', back: '', surface: '' }
 
-  private readonly porous: boolean
-  private readonly ribbed: boolean
-  private readonly stretchy: boolean
-  private readonly lofty: boolean
-  private readonly backed: boolean
-  private readonly shelled: boolean
-  private readonly pitch: number
-  private readonly slant: number
-  private readonly wave: number
-  private readonly waveFrequency: number
-  private readonly loopAspect: number
-  private readonly poreEvery: number
+  private readonly pattern: SwatchPattern
 
   private readonly stopTheme: () => void
   private readonly viewport: IntersectionObserver
@@ -72,20 +97,7 @@ export class Swatch {
     if (!ctx) throw new Error('Canvas 2D tidak tersedia')
     this.ctx = ctx
 
-    const needs = new Set(source.needs)
-    this.porous = needs.has('hot')
-    this.ribbed = needs.has('shape')
-    this.stretchy = needs.has('move')
-    this.lofty = needs.has('soft')
-    this.backed = needs.has('cold')
-    this.shelled = needs.has('layer')
-    // A later generation is a finer, denser knit
-    this.pitch = Math.max(6, 10 - 2 * (source.generation - 1))
-    this.slant = (hash(source.key, 1) - 0.5) * 0.5
-    this.wave = this.stretchy ? 1 + hash(source.key, 2) * 2.5 : 0
-    this.waveFrequency = 0.08 + hash(source.key, 3) * 0.12
-    this.loopAspect = 0.7 + hash(source.key, 4) * 0.8
-    this.poreEvery = 3 + Math.floor(hash(source.key, 5) * 2)
+    this.pattern = swatchPattern(source)
 
     this.readColors()
     this.stopTheme = onThemeChange(() => {
@@ -175,18 +187,18 @@ export class Swatch {
   }
 
   private place(col: number, row: number, deform: number) {
-    const stepX = this.pitch
-    const stepY = this.pitch * 0.8
-    let x = col * stepX + (row % 2) * (stepX / 2) + row * stepY * this.slant
+    const stepX = this.pattern.pitch
+    const stepY = this.pattern.pitch * 0.8
+    let x = col * stepX + (row % 2) * (stepX / 2) + row * stepY * this.pattern.slant
     let y = row * stepY
-    if (this.wave) x += Math.sin(y * this.waveFrequency) * this.wave
-    if (this.stretchy) {
+    if (this.pattern.wave) x += Math.sin(y * this.pattern.waveFrequency) * this.pattern.wave
+    if (this.pattern.stretchy) {
       // Move: stretches in four directions around the middle
       const cx = this.width / 2
       const cy = this.height / 2
       x = cx + (x - cx) * (1 + 0.14 * deform)
       y = cy + (y - cy) * (1 + 0.14 * deform)
-    } else if (this.ribbed) {
+    } else if (this.pattern.ribbed) {
       // Shape: a stiff knit barely gives when pushed
       x += deform * 1.5
     }
@@ -195,12 +207,12 @@ export class Swatch {
 
   private drawStitches(color: string, offsetY: number, frame: Frame) {
     const { ctx } = this
-    const stepY = this.pitch * 0.8
-    const cols = Math.ceil(this.width / this.pitch) + 4
+    const stepY = this.pattern.pitch * 0.8
+    const cols = Math.ceil(this.width / this.pattern.pitch) + 4
     const rows = Math.ceil(this.height / stepY) + 3
-    const half = this.pitch * 0.42
+    const half = this.pattern.pitch * 0.42
     const limit = frame.reveal * this.width
-    const loop = this.lofty ? half * (0.55 + 0.35 * frame.deform) : 0
+    const loop = this.pattern.lofty ? half * (0.55 + 0.35 * frame.deform) : 0
 
     ctx.strokeStyle = color
     ctx.lineWidth = 1
@@ -209,8 +221,9 @@ export class Swatch {
       for (let col = -3; col < cols; col++) {
         // Hot: some stitches are left open, which reads as pores
         if (
-          this.porous &&
-          ((row % this.poreEvery) + this.poreEvery) % this.poreEvery === 0 &&
+          this.pattern.porous &&
+          ((row % this.pattern.poreEvery) + this.pattern.poreEvery) % this.pattern.poreEvery ===
+            0 &&
           col % 2 === 0
         )
           continue
@@ -221,7 +234,7 @@ export class Swatch {
         if (loop > 0) {
           // Soft: rounded loops that swell during the demo
           ctx.moveTo(x + loop, y + offsetY)
-          ctx.ellipse(x, y + offsetY, loop, loop * this.loopAspect, 0, 0, Math.PI * 2)
+          ctx.ellipse(x, y + offsetY, loop, loop * this.pattern.loopAspect, 0, 0, Math.PI * 2)
         } else {
           // Jersey knit: each stitch is a small V
           ctx.moveTo(x - half, top)
@@ -229,7 +242,7 @@ export class Swatch {
           ctx.lineTo(x + half, top)
         }
       }
-      if (this.ribbed && row % 2 === 0) {
+      if (this.pattern.ribbed && row % 2 === 0) {
         const y = row * stepY + offsetY + stepY * 0.6
         ctx.moveTo(0, y)
         ctx.lineTo(Math.min(limit, this.width), y)
@@ -267,12 +280,16 @@ export class Swatch {
     ctx.fillRect(0, 0, this.width, this.height)
 
     // Cold: a second layer behind, which slides into place during the demo
-    if (this.backed) {
-      this.drawStitches(this.colors.back, this.pitch * 0.4 + frame.deform * this.pitch, frame)
+    if (this.pattern.backed) {
+      this.drawStitches(
+        this.colors.back,
+        this.pattern.pitch * 0.4 + frame.deform * this.pattern.pitch,
+        frame,
+      )
     }
     this.drawStitches(this.colors.stitch, 0, frame)
-    if (this.porous && frame.progress > 0) this.drawAir(frame.progress)
-    if (this.shelled) this.drawShell(frame.deform)
+    if (this.pattern.porous && frame.progress > 0) this.drawAir(frame.progress)
+    if (this.pattern.shelled) this.drawShell(frame.deform)
 
     // The shuttle line marks where the weave has reached
     if (frame.reveal < 1) {
