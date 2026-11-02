@@ -16,6 +16,7 @@ go test ./...
 
 cd "$root/frontend"
 npx vue-tsc --noEmit
+npx vitest run
 npx eslint .
 npx prettier --check .
 
