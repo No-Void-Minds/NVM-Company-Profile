@@ -177,5 +177,5 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: tinggi tepat di batas (contoh 170) dianggap di antara dua ukuran (M dan L). Seri selisih di Mode B juga.
 - Keputusan: tech tanpa fit tampil di matriks sebagai satu sel "Tanpa pilihan fit" ke `core+<tech>`. Link matriks tidak bergantung on_rack (FR-31).
 - Catatan: foto collab (FR-32) belum tampil, SRS 8 tidak punya kolom gambar di `collabs`.
-- Koreksi proses: commit `6612287` masuk saat `check.sh` gagal (error tipe `aria-invalid`), karena commit dirangkai setelah pipeline `tail`. Route Sprint 6 juga belum tersambung di commit itu. Diperbaiki di commit berikutnya, dan commit kini mengecek exit code `check.sh`.
+- Koreksi proses: commit `6612287` masuk saat `check.sh` gagal (error tipe `aria-invalid`), karena commit dirangkai setelah pipeline `tail`. Tipe diperbaiki di `bb7c02e`. Route Sprint 6 baru benar-benar tersambung di commit sesudahnya, walau pesan `bb7c02e` menyebut sudah. Commit kini mengecek exit code `check.sh`.
 - Menunggu user: tidak ada.

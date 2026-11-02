@@ -49,7 +49,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'produk',
-        component: pending,
+        component: () => import('@/pages/ProductPage.vue'),
         meta: {
           title: 'Produk',
           description:
@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'b2b',
-        component: pending,
+        component: () => import('@/pages/B2BPage.vue'),
         meta: {
           title: 'B2B',
           description:
@@ -84,7 +84,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'size',
-        component: pending,
+        component: () => import('@/pages/SizePage.vue'),
         meta: {
           title: 'Size',
           description:
@@ -93,7 +93,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'kontak',
-        component: pending,
+        component: () => import('@/pages/ContactPage.vue'),
         meta: {
           title: 'Kontak',
           description:
@@ -102,7 +102,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'privasi',
-        component: pending,
+        component: () => import('@/pages/PrivacyPage.vue'),
         meta: {
           title: 'Kebijakan Privasi',
           description:
