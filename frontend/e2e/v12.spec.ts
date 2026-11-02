@@ -208,10 +208,13 @@ test.describe('AC-21 prerender dan sitemap', () => {
       const base = route.startsWith('/en') ? route.slice(3) || '/' : route
       const en = base === '/' ? '/en' : `/en${base}`
       expect(html).toContain(`<html lang="${lang}">`)
-      expect(html).toContain(`rel="canonical" href="${lang === 'en' ? en : base}"`)
-      expect(html).toContain(`hreflang="id" href="${base}"`)
-      expect(html).toContain(`hreflang="en" href="${en}"`)
-      expect(html).toContain(`hreflang="x-default" href="${base}"`)
+      // Absolute when the build has VITE_PUBLIC_BASE_URL (as on the VM), root relative otherwise
+      const href = (path: string) =>
+        new RegExp(`href="(https?://[^/"]+)?${path.replace(/[.?]/g, '\\$&')}"`)
+      expect(html).toMatch(new RegExp(`rel="canonical" ${href(lang === 'en' ? en : base).source}`))
+      expect(html).toMatch(new RegExp(`hreflang="id" ${href(base).source}`))
+      expect(html).toMatch(new RegExp(`hreflang="en" ${href(en).source}`))
+      expect(html).toMatch(new RegExp(`hreflang="x-default" ${href(base).source}`))
       expect(html).toContain(`og:locale" content="${lang === 'en' ? 'en_US' : 'id_ID'}"`)
       // Real markup, not the empty shell
       expect(html).toContain('<main id="main"')
