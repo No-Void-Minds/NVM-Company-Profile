@@ -16,6 +16,46 @@ export const PUBLIC_ROUTES = [
   '/halaman-yang-tidak-ada',
 ]
 
+// The same pages on the English site (FR-110)
+export const EN_ROUTES = PUBLIC_ROUTES.map((route) => (route === '/' ? '/en' : `/en${route}`))
+
+export const THEMES = ['light', 'dark'] as const
+export type Theme = (typeof THEMES)[number]
+
+// Stores the choice before any page script runs, the way a returning visitor arrives.
+export async function useTheme(page: Page, theme: Theme) {
+  await page.addInitScript((value) => {
+    try {
+      localStorage.setItem('nvm-theme', value)
+    } catch {
+      // Ignored, the test then sees the default theme and fails loudly
+    }
+  }, theme)
+}
+
+// #FF5A36 is only allowed in the dark theme (SRS 14.2). Lists elements that paint it.
+export async function brightSignalUses(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = []
+    const props = [
+      'color',
+      'background-color',
+      'border-top-color',
+      'border-left-color',
+      'outline-color',
+    ]
+    for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+      const style = getComputedStyle(el)
+      for (const prop of props) {
+        if (style.getPropertyValue(prop) === 'rgb(255, 90, 54)') {
+          out.push(`${el.tagName}.${el.className} ${prop}`)
+        }
+      }
+    }
+    return out
+  })
+}
+
 export const ADMIN_ROUTES = [
   '/admin/inquiry',
   '/admin/galeri',
@@ -141,13 +181,19 @@ export async function focusRing(page: Page) {
     const el = document.activeElement as HTMLElement | null
     if (!el || el === document.body) return { tag: 'BODY', ok: false, text: '' }
     const style = getComputedStyle(el)
+    // The ring is --signal of the active theme, resolved to rgb through a probe element
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--signal)'
+    document.body.appendChild(probe)
+    const signal = getComputedStyle(probe).color
+    probe.remove()
     return {
       tag: el.tagName,
       text: (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 40),
       ok:
         style.outlineStyle === 'solid' &&
         style.outlineWidth === '2px' &&
-        style.outlineColor === 'rgb(255, 90, 54)',
+        style.outlineColor === signal,
     }
   })
 }

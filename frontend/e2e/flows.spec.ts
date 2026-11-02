@@ -3,13 +3,16 @@ import AxeBuilder from '@axe-core/playwright'
 import {
   ADMIN_ROUTES,
   adminPage,
+  brightSignalUses,
   expect,
   focusRing,
   horizontalOverflow,
   settled,
   smallTargets,
   test,
+  THEMES,
   UJI_IMAGE,
+  useTheme,
   WIDTHS,
 } from './support'
 
@@ -164,7 +167,7 @@ test('FR-91, FR-50, FR-51 unggah galeri lalu lightbox lengkap', async ({ browser
 
   for (const [index, alt] of alts.entries()) {
     await page.getByLabel('File gambar').setInputFiles(UJI_IMAGE)
-    await page.getByLabel('Teks alt').fill(alt)
+    await page.getByLabel('Teks alt', { exact: true }).fill(alt)
     await page.getByLabel('Kategori').fill(index === 0 ? 'lookbook' : 'event')
     await page.getByRole('button', { name: 'Unggah foto' }).click()
     await expect(page.getByText(alt, { exact: true })).toBeVisible()
@@ -243,7 +246,7 @@ test('AC-08 testimoni tidak bisa publish tanpa centang buram', async ({ browser 
   await page.getByLabel('Tanggal ulasan').fill('2026-10-01')
   await page.getByLabel('Tech').selectOption('aezy')
   await page.getByLabel('Rating bintang').selectOption('5')
-  await page.getByLabel('Transkrip').fill(transcript)
+  await page.getByLabel('Transkrip', { exact: true }).fill(transcript)
   await page.getByRole('button', { name: 'Unggah testimoni' }).click()
 
   const row = page.getByRole('listitem').filter({ hasText: transcript })
@@ -395,30 +398,50 @@ test('FR-96 log audit menampilkan perubahan', async ({ browser }) => {
   await context.close()
 })
 
-for (const width of WIDTHS) {
-  test(`admin lebar ${width}: tanpa scroll horizontal, target 44 px, axe bersih`, async ({
-    browser,
-  }) => {
-    const { context, page } = await adminPage(browser, width)
-    const problems: string[] = []
-    for (const route of ADMIN_ROUTES) {
-      await page.goto(route)
-      await settled(page)
-      const overflow = await horizontalOverflow(page)
-      if (overflow > 0) problems.push(`${route}: overflow ${overflow}px`)
-      for (const small of await smallTargets(page)) problems.push(`${route}: kecil ${small}`)
-      const axe = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-        .analyze()
-      for (const violation of axe.violations) {
-        const target = violation.nodes[0]?.target.join(' ')
-        problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
+// AC-18 for the six admin pages, and FR-106: admin follows both themes
+for (const theme of THEMES) {
+  for (const width of WIDTHS) {
+    test(`admin ${theme} lebar ${width}: tanpa scroll horizontal, target 44 px, axe bersih`, async ({
+      browser,
+    }) => {
+      const { context, page } = await adminPage(browser, width)
+      await useTheme(page, theme)
+      const problems: string[] = []
+      for (const route of ADMIN_ROUTES) {
+        await page.goto(route)
+        await settled(page)
+        const shown = await page.evaluate(() => document.documentElement.dataset.theme ?? 'light')
+        if (shown !== theme) problems.push(`${route}: tema ${shown}`)
+        if (theme === 'light') {
+          for (const use of await brightSignalUses(page)) problems.push(`${route}: #FF5A36 ${use}`)
+        }
+        const overflow = await horizontalOverflow(page)
+        if (overflow > 0) problems.push(`${route}: overflow ${overflow}px`)
+        for (const small of await smallTargets(page)) problems.push(`${route}: kecil ${small}`)
+        const axe = await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+          .analyze()
+        for (const violation of axe.violations) {
+          const target = violation.nodes[0]?.target.join(' ')
+          problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
+        }
       }
-    }
-    expect(problems).toEqual([])
-    await context.close()
-  })
+      expect(problems).toEqual([])
+      await context.close()
+    })
+  }
 }
+
+test('FR-106 tombol tema di admin', async ({ browser }) => {
+  const { context, page } = await adminPage(browser)
+  await page.goto('/admin/katalog')
+  await settled(page)
+  await page.getByRole('button', { name: 'Tema gelap' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await context.close()
+})
 
 test('admin tanpa sesi diarahkan ke login dan kembali ke tujuan', async ({ page }) => {
   await page.goto('/admin/katalog')

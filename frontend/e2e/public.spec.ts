@@ -1,5 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import {
+  brightSignalUses,
+  EN_ROUTES,
   expect,
   focusRing,
   horizontalOverflow,
@@ -7,8 +9,14 @@ import {
   settled,
   smallTargets,
   test,
+  THEMES,
+  useTheme,
   WIDTHS,
 } from './support'
+
+// Query strings such as ?lang=id must still match (FR-113)
+const TECHS_API = /\/api\/techs(\?|$)/
+const GALLERY_API = /\/api\/gallery(\?|$)/
 
 const MENU = ['Brand', 'Teknologi', 'Produk', 'B2B', 'Galeri', 'Testimoni', 'Size', 'Kontak']
 
@@ -62,20 +70,20 @@ test.describe('AC-01 navigasi', () => {
 })
 
 test.describe('AC-02, AC-03 Teknologi', () => {
-  test('AC-02 11 tech dan filter Runs hot', async ({ page }) => {
+  test('AC-02 11 tech dan filter Mudah gerah', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/teknologi')
     await settled(page)
     const rows = page.locator('.index-row')
     await expect(rows).toHaveCount(11)
-    await expect(page.getByText('11 fit')).toBeVisible()
+    await expect(page.getByText('11 cocok')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Runs hot' }).click()
-    await expect(page.getByRole('button', { name: 'Runs hot' })).toHaveAttribute(
+    await page.getByRole('button', { name: 'Mudah gerah' }).click()
+    await expect(page.getByRole('button', { name: 'Mudah gerah' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
-    await expect(page.getByText('03 fit')).toBeVisible()
+    await expect(page.getByText('03 cocok')).toBeVisible()
     const bright = page.locator('.index-row:not(.index-row-dim)')
     await expect(bright).toHaveText([/AEZY™/, /AEZY COTTON™/, /AEZY 2™/])
     await expect(page.locator('.index-row-dim')).toHaveCount(8)
@@ -89,7 +97,7 @@ test.describe('AC-02, AC-03 Teknologi', () => {
       await expect(
         page.getByRole('heading', { level: 2, name: 'FORMLOCK™', exact: true }),
       ).toBeVisible()
-      await expect(page.getByText('For cuts that refuse to sag.')).toBeVisible()
+      await expect(page.getByText('Untuk potongan yang menolak melorot.')).toBeVisible()
       await expect(
         page.getByRole('heading', { level: 2, name: 'FORMLOCK™', exact: true }),
       ).toBeInViewport({ ratio: 1 })
@@ -124,7 +132,7 @@ test.describe('AC-02, AC-03 Teknologi', () => {
 })
 
 test.describe('AC-04, AC-05 Size', () => {
-  test('tabel utuh tanpa geser di 1024, kontrol native gelap, tombol header satu baris', async ({
+  test('tabel utuh tanpa geser di 1024, kontrol native ikut tema terang, tombol header satu baris', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1024, height: 800 })
@@ -134,7 +142,7 @@ test.describe('AC-04, AC-05 Size', () => {
       .locator('.scroll-x')
       .evaluate((el) => el.scrollWidth - el.clientWidth)
     expect(clipped).toBeLessThanOrEqual(0)
-    await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark')
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'light')
     const shop = await page
       .getByRole('banner')
       .getByRole('link', { name: 'Belanja di Shopify' })
@@ -214,7 +222,7 @@ test.describe('Produk', () => {
 
 test.describe('AC-10 state', () => {
   test('Teknologi dan Lab index kosong punya pesan jujur', async ({ page }) => {
-    await page.route('**/api/techs', (route) => route.fulfill({ json: [] }))
+    await page.route(TECHS_API, (route) => route.fulfill({ json: [] }))
     await page.route('**/api/lab-stats', (route) =>
       route.fulfill({ json: { systems: 0, on_rack: 0, est_year: 2021 } }),
     )
@@ -227,7 +235,7 @@ test.describe('AC-10 state', () => {
   })
 
   test('Galeri dan Testimoni kosong jujur', async ({ page }) => {
-    await page.route('**/api/gallery', (route) => route.fulfill({ json: [] }))
+    await page.route(GALLERY_API, (route) => route.fulfill({ json: [] }))
     await page.route('**/api/testimonials', (route) => route.fulfill({ json: [] }))
     await page.goto('/galeri')
     await settled(page)
@@ -240,7 +248,7 @@ test.describe('AC-10 state', () => {
   })
 
   test('FR-13 potongan kosong hilang dari Beranda', async ({ page }) => {
-    await page.route('**/api/gallery', (route) => route.fulfill({ json: [] }))
+    await page.route(GALLERY_API, (route) => route.fulfill({ json: [] }))
     await page.route('**/api/testimonials', (route) => route.fulfill({ json: [] }))
     await page.goto('/')
     await settled(page)
@@ -248,13 +256,15 @@ test.describe('AC-10 state', () => {
     await expect(page.getByRole('heading', { name: 'Galeri', level: 2 })).toHaveCount(0)
   })
 
-  for (const [route, pattern] of [
-    ['/', '**/api/lab-stats'],
-    ['/teknologi', '**/api/techs'],
-    ['/produk', '**/api/techs'],
-    ['/galeri', '**/api/gallery'],
-    ['/testimoni', '**/api/testimonials'],
-    ['/size', '**/api/techs'],
+  for (const [route, pattern, message] of [
+    ['/', '**/api/lab-stats', 'Tidak bisa terhubung'],
+    ['/teknologi', TECHS_API, 'Tidak bisa terhubung'],
+    ['/produk', TECHS_API, 'Tidak bisa terhubung'],
+    ['/galeri', GALLERY_API, 'Tidak bisa terhubung'],
+    ['/testimoni', '**/api/testimonials', 'Tidak bisa terhubung'],
+    ['/size', TECHS_API, 'Tidak bisa terhubung'],
+    // FR-116: the English site gets the English text for the same error code
+    ['/en/teknologi', TECHS_API, 'Cannot reach the server'],
   ] as const) {
     test(`API mati di ${route} menampilkan error dan Coba lagi`, async ({
       page,
@@ -263,16 +273,18 @@ test.describe('AC-10 state', () => {
       allowFailedRequests.value = true
       await page.route(pattern, (r) => r.abort())
       await page.goto(route)
-      await expect(page.getByRole('alert')).toContainText('Tidak bisa terhubung')
+      await expect(page.getByRole('alert')).toContainText(message)
       await page.unroute(pattern)
-      await page.getByRole('button', { name: 'Coba lagi' }).click()
+      await page
+        .getByRole('button', { name: route.startsWith('/en') ? 'Try again' : 'Coba lagi' })
+        .click()
       await expect(page.getByRole('alert')).toHaveCount(0)
       await settled(page)
     })
   }
 
   test('skeleton garis rajut saat memuat', async ({ page }) => {
-    await page.route('**/api/techs', async (route) => {
+    await page.route(TECHS_API, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 800))
       await route.continue()
     })
@@ -317,7 +329,9 @@ test.describe('AC-11 reduced motion', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/teknologi')
     await settled(page)
-    await expect(page.getByText('Ilustrasi, bukan hasil uji')).toBeVisible()
+    // Both the swatch and the probe carry the label
+    await expect(page.getByText('Ilustrasi, bukan hasil uji')).toHaveCount(2)
+    await expect(page.getByText('Ilustrasi, bukan hasil uji').first()).toBeVisible()
     await expect(page.getByRole('button', { name: 'Peragakan sifat kain' })).toHaveCount(0)
   })
 })
@@ -360,27 +374,45 @@ test.describe('NFR-04 tanpa reduced motion', () => {
   })
 })
 
-test.describe('AC-13, target sentuh, axe', () => {
-  for (const width of WIDTHS) {
-    test(`lebar ${width}: tanpa scroll horizontal, target 44 px, axe bersih`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 })
-      const problems: string[] = []
-      for (const route of PUBLIC_ROUTES) {
-        await page.goto(route)
-        await settled(page)
-        const overflow = await horizontalOverflow(page)
-        if (overflow > 0) problems.push(`${route}: overflow ${overflow}px`)
-        for (const small of await smallTargets(page)) problems.push(`${route}: kecil ${small}`)
-        const axe = await new AxeBuilder({ page })
-          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-          .analyze()
-        for (const violation of axe.violations) {
-          const target = violation.nodes[0]?.target.join(' ')
-          problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
+// AC-13 and AC-18: every public page in both languages, both themes, 5 widths.
+// Axe wcag2aa includes color-contrast, which is the contrast check of AC-18.
+test.describe('AC-13, AC-18 target sentuh, axe, kontras', () => {
+  test.describe.configure({ timeout: 240_000 })
+  for (const theme of THEMES) {
+    for (const width of WIDTHS) {
+      test(`${theme} lebar ${width}: tanpa scroll horizontal, target 44 px, axe bersih`, async ({
+        page,
+      }) => {
+        await useTheme(page, theme)
+        await page.setViewportSize({ width, height: 900 })
+        const problems: string[] = []
+        // English pages at the narrowest and widest width, the rest share the layout
+        const routes =
+          width === 320 || width === 1440 ? [...PUBLIC_ROUTES, ...EN_ROUTES] : PUBLIC_ROUTES
+        for (const route of routes) {
+          await page.goto(route)
+          await settled(page)
+          expect(await page.evaluate(() => document.documentElement.dataset.theme ?? 'light')).toBe(
+            theme,
+          )
+          const overflow = await horizontalOverflow(page)
+          if (overflow > 0) problems.push(`${route}: overflow ${overflow}px`)
+          for (const small of await smallTargets(page)) problems.push(`${route}: kecil ${small}`)
+          if (theme === 'light') {
+            for (const use of await brightSignalUses(page))
+              problems.push(`${route}: #FF5A36 ${use}`)
+          }
+          const axe = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+            .analyze()
+          for (const violation of axe.violations) {
+            const target = violation.nodes[0]?.target.join(' ')
+            problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
+          }
         }
-      }
-      expect(problems).toEqual([])
-    })
+        expect(problems).toEqual([])
+      })
+    }
   }
 })
 
