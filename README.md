@@ -63,7 +63,7 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
    set -a; source deploy/.env; set +a
    ```
 
-2. Buat role dan database, sekali saja. Superuser tidak selalu bernama `postgres`, jadi cari dulu namanya, lalu pakai sebagai `<superuser>`. Password diminta interaktif:
+2. Buat role dan database, sekali saja. Superuser tidak selalu bernama `postgres` (di `nvm-server` namanya `nvm_internal`), jadi cek dulu dengan perintah pertama di bawah, lalu pakai hasilnya sebagai `<superuser>`. Password diminta interaktif:
 
    ```bash
    docker exec "$PG_CONTAINER" printenv POSTGRES_USER
@@ -104,6 +104,8 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
    30 19 * * * cd /srv/nvm-company-profile && docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec -T backend compro-admin purge-inquiries >>/srv/nvm-compro/backup/purge.log 2>&1
    ```
 
+   Backup berisi data pribadi inquiry B2B (UU PDP). Skrip memakai `umask 077` dan membuat folder backup dengan izin 700, jadi hanya pemiliknya yang bisa membaca. File dari run sebelum perubahan ini dirapikan sekali dengan `chmod 600 /srv/nvm-compro/backup/*`.
+
    Setiap run backup menulis satu baris ke `/srv/nvm-compro/backup/backup.log`: waktu, `OK` atau `GAGAL`, ukuran file db dan media, dan pesan error bila gagal. `cron.log` menampung output lain, misalnya `.env` yang tidak terbaca. Cek dengan `tail /srv/nvm-compro/backup/backup.log`.
 
 7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
@@ -112,7 +114,7 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
 ## Pulihkan dari backup
 
-Uji pemulihan ke database terpisah, jadi `nvm_compro` tidak tersentuh. Ganti `<superuser>` (lihat langkah 2 Deploy LAN) dan `<stamp>` dengan nama file di `/srv/nvm-compro/backup`:
+Cara ini sudah terbukti di `nvm-server`. Pemulihan diuji ke database terpisah, jadi `nvm_compro` tidak tersentuh. Ganti `<superuser>` (di `nvm-server`: `nvm_internal`, lihat langkah 2 Deploy LAN) dan `<stamp>` dengan nama file di `/srv/nvm-compro/backup`. Dump dikirim lewat stdin dengan `docker exec -i`, jadi file tidak perlu disalin ke container:
 
 ```bash
 set -a; source deploy/.env; set +a
@@ -121,7 +123,7 @@ docker exec -i "$PG_CONTAINER" pg_restore -U <superuser> -d nvm_compro_restore \
   --no-owner --no-privileges --exit-on-error <"/srv/nvm-compro/backup/db-<stamp>.dump"
 ```
 
-Periksa isinya. Jalankan query yang sama dengan `-d nvm_compro`, angkanya harus sama atau hanya selisih data sejak backup dibuat:
+Bandingkan jumlah baris tiap tabel dan versi `schema_migrations`. Jalankan query yang sama dengan `-d nvm_compro`, angkanya harus sama atau hanya selisih data sejak backup dibuat:
 
 ```bash
 docker exec "$PG_CONTAINER" psql -U <superuser> -d nvm_compro_restore -c '\dt'
@@ -133,14 +135,18 @@ docker exec "$PG_CONTAINER" psql -U <superuser> -d nvm_compro_restore -c "
          (SELECT count(*) FROM gallery_items) AS galeri,
          (SELECT count(*) FROM testimonials) AS testimoni,
          (SELECT count(*) FROM inquiries) AS inquiry,
-         (SELECT count(*) FROM admin_users) AS admin;"
+         (SELECT count(*) FROM admin_users) AS admin,
+         (SELECT count(*) FROM sessions) AS sesi,
+         (SELECT count(*) FROM audit_log) AS audit;"
 ```
 
-Media: buka arsip di folder sementara dan bandingkan jumlah filenya dengan folder asli:
+Media: buka arsip di folder sementara, lalu cocokkan sha256 setiap file dengan folder asli. Tanpa output selain `media cocok` berarti semua file sama. File yang diunggah setelah backup dibuat akan muncul sebagai `No such file`:
 
 ```bash
-mkdir /tmp/media-restore
+mkdir -m 700 /tmp/media-restore
 tar -xzf "/srv/nvm-compro/backup/media-<stamp>.tar.gz" -C /tmp/media-restore
+(cd /srv/nvm-compro/media && find . -type f -exec sha256sum {} +) >/tmp/media-restore.sha256
+(cd /tmp/media-restore && sha256sum --quiet -c /tmp/media-restore.sha256) && echo "media cocok"
 find /tmp/media-restore -type f | wc -l
 find /srv/nvm-compro/media -type f | wc -l
 ```
@@ -149,7 +155,7 @@ Bersihkan setelah selesai:
 
 ```bash
 docker exec "$PG_CONTAINER" dropdb -U <superuser> nvm_compro_restore
-rm -rf /tmp/media-restore
+rm -rf /tmp/media-restore /tmp/media-restore.sha256
 ```
 
 Bila container backend restart terus, baca lognya lalu periksa binary di dalam image. Image distroless tidak punya shell, jadi binary disalin keluar dulu:

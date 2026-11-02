@@ -2,6 +2,8 @@
 # Daily backup of the database and uploaded media, kept for 14 days (NFR-13).
 # Every run appends one line to $BACKUP_DIR/backup.log and exits non-zero on failure.
 set -euo pipefail
+# Dumps hold personal data from B2B inquiries (UU PDP), so only the owner may read them.
+umask 077
 
 deploy_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -11,7 +13,9 @@ set +a
 
 media_dir="/srv/nvm-compro/media"
 stamp="$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$BACKUP_DIR"
+mkdir -p -m 700 "$BACKUP_DIR"
+# mkdir -m only applies to a new folder, an existing one is tightened here.
+chmod 700 "$BACKUP_DIR"
 
 log_file="$BACKUP_DIR/backup.log"
 db_tmp="$BACKUP_DIR/.db-$stamp.tmp"
