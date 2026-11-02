@@ -30,7 +30,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | selesai |
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | selesai |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
-| 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | belum |
+| 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
 
 ---
 
@@ -161,6 +161,12 @@ AC-01 sampai AC-23 di kedua tema dan kedua bahasa, axe dan kontras di 17 halaman
 ## Sprint 17: Deploy revisi
 
 Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang situs dan admin.
+
+## Pekerjaan berikutnya
+
+- Kunci versi image `migrate/migrate` (sekarang `:latest`) di README, samakan dengan versi CLI `migrate` di laptop dev. Catatan: CLI dev mencetak `dev` pada `migrate -version` (dipasang dari source), jadi versinya perlu dipastikan dulu, misalnya dengan memasang ulang dari tag rilis.
+- Evaluasi `style-src 'unsafe-inline'` di CSP (`frontend/nginx-security-headers.conf`) sebelum rilis publik.
+- DNS `novoidminds.id` dikelola di Cloudflare sejak 2 November 2026. Record di GoDaddy hanya cadangan dan tidak aktif.
 
 ## Laporan sprint
 
@@ -343,3 +349,13 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 | Komentar kode | PASS | Grep TODO, FIXME, banner, label CAPS: 0 temuan (kualitas isi tidak diukur) |
 | Warna, motif, gerak | PASS | Hex di luar `tokens.css` hanya dua nilai `--bg` di skrip anti-kedip. `#FF5A36` di tema terang: 0 elemen di 17 halaman. Shadow, blur, glow: 0. Gradien hanya pola rajut dan grid ukur. Swatch, ruler, dan kanvas diam saat reduced motion |
 | Axe dan kontras dua tema (AC-18) | PASS | Axe wcag2a sampai wcag22aa termasuk color-contrast: 0 pelanggaran di semua kombinasi di atas |
+
+### Sprint 17
+
+Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
+
+- Backup manual sebelum deploy: `db-20261102-091358.dump`, OK.
+- `git pull` ke `cc52692`. Perubahan di `deploy/` hanya `VITE_PUBLIC_BASE_URL` dari `PUBLIC_BASE_URL`, `deploy/.env` tidak diubah.
+- Migrasi `0003` ke `nvm_compro` lewat container `migrate/migrate`: `3/u i18n`, versi 3, dirty false. `tech_i18n` en 11, id 11. Status on_rack yang diatur tim (aezy, aezy-cotton) tidak berubah.
+- `docker compose up -d --build`: pengaman binary statis lolos, health ok, `/teknologi` dan `/en/teknologi` 200, canonical dan hreflang memakai URL penuh, `/api/techs?lang=id` mengembalikan teks Indonesia, CSP memuat hash skrip anti-kedip.
+- Cek browser: belum dilaporkan.

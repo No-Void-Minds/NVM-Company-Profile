@@ -112,6 +112,8 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
 `COOKIE_SECURE` tetap `false` selama akses lewat HTTP LAN.
 
+DNS `novoidminds.id` dikelola di Cloudflare sejak 2 November 2026. Record di GoDaddy hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
+
 ## Pulihkan dari backup
 
 Cara ini sudah terbukti di `nvm-server`. Pemulihan diuji ke database terpisah, jadi `nvm_compro` tidak tersentuh. Ganti `<superuser>` (di `nvm-server`: `nvm_internal`, lihat langkah 2 Deploy LAN) dan `<stamp>` dengan nama file di `/srv/nvm-compro/backup`. Dump dikirim lewat stdin dengan `docker exec -i`, jadi file tidak perlu disalin ke container:
