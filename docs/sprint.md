@@ -21,7 +21,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | selesai |
 | 7 | Galeri, Testimoni, halaman admin | M | selesai |
 | 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | selesai |
-| 9 | Docker Compose dan deploy LAN | M | belum |
+| 9 | Docker Compose dan deploy LAN | M | selesai |
 | 10 | Pengujian menyeluruh dan Delivery Gate | M | belum |
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
 
@@ -196,3 +196,12 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: Nginx memakai `spa.html` (tanpa markup) untuk `/admin` dan alamat lain, agar tidak terjadi hydration mismatch.
 - Belum diverifikasi: `npm run build` dan prerender belum pernah dijalankan, karena `check.sh` tidak memuat build. Pertama dijalankan di Sprint 10.
 - Menunggu user: tidak ada.
+
+### Sprint 9
+
+- Dibuat: `backend/Dockerfile`, `frontend/Dockerfile`, `nginx.conf`, `deploy/docker-compose.yml`, `deploy/.env.example`, `deploy/backup.sh`, langkah deploy di README.
+- Keputusan: `TRUSTED_PROXIES` diisi subnet jaringan compose, dan Nginx menimpa `X-Forwarded-For`, agar rate limit per pengunjung dan IP tidak bisa dipalsukan.
+- Keputusan: header keamanan halaman dipasang di Nginx lewat file include, karena `add_header` per location memutus pewarisan dari server.
+- Keputusan: `client_max_body_size 10m`. Backend memakai `read_only`, `cap_drop: ALL`, media di-chown ke uid 65532.
+- Belum diverifikasi: image Docker, `nginx.conf`, compose, dan `backup.sh` belum pernah dijalankan.
+- Menunggu user: nilai `PG_NETWORK` dan `PG_CONTAINER` dari VM, lalu deploy.

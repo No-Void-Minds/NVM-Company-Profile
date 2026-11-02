@@ -1,0 +1,50 @@
+name: nvm-compro
+
+services:
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?isi DATABASE_URL di deploy/.env}
+      IP_HASH_SALT: ${IP_HASH_SALT:?isi IP_HASH_SALT di deploy/.env}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?isi PUBLIC_BASE_URL di deploy/.env}
+      BRAND_EST_YEAR: ${BRAND_EST_YEAR:-2021}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Nginx lives on this network, and only it may set X-Forwarded-For.
+      TRUSTED_PROXIES: ${COMPRO_SUBNET:-172.30.92.0/24}
+    volumes:
+      - /srv/nvm-compro/media:/data/media
+    networks:
+      - compro
+      - postgres
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_SHOPEE_URL: ${VITE_SHOPEE_URL:-}
+        VITE_TIKTOK_SHOP_URL: ${VITE_TIKTOK_SHOP_URL:-}
+        VITE_INSTAGRAM_URL: ${VITE_INSTAGRAM_URL:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8092:80"
+    networks:
+      - compro
+
+networks:
+  compro:
+    ipam:
+      config:
+        - subnet: ${COMPRO_SUBNET:-172.30.92.0/24}
+  postgres:
+    external: true
+    name: ${PG_NETWORK:?isi PG_NETWORK di deploy/.env}
