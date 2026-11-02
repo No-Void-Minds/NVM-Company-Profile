@@ -173,8 +173,9 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 
 ### Sprint 6
 
-- Dibuat: Produk (matriks dan daftar collab), B2B (formulir dan layar sukses), Size (, Mode A dan B, Size marker), Kontak, Privasi, 404.
+- Dibuat: Produk (matriks dan daftar collab), B2B (formulir dan layar sukses), Size (`useSizeRecommendation.ts`, Mode A dan B, Size marker), Kontak, Privasi, 404.
 - Keputusan: tinggi tepat di batas (contoh 170) dianggap di antara dua ukuran (M dan L). Seri selisih di Mode B juga.
-- Keputusan: tech tanpa fit tampil di matriks sebagai satu sel "Tanpa pilihan fit" ke . Link matriks tidak bergantung on_rack (FR-31).
-- Catatan: foto collab (FR-32) belum tampil, SRS 8 tidak punya kolom gambar di .
+- Keputusan: tech tanpa fit tampil di matriks sebagai satu sel "Tanpa pilihan fit" ke `core+<tech>`. Link matriks tidak bergantung on_rack (FR-31).
+- Catatan: foto collab (FR-32) belum tampil, SRS 8 tidak punya kolom gambar di `collabs`.
+- Koreksi proses: commit `6612287` masuk saat `check.sh` gagal (error tipe `aria-invalid`), karena commit dirangkai setelah pipeline `tail`. Route Sprint 6 juga belum tersambung di commit itu. Diperbaiki di commit berikutnya, dan commit kini mengecek exit code `check.sh`.
 - Menunggu user: tidak ada.

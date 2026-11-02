@@ -23,7 +23,7 @@ const describedby = computed(
       {{ label }}
       <span v-if="optional" class="text-muted">(opsional)</span>
     </label>
-    <slot :describedby="describedby" :invalid="error ? 'true' : undefined" />
+    <slot :describedby="describedby" :invalid="error ? true : undefined" />
     <p v-if="hint" :id="`${id}-hint`" class="field-hint">{{ hint }}</p>
     <p v-if="error" :id="`${id}-error`" class="field-error">{{ error }}</p>
   </div>
