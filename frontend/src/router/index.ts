@@ -5,17 +5,61 @@ import {
   type RouterScrollBehavior,
 } from 'vue-router'
 import PublicLayout from '@/components/layout/PublicLayout.vue'
+import { setUnauthorizedHandler } from '@/api/client'
 import type { HeadMeta } from '@/composables/useHead'
+import { useSession } from '@/composables/useSession'
 import HomePage from '@/pages/HomePage.vue'
 
 declare module 'vue-router' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface RouteMeta extends Partial<HeadMeta> {}
+  interface RouteMeta extends Partial<HeadMeta> {
+    requiresAdmin?: boolean
+  }
 }
 
-const pending = () => import('@/pages/PendingPage.vue')
+const adminMeta = (title: string) => ({
+  title: `${title}, Admin`,
+  description: 'Panel admin No Void Minds.',
+  requiresAdmin: true,
+})
 
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/admin/login',
+    component: () => import('@/pages/admin/AdminLogin.vue'),
+    meta: { title: 'Masuk admin', description: 'Panel admin No Void Minds.' },
+  },
+  {
+    path: '/admin',
+    component: () => import('@/components/layout/AdminLayout.vue'),
+    redirect: '/admin/inquiry',
+    children: [
+      {
+        path: 'inquiry',
+        component: () => import('@/pages/admin/AdminInquiries.vue'),
+        meta: adminMeta('Inquiry'),
+      },
+      {
+        path: 'galeri',
+        component: () => import('@/pages/admin/AdminGallery.vue'),
+        meta: adminMeta('Galeri'),
+      },
+      {
+        path: 'testimoni',
+        component: () => import('@/pages/admin/AdminTestimonials.vue'),
+        meta: adminMeta('Testimoni'),
+      },
+      {
+        path: 'size-chart',
+        component: () => import('@/pages/admin/AdminSizeCharts.vue'),
+        meta: adminMeta('Size chart'),
+      },
+      {
+        path: 'katalog',
+        component: () => import('@/pages/admin/AdminCatalog.vue'),
+        meta: adminMeta('Tech dan collab'),
+      },
+    ],
+  },
   {
     path: '/',
     component: PublicLayout,
@@ -67,7 +111,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'galeri',
-        component: pending,
+        component: () => import('@/pages/GalleryPage.vue'),
         meta: {
           title: 'Galeri',
           description: 'Foto lookbook, produksi, dan event No Void Minds.',
@@ -75,7 +119,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'testimoni',
-        component: pending,
+        component: () => import('@/pages/TestimonialPage.vue'),
         meta: {
           title: 'Testimoni',
           description:
@@ -129,5 +173,26 @@ const scrollBehavior: RouterScrollBehavior = (to, from, saved) => {
 }
 
 export function createAppRouter(history: RouterHistory) {
-  return createRouter({ history, routes, scrollBehavior })
+  const router = createRouter({ history, routes, scrollBehavior })
+  const session = useSession()
+
+  router.beforeEach(async (to) => {
+    if (!to.path.startsWith('/admin')) return true
+    await session.ensure()
+    if (to.meta.requiresAdmin && !session.username.value) {
+      return { path: '/admin/login', query: { next: to.fullPath } }
+    }
+    if (to.path === '/admin/login' && session.username.value) return '/admin'
+    return true
+  })
+
+  setUnauthorizedHandler(() => {
+    session.clear()
+    const current = router.currentRoute.value
+    if (current.path !== '/admin/login') {
+      void router.push({ path: '/admin/login', query: { next: current.fullPath } })
+    }
+  })
+
+  return router
 }

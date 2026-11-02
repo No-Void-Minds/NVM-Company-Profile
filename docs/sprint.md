@@ -19,7 +19,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 4 | Kerangka frontend dan komponen state | M | selesai |
 | 5 | Beranda (Knit Field), Brand, Teknologi | M | selesai |
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | selesai |
-| 7 | Galeri, Testimoni, halaman admin | M | belum |
+| 7 | Galeri, Testimoni, halaman admin | M | selesai |
 | 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | belum |
 | 9 | Docker Compose dan deploy LAN | M | belum |
 | 10 | Pengujian menyeluruh dan Delivery Gate | M | belum |
@@ -178,4 +178,12 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: tech tanpa fit tampil di matriks sebagai satu sel "Tanpa pilihan fit" ke `core+<tech>`. Link matriks tidak bergantung on_rack (FR-31).
 - Catatan: foto collab (FR-32) belum tampil, SRS 8 tidak punya kolom gambar di `collabs`.
 - Koreksi proses: commit `6612287` masuk saat `check.sh` gagal (error tipe `aria-invalid`), karena commit dirangkai setelah pipeline `tail`. Tipe diperbaiki di `bb7c02e`. Route Sprint 6 baru benar-benar tersambung di commit sesudahnya, walau pesan `bb7c02e` menyebut sudah. Commit kini mengecek exit code `check.sh`.
+- Menunggu user: tidak ada.
+
+### Sprint 7
+
+- Dibuat: Galeri (masonry, filter, lightbox), Testimoni, login, layout admin, halaman Inquiry, Galeri, Testimoni, Size chart, Tech dan collab, `ConfirmDialog`, `useSession`, guard route admin.
+- Keputusan: `/admin` membuka Inquiry dulu, karena itu pekerjaan harian admin.
+- Keputusan: filter dan ringkasan Testimoni (FR-62, FR-63) sekalian dibuat di halaman ini, dihitung di sisi klien.
+- Keputusan: `PendingPage` dihapus, semua route sudah tersambung ke halaman asli.
 - Menunggu user: tidak ada.
