@@ -47,9 +47,19 @@ type Stored struct {
 	Height int32
 }
 
+// Set explicitly rather than left to the umask, so deploy/backup.sh can read
+// media as the host user without root.
+const (
+	dirPerm  os.FileMode = 0o755
+	filePerm os.FileMode = 0o644
+)
+
 func NewStore(dir string) (*Store, error) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
 		return nil, fmt.Errorf("membuat folder media: %w", err)
+	}
+	if err := os.Chmod(dir, dirPerm); err != nil {
+		return nil, fmt.Errorf("mengatur izin folder media: %w", err)
 	}
 	return &Store{dir: dir, slot: make(chan struct{}, 1)}, nil
 }
@@ -149,6 +159,10 @@ func (s *Store) writeVariant(key uuid.UUID, width int, src image.Image) error {
 	defer os.Remove(tmp)
 
 	if err := webp.Encode(f, resize(src, width), webp.Options{Quality: webpQuality}); err != nil {
+		_ = f.Close()
+		return err
+	}
+	if err := f.Chmod(filePerm); err != nil {
 		_ = f.Close()
 		return err
 	}

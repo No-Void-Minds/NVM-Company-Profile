@@ -95,16 +95,62 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
    docker compose -f deploy/docker-compose.yml exec backend compro-admin create-user <username>
    ```
 
-6. Pasang cron: backup harian (simpan 14 hari) dan pembersihan inquiry lebih dari 12 bulan (BR-03):
+6. Pasang cron lewat `crontab -e` milik user yang ada di grup `docker`: backup harian (simpan 14 hari) dan pembersihan inquiry lebih dari 12 bulan (BR-03). VM memakai UTC, jadi jadwal ditulis dalam UTC:
 
    ```cron
-   0 2 * * * /path/ke/repo/deploy/backup.sh
-   30 2 * * * cd /path/ke/repo && docker compose -f deploy/docker-compose.yml exec -T backend compro-admin purge-inquiries
+   # 19.00 UTC = 02.00 WIB: backup database dan media
+   0 19 * * * /srv/nvm-company-profile/deploy/backup.sh >>/srv/nvm-compro/backup/cron.log 2>&1
+   # 19.30 UTC = 02.30 WIB: hapus inquiry lebih dari 12 bulan
+   30 19 * * * cd /srv/nvm-company-profile && docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec -T backend compro-admin purge-inquiries >>/srv/nvm-compro/backup/purge.log 2>&1
    ```
+
+   Setiap run backup menulis satu baris ke `/srv/nvm-compro/backup/backup.log`: waktu, `OK` atau `GAGAL`, ukuran file db dan media, dan pesan error bila gagal. `cron.log` menampung output lain, misalnya `.env` yang tidak terbaca. Cek dengan `tail /srv/nvm-compro/backup/backup.log`.
 
 7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
 
 `COOKIE_SECURE` tetap `false` selama akses lewat HTTP LAN.
+
+## Pulihkan dari backup
+
+Uji pemulihan ke database terpisah, jadi `nvm_compro` tidak tersentuh. Ganti `<superuser>` (lihat langkah 2 Deploy LAN) dan `<stamp>` dengan nama file di `/srv/nvm-compro/backup`:
+
+```bash
+set -a; source deploy/.env; set +a
+docker exec "$PG_CONTAINER" createdb -U <superuser> nvm_compro_restore
+docker exec -i "$PG_CONTAINER" pg_restore -U <superuser> -d nvm_compro_restore \
+  --no-owner --no-privileges --exit-on-error <"/srv/nvm-compro/backup/db-<stamp>.dump"
+```
+
+Periksa isinya. Jalankan query yang sama dengan `-d nvm_compro`, angkanya harus sama atau hanya selisih data sejak backup dibuat:
+
+```bash
+docker exec "$PG_CONTAINER" psql -U <superuser> -d nvm_compro_restore -c '\dt'
+docker exec "$PG_CONTAINER" psql -U <superuser> -d nvm_compro_restore -c "
+  SELECT (SELECT version FROM schema_migrations) AS migrasi,
+         (SELECT count(*) FROM techs) AS techs,
+         (SELECT count(*) FROM collabs) AS collabs,
+         (SELECT count(*) FROM size_charts) AS size_charts,
+         (SELECT count(*) FROM gallery_items) AS galeri,
+         (SELECT count(*) FROM testimonials) AS testimoni,
+         (SELECT count(*) FROM inquiries) AS inquiry,
+         (SELECT count(*) FROM admin_users) AS admin;"
+```
+
+Media: buka arsip di folder sementara dan bandingkan jumlah filenya dengan folder asli:
+
+```bash
+mkdir /tmp/media-restore
+tar -xzf "/srv/nvm-compro/backup/media-<stamp>.tar.gz" -C /tmp/media-restore
+find /tmp/media-restore -type f | wc -l
+find /srv/nvm-compro/media -type f | wc -l
+```
+
+Bersihkan setelah selesai:
+
+```bash
+docker exec "$PG_CONTAINER" dropdb -U <superuser> nvm_compro_restore
+rm -rf /tmp/media-restore
+```
 
 Bila container backend restart terus, baca lognya lalu periksa binary di dalam image. Image distroless tidak punya shell, jadi binary disalin keluar dulu:
 
