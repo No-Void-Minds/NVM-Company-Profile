@@ -12,6 +12,12 @@ import (
 
 const dateLayout = "2006-01-02"
 
+// Languages of the public site (SRS 14.4)
+const (
+	LangID = "id"
+	LangEN = "en"
+)
+
 // VariantWidths lists the WebP widths written for every upload (NFR-02).
 var VariantWidths = []int{480, 960, 1600}
 
@@ -52,24 +58,39 @@ type GalleryItem struct {
 
 type AdminGalleryItem struct {
 	GalleryItem
+	AltEn     string    `json:"alt_en"`
+	CaptionEn string    `json:"caption_en"`
 	Visible   bool      `json:"visible"`
 	Sort      int32     `json:"sort"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func NewGalleryItem(g sqlc.GalleryItem) GalleryItem {
+// NewGalleryItem picks the English text when asked for and filled in, else the
+// Indonesian one, so an English page never shows an empty alt (FR-115).
+func NewGalleryItem(g sqlc.GalleryItem, lang string) GalleryItem {
+	alt, caption := g.Alt, g.Caption
+	if lang == LangEN {
+		if g.AltEn != "" {
+			alt = g.AltEn
+		}
+		if g.CaptionEn != "" {
+			caption = g.CaptionEn
+		}
+	}
 	return GalleryItem{
 		ID:       g.ID,
 		Category: g.Category,
-		Alt:      g.Alt,
-		Caption:  g.Caption,
+		Alt:      alt,
+		Caption:  caption,
 		Image:    newImage(g.ImageKey, g.Width, g.Height),
 	}
 }
 
 func NewAdminGalleryItem(g sqlc.GalleryItem) AdminGalleryItem {
 	return AdminGalleryItem{
-		GalleryItem: NewGalleryItem(g),
+		GalleryItem: NewGalleryItem(g, LangID),
+		AltEn:       g.AltEn,
+		CaptionEn:   g.CaptionEn,
 		Visible:     g.Visible,
 		Sort:        g.Sort,
 		CreatedAt:   g.CreatedAt,
@@ -83,7 +104,9 @@ type Testimonial struct {
 	TechKey    *string   `json:"tech_key"`
 	Rating     *int16    `json:"rating"`
 	Transcript string    `json:"transcript"`
-	Image      Image     `json:"image"`
+	// Transcripts are not translated, the page marks them with this lang (FR-115)
+	Lang  string `json:"lang"`
+	Image Image  `json:"image"`
 }
 
 type AdminTestimonial struct {
@@ -101,6 +124,7 @@ func NewTestimonial(t sqlc.Testimonial) Testimonial {
 		TechKey:    t.TechKey,
 		Rating:     t.Rating,
 		Transcript: t.Transcript,
+		Lang:       t.Lang,
 		Image:      newImage(t.ImageKey, t.Width, t.Height),
 	}
 }

@@ -27,7 +27,7 @@ onBeforeUnmount(() => field?.destroy())
 
 const stats = useAsync(() => api.labStats())
 // These two only decide whether a section exists, so a failure just hides it (FR-13).
-const gallery = useAsync(() => api.gallery().catch(() => []))
+const gallery = useAsync(() => api.gallery(lang.value).catch(() => []))
 const testimonials = useAsync(() => api.testimonials().catch(() => []))
 
 const galleryPreview = computed(() => (gallery.data.value ?? []).slice(0, 4))
@@ -107,7 +107,7 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
           <p class="spec-label">
             {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date, lang) }}
           </p>
-          <p class="mt-1 line-clamp-5">{{ item.transcript }}</p>
+          <p class="mt-1 line-clamp-5" :lang="item.lang">{{ item.transcript }}</p>
         </li>
       </ul>
       <AppButton :to="to('/testimoni')" variant="link" class="mt-3">

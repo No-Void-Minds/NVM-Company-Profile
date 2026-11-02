@@ -12,8 +12,8 @@ import { useI18n } from '@/i18n'
 
 const FIT_ORDER = ['Regular', 'Fitted', 'Mini Fitted', 'Oversized', 'Boxy', 'Polo']
 
-const { t, to } = useI18n()
-const techs = useAsync(() => api.techs())
+const { lang, t, to } = useI18n()
+const techs = useAsync(() => api.techs(lang.value))
 const collabs = useAsync(() => api.collabs())
 
 const fits = computed(() =>

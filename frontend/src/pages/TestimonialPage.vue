@@ -19,7 +19,7 @@ const SOURCE_LABEL: Record<TestimonialSource, string> = {
 const { lang, t } = useI18n()
 
 const { data, error, loading, run } = useAsync(() =>
-  Promise.all([api.testimonials(), api.techs().catch(() => [])]),
+  Promise.all([api.testimonials(), api.techs(lang.value).catch(() => [])]),
 )
 const items = computed<Testimonial[]>(() => data.value?.[0] ?? [])
 const techs = computed(() => data.value?.[1] ?? [])
@@ -137,7 +137,7 @@ const average = computed(() => {
           />
           <details class="mt-2">
             <summary class="text-link cursor-pointer">{{ t.testimonial.transcript }}</summary>
-            <p class="mt-1 whitespace-pre-line">{{ item.transcript }}</p>
+            <p class="mt-1 whitespace-pre-line" :lang="item.lang">{{ item.transcript }}</p>
           </details>
         </li>
       </ul>

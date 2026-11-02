@@ -378,3 +378,52 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `notFound.title` | This page does not exist | Halaman ini tidak ada |
 | `notFound.lead` | The address may be mistyped, or the page has moved. | Alamatnya mungkin salah ketik, atau halamannya sudah pindah. |
 | `notFound.home` | Back to the home page | Kembali ke Beranda |
+
+## tech (seed)
+
+| Kunci | Teks EN | Teks ID |
+|---|---|---|
+| `aezy.tagline` * | For days that run hot. | Untuk hari-hari yang terasa gerah. |
+| `aezy.sub` * | Performance, climate, stretch | Performa, iklim, stretch |
+| `aezy.description` * | Lightweight performance fabric. Breathable, fast-drying and air-feel soft. Engineered for movement and everyday climate control, with elastic recovery that stays stable after long wear. | Kain performa yang ringan. Bernapas, cepat kering, dan lembut seperti udara. Direkayasa untuk bergerak dan menjaga kenyamanan di iklim sehari-hari, dengan pemulihan elastis yang tetap stabil setelah lama dipakai. |
+| `aezy.chips` * | Breathable, Fast-drying, Air-feel soft, Elastic recovery | Bernapas, Cepat kering, Lembut seperti udara, Pemulihan elastis |
+| `aezy-cotton.tagline` * | AEZY, with a cotton hand. | AEZY, dengan sentuhan katun. |
+| `aezy-cotton.sub` * | Cotton touch, breathable, everyday | Sentuhan katun, bernapas, sehari-hari |
+| `aezy-cotton.description` * | The AEZY system with a cotton touch. The natural, familiar feel of cotton on the skin, with the easy breathability AEZY is known for. Made for long days and everyday wear. | Sistem AEZY dengan sentuhan katun. Rasa katun yang alami dan akrab di kulit, dengan kemampuan bernapas khas AEZY. Dibuat untuk hari yang panjang dan pemakaian sehari-hari. |
+| `aezy-cotton.chips` * | Cotton hand-feel, Breathable, Everyday comfort | Rasa katun, Bernapas, Nyaman sehari-hari |
+| `aezy-2.tagline` * | AEZY, refined. | AEZY, disempurnakan. |
+| `aezy-2.sub` * | Next generation, air-feel, movement | Generasi berikutnya, ringan seperti udara, gerak |
+| `aezy-2.description` * | The next generation of our AEZY system. The same air-feel lightness you know, refined in the lab for a smoother hand and easier movement through the day. | Generasi berikutnya dari sistem AEZY kami. Ringan seperti udara yang sudah kamu kenal, disempurnakan di lab untuk sentuhan yang lebih halus dan gerak yang lebih leluasa sepanjang hari. |
+| `aezy-2.chips` * | Second generation, Air-feel light, Refined hand | Generasi kedua, Ringan seperti udara, Sentuhan lebih halus |
+| `formlock.tagline` * | For cuts that refuse to sag. | Untuk potongan yang menolak melorot. |
+| `formlock.sub` * | Structure, hold, construction | Struktur, daya tahan bentuk, konstruksi |
+| `formlock.description` * | A structural construction system. Seam-lock paneling and dense contour knits engineered to hold their silhouette wash after wash, so the cut stays as sharp as day one. | Sistem konstruksi struktural. Panel seam-lock dan rajutan kontur yang padat, direkayasa untuk menjaga siluetnya dari cucian ke cucian, sehingga potongannya tetap setajam hari pertama. |
+| `formlock.chips` * | Seam-lock paneling, Dense contour knit, Holds its shape | Panel seam-lock, Rajutan kontur padat, Bentuk terjaga |
+| `formlock-2.tagline` * | FORMLOCK, in more cuts. | FORMLOCK, dalam lebih banyak potongan. |
+| `formlock-2.sub` * | Next generation, structure, silhouette | Generasi berikutnya, struktur, siluet |
+| `formlock-2.description` * | The next generation of FORMLOCK. The same shape-holding structure, developed further across more silhouettes, from clean regular cuts to boxy and oversized fits that keep their form. | Generasi berikutnya dari FORMLOCK. Struktur penahan bentuk yang sama, dikembangkan lebih jauh ke lebih banyak siluet, dari potongan regular yang rapi sampai fit boxy dan oversized yang tetap terjaga bentuknya. |
+| `formlock-2.chips` * | Second generation, Shape-holding, Regular, Boxy, Oversized | Generasi kedua, Menahan bentuk, Regular, Boxy, Oversized |
+| `curflex.tagline` * | For bodies that never sit still. | Untuk tubuh yang tidak pernah diam. |
+| `curflex.sub` * | Curve, flex, recovery | Lekuk, lentur, pemulihan |
+| `curflex.description` * | Four-way curve-flex stretch. Moves with your body and recovers its shape for all-day mobility without losing structure. Built to flatter the figure and free the movement. | Stretch curve-flex empat arah. Bergerak bersama tubuhmu dan kembali ke bentuknya, untuk mobilitas sepanjang hari tanpa kehilangan struktur. Dibuat untuk menonjolkan bentuk tubuh dan membebaskan gerak. |
+| `curflex.chips` * | Four-way stretch, Shape recovery, All-day mobility | Stretch empat arah, Kembali ke bentuk, Mobilitas sepanjang hari |
+| `puffmax.tagline` * | For when soft is the whole point. | Untuk saat lembut adalah tujuannya. |
+| `puffmax.sub` * | Loft, cushion, softness | Loft, empuk, kelembutan |
+| `puffmax.description` * | Maximum loft and density. A plush, cushioned hand that feels like being wrapped in a cloud. Extra-soft and substantial, with comfort that holds up wear after wear. | Loft dan kepadatan maksimal. Sentuhan tebal dan empuk yang terasa seperti dibungkus awan. Ekstra lembut dan berbobot, dengan kenyamanan yang bertahan dari pemakaian ke pemakaian. |
+| `puffmax.chips` * | Maximum loft, Plush hand, Lasting comfort | Loft maksimal, Sentuhan tebal, Nyaman tahan lama |
+| `therco.tagline` * | For cold mornings and freezing offices. | Untuk pagi yang dingin dan kantor yang membeku. |
+| `therco.sub` * | Thermal, comfort, layering | Termal, nyaman, berlapis |
+| `therco.description` * | A thermal comfort system built for cooler hours. Designed to keep warmth close to the body while staying easy to layer and comfortable from morning to night. | Sistem kenyamanan termal untuk jam-jam yang lebih sejuk. Dirancang untuk menjaga hangat tetap dekat dengan tubuh, sambil tetap mudah dilapis dan nyaman dari pagi sampai malam. |
+| `therco.chips` * | Thermal comfort, Easy layering, All-day wear | Nyaman termal, Mudah dilapis, Dipakai seharian |
+| `antshell.tagline` * | For a cleaner outer layer. | Untuk lapisan luar yang lebih rapi. |
+| `antshell.sub` * | Shell, light, everyday armor | Cangkang, ringan, pelindung sehari-hari |
+| `antshell.description` * | An outer-layer system inspired by a lightweight shell. Built to feel light on the body while giving everyday pieces a clean, protective outer face. | Sistem lapisan luar yang terinspirasi dari cangkang ringan. Dibuat agar terasa ringan di badan, sambil memberi pakaian sehari-hari permukaan luar yang rapi dan melindungi. |
+| `antshell.chips` * | Lightweight shell, Clean outer face, Everyday layer | Cangkang ringan, Permukaan luar rapi, Lapisan sehari-hari |
+| `flexe.tagline` * | For a full range of motion. | Untuk rentang gerak penuh. |
+| `flexe.sub` * | Flex, mobility, ease | Lentur, mobilitas, leluasa |
+| `flexe.description` * | A flexible system made for full range of motion. Bends and moves with you, then settles back into shape, so the fit feels easy whether you are moving or standing still. | Sistem lentur yang dibuat untuk rentang gerak penuh. Menekuk dan bergerak bersamamu, lalu kembali ke bentuknya, sehingga fit terasa leluasa saat kamu bergerak maupun diam. |
+| `flexe.chips` * | Full range of motion, Easy fit, Settles back into shape | Rentang gerak penuh, Fit leluasa, Kembali ke bentuk |
+| `meltwrap.tagline` * | For a second-skin drape. | Untuk jatuh kain seperti kulit kedua. |
+| `meltwrap.sub` * | Drape, softness, second skin | Jatuh kain, kelembutan, kulit kedua |
+| `meltwrap.description` * | A soft, fluid system that drapes close to the body. Smooth against the skin and light in the hand, it wraps the figure gently for an easy, second-skin feel. | Sistem yang lembut dan cair, jatuh dekat ke tubuh. Halus di kulit dan ringan di tangan, membalut bentuk tubuh dengan lembut untuk rasa nyaman seperti kulit kedua. |
+| `meltwrap.chips` * | Fluid drape, Smooth hand, Second-skin feel | Jatuh kain cair, Sentuhan halus, Rasa kulit kedua |

@@ -27,7 +27,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
 | 12 | Token semantik dua tema, tombol tema, anti-kedip + hash CSP, logo, kanvas ikut tema | M | selesai |
 | 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | selesai |
-| 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | belum |
+| 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | selesai |
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | belum |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | belum |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | belum |
@@ -295,3 +295,11 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 - Keputusan: `VITE_PUBLIC_BASE_URL` (dari `PUBLIC_BASE_URL` di compose) membuat canonical dan hreflang absolut. Tanpa itu, misalnya di laptop dev, URL tetap relatif.
 - Catatan: teks tech (tagline, sub, deskripsi, chip) masih Inggris di kedua bahasa sampai Sprint 14.
 - Menunggu user: cek isi `docs/terjemahan.md`.
+
+### Sprint 14
+
+- Dibuat: migrasi  (tabel ,  dan , ), seed , query ,  dan , kolom baru di admin Galeri dan Testimoni, atribut  pada transkrip.
+- Keputusan: migrasi aman untuk produksi. Tidak ada yang dihapus. Baris  disalin dari kolom , baris  hanya untuk tech yang masih ada (JOIN), dan semua INSERT memakai . Kolom baru punya default. Belum dijalankan ke database mana pun.
+- Keputusan: kolom tech di  tetap ada sebagai cadangan, query memakai COALESCE.  kosong berarti , nilai lain ditolak 400. Hak  atas  datang dari default privileges di bootstrap.
+- Keputusan: admin belum bisa mengubah teks tech per bahasa. SRS tidak meminta editor, jadi perubahan teks tech lewat migrasi seperti seed.
+- Menunggu user: cek terjemahan tech di  (bagian tech (seed)), lalu  di VM saat Sprint 17.

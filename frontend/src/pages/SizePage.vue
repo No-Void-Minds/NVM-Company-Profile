@@ -21,8 +21,8 @@ import {
 type Mode = 'height' | 'garment'
 
 const route = useRoute()
-const { t } = useI18n()
-const techs = useAsync(() => api.techs())
+const { lang, t } = useI18n()
+const techs = useAsync(() => api.techs(lang.value))
 
 const techKey = ref('')
 const fit = ref('')

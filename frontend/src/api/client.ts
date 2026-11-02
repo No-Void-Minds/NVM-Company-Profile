@@ -97,11 +97,12 @@ async function parseFailure(response: Response): Promise<ApiError> {
   }
 }
 
+// Tech copy and gallery text come in the page language (FR-113, FR-115).
 export const api = {
-  techs: () => request<Tech[]>('/api/techs'),
+  techs: (lang: 'id' | 'en') => request<Tech[]>(`/api/techs?lang=${lang}`),
   collabs: () => request<Collab[]>('/api/collabs'),
   labStats: () => request<LabStats>('/api/lab-stats'),
-  gallery: () => request<GalleryItem[]>('/api/gallery'),
+  gallery: (lang: 'id' | 'en') => request<GalleryItem[]>(`/api/gallery?lang=${lang}`),
   testimonials: () => request<Testimonial[]>('/api/testimonials'),
   sizeChart: (key: string) => request<SizeChart>(`/api/size-charts/${encodeURIComponent(key)}`),
   createInquiry: (input: InquiryInput, idempotencyKey: string) =>

@@ -45,6 +45,8 @@ type GalleryItem struct {
 	Visible   bool      `json:"visible"`
 	Sort      int32     `json:"sort"`
 	CreatedAt time.Time `json:"created_at"`
+	AltEn     string    `json:"alt_en"`
+	CaptionEn string    `json:"caption_en"`
 }
 
 type Inquiry struct {
@@ -100,6 +102,15 @@ type Tech struct {
 	Sort            int32    `json:"sort"`
 }
 
+type TechI18n struct {
+	TechKey     string   `json:"tech_key"`
+	Lang        string   `json:"lang"`
+	Tagline     string   `json:"tagline"`
+	Sub         string   `json:"sub"`
+	Description string   `json:"description"`
+	Chips       []string `json:"chips"`
+}
+
 type Testimonial struct {
 	ID               uuid.UUID `json:"id"`
 	Source           string    `json:"source"`
@@ -113,4 +124,5 @@ type Testimonial struct {
 	BlurredConfirmed bool      `json:"blurred_confirmed"`
 	Published        bool      `json:"published"`
 	CreatedAt        time.Time `json:"created_at"`
+	Lang             string    `json:"lang"`
 }

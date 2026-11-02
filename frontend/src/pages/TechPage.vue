@@ -17,9 +17,9 @@ const HASH_PREFIX = '#lab-'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { lang, t } = useI18n()
+const { data, error, loading, run } = useAsync(() => api.techs(lang.value))
 const isDesktop = useMediaQuery('(min-width: 64rem)', true)
-const { data, error, loading, run } = useAsync(() => api.techs())
 
 const techs = computed(() => data.value ?? [])
 const activeKey = ref<string | null>(null)

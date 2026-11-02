@@ -26,6 +26,7 @@ const blank = () => ({
   tech_key: '',
   rating: '' as number | '',
   transcript: '',
+  lang: 'id' as 'id' | 'en',
   blurred_confirmed: false,
   published: false,
 })
@@ -65,6 +66,7 @@ function edit(item: AdminTestimonial) {
     tech_key: item.tech_key ?? '',
     rating: item.rating ?? '',
     transcript: item.transcript,
+    lang: item.lang,
     blurred_confirmed: item.blurred_confirmed,
     published: item.published,
   })
@@ -91,6 +93,7 @@ async function save() {
         tech_key: form.tech_key || null,
         rating: form.rating === '' ? null : form.rating,
         transcript: form.transcript,
+        lang: form.lang,
         blurred_confirmed: form.blurred_confirmed,
         published: form.published,
       })
@@ -102,6 +105,7 @@ async function save() {
       body.set('tech_key', form.tech_key)
       body.set('rating', String(form.rating))
       body.set('transcript', form.transcript)
+      body.set('lang', form.lang)
       body.set('blurred_confirmed', String(form.blurred_confirmed))
       body.set('published', String(form.published))
       await adminApi.createTestimonial(body)
@@ -243,9 +247,27 @@ async function confirmDelete() {
         v-model="form.transcript"
         rows="4"
         class="field-input"
+        :lang="form.lang"
         :aria-describedby="f.describedby"
         :aria-invalid="f.invalid"
       ></textarea>
+    </FormField>
+    <FormField
+      id="testimonial-lang"
+      v-slot="f"
+      label="Bahasa transkrip"
+      hint="Transkrip tidak diterjemahkan. Pilih bahasa yang dipakai pembeli."
+      :error="fields.lang"
+    >
+      <select
+        id="testimonial-lang"
+        v-model="form.lang"
+        class="field-input"
+        :aria-describedby="f.describedby"
+      >
+        <option value="id">Indonesia</option>
+        <option value="en">Inggris</option>
+      </select>
     </FormField>
     <label class="check-row">
       <input v-model="form.blurred_confirmed" type="checkbox" />

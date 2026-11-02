@@ -43,7 +43,7 @@ const form = reactive<InquiryInput>({
 })
 
 // Optional field, so a failed load just removes the list instead of blocking the form.
-const techs = useAsync(() => api.techs().catch(() => []))
+const techs = useAsync(() => api.techs(lang.value).catch(() => []))
 
 const errorKeys = ref<Record<string, InquiryErrorKey>>({})
 const errors = computed(() =>

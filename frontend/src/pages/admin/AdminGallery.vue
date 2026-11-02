@@ -13,7 +13,15 @@ const { data, error, loading, run } = useAsync(() => adminApi.gallery())
 const items = computed(() => data.value ?? [])
 const categories = computed(() => [...new Set(items.value.map((item) => item.category))])
 
-const blank = () => ({ category: '', alt: '', caption: '', sort: 0, visible: true })
+const blank = () => ({
+  category: '',
+  alt: '',
+  caption: '',
+  alt_en: '',
+  caption_en: '',
+  sort: 0,
+  visible: true,
+})
 const form = reactive(blank())
 const editingId = ref<string | null>(null)
 const file = ref<File | null>(null)
@@ -40,6 +48,8 @@ function edit(item: AdminGalleryItem) {
     category: item.category,
     alt: item.alt,
     caption: item.caption,
+    alt_en: item.alt_en,
+    caption_en: item.caption_en,
     sort: item.sort,
     visible: item.visible,
   })
@@ -67,6 +77,8 @@ async function save() {
       body.set('category', form.category)
       body.set('alt', form.alt)
       body.set('caption', form.caption)
+      body.set('alt_en', form.alt_en)
+      body.set('caption_en', form.caption_en)
       body.set('sort', String(form.sort))
       body.set('visible', String(form.visible))
       await adminApi.createGallery(body)
@@ -178,6 +190,39 @@ async function confirmDelete() {
         id="gallery-caption"
         v-model="form.caption"
         class="field-input"
+        :aria-describedby="f.describedby"
+        :aria-invalid="f.invalid"
+      />
+    </FormField>
+    <FormField
+      id="gallery-alt-en"
+      v-slot="f"
+      label="Teks alt bahasa Inggris"
+      hint="Kosong berarti situs Inggris memakai teks alt Indonesia."
+      optional
+      :error="fields.alt_en"
+    >
+      <input
+        id="gallery-alt-en"
+        v-model="form.alt_en"
+        class="field-input"
+        lang="en"
+        :aria-describedby="f.describedby"
+        :aria-invalid="f.invalid"
+      />
+    </FormField>
+    <FormField
+      id="gallery-caption-en"
+      v-slot="f"
+      label="Keterangan bahasa Inggris"
+      optional
+      :error="fields.caption_en"
+    >
+      <input
+        id="gallery-caption-en"
+        v-model="form.caption_en"
+        class="field-input"
+        lang="en"
         :aria-describedby="f.describedby"
         :aria-invalid="f.invalid"
       />

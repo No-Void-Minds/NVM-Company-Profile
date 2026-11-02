@@ -13,20 +13,22 @@ import (
 )
 
 const createGalleryItem = `-- name: CreateGalleryItem :one
-INSERT INTO gallery_items (category, alt, caption, image_key, width, height, visible, sort)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, category, alt, caption, image_key, width, height, visible, sort, created_at
+INSERT INTO gallery_items (category, alt, caption, alt_en, caption_en, image_key, width, height, visible, sort)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, category, alt, caption, image_key, width, height, visible, sort, created_at, alt_en, caption_en
 `
 
 type CreateGalleryItemParams struct {
-	Category string    `json:"category"`
-	Alt      string    `json:"alt"`
-	Caption  string    `json:"caption"`
-	ImageKey uuid.UUID `json:"image_key"`
-	Width    int32     `json:"width"`
-	Height   int32     `json:"height"`
-	Visible  bool      `json:"visible"`
-	Sort     int32     `json:"sort"`
+	Category  string    `json:"category"`
+	Alt       string    `json:"alt"`
+	Caption   string    `json:"caption"`
+	AltEn     string    `json:"alt_en"`
+	CaptionEn string    `json:"caption_en"`
+	ImageKey  uuid.UUID `json:"image_key"`
+	Width     int32     `json:"width"`
+	Height    int32     `json:"height"`
+	Visible   bool      `json:"visible"`
+	Sort      int32     `json:"sort"`
 }
 
 func (q *Queries) CreateGalleryItem(ctx context.Context, arg CreateGalleryItemParams) (GalleryItem, error) {
@@ -34,6 +36,8 @@ func (q *Queries) CreateGalleryItem(ctx context.Context, arg CreateGalleryItemPa
 		arg.Category,
 		arg.Alt,
 		arg.Caption,
+		arg.AltEn,
+		arg.CaptionEn,
 		arg.ImageKey,
 		arg.Width,
 		arg.Height,
@@ -52,14 +56,16 @@ func (q *Queries) CreateGalleryItem(ctx context.Context, arg CreateGalleryItemPa
 		&i.Visible,
 		&i.Sort,
 		&i.CreatedAt,
+		&i.AltEn,
+		&i.CaptionEn,
 	)
 	return i, err
 }
 
 const createTestimonial = `-- name: CreateTestimonial :one
-INSERT INTO testimonials (source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at
+INSERT INTO testimonials (source, review_date, tech_key, rating, transcript, lang, image_key, width, height, blurred_confirmed, published)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at, lang
 `
 
 type CreateTestimonialParams struct {
@@ -68,6 +74,7 @@ type CreateTestimonialParams struct {
 	TechKey          *string   `json:"tech_key"`
 	Rating           *int16    `json:"rating"`
 	Transcript       string    `json:"transcript"`
+	Lang             string    `json:"lang"`
 	ImageKey         uuid.UUID `json:"image_key"`
 	Width            int32     `json:"width"`
 	Height           int32     `json:"height"`
@@ -82,6 +89,7 @@ func (q *Queries) CreateTestimonial(ctx context.Context, arg CreateTestimonialPa
 		arg.TechKey,
 		arg.Rating,
 		arg.Transcript,
+		arg.Lang,
 		arg.ImageKey,
 		arg.Width,
 		arg.Height,
@@ -102,6 +110,7 @@ func (q *Queries) CreateTestimonial(ctx context.Context, arg CreateTestimonialPa
 		&i.BlurredConfirmed,
 		&i.Published,
 		&i.CreatedAt,
+		&i.Lang,
 	)
 	return i, err
 }
@@ -141,7 +150,7 @@ func (q *Queries) DeleteTestimonial(ctx context.Context, id uuid.UUID) (uuid.UUI
 }
 
 const getGalleryItem = `-- name: GetGalleryItem :one
-SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at FROM gallery_items WHERE id = $1
+SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at, alt_en, caption_en FROM gallery_items WHERE id = $1
 `
 
 func (q *Queries) GetGalleryItem(ctx context.Context, id uuid.UUID) (GalleryItem, error) {
@@ -158,6 +167,8 @@ func (q *Queries) GetGalleryItem(ctx context.Context, id uuid.UUID) (GalleryItem
 		&i.Visible,
 		&i.Sort,
 		&i.CreatedAt,
+		&i.AltEn,
+		&i.CaptionEn,
 	)
 	return i, err
 }
@@ -197,7 +208,7 @@ func (q *Queries) GetSizeChart(ctx context.Context, key string) (SizeChart, erro
 }
 
 const getTestimonial = `-- name: GetTestimonial :one
-SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at FROM testimonials WHERE id = $1
+SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at, lang FROM testimonials WHERE id = $1
 `
 
 func (q *Queries) GetTestimonial(ctx context.Context, id uuid.UUID) (Testimonial, error) {
@@ -216,12 +227,13 @@ func (q *Queries) GetTestimonial(ctx context.Context, id uuid.UUID) (Testimonial
 		&i.BlurredConfirmed,
 		&i.Published,
 		&i.CreatedAt,
+		&i.Lang,
 	)
 	return i, err
 }
 
 const listAllGallery = `-- name: ListAllGallery :many
-SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at FROM gallery_items ORDER BY sort, created_at DESC
+SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at, alt_en, caption_en FROM gallery_items ORDER BY sort, created_at DESC
 `
 
 func (q *Queries) ListAllGallery(ctx context.Context) ([]GalleryItem, error) {
@@ -244,6 +256,8 @@ func (q *Queries) ListAllGallery(ctx context.Context) ([]GalleryItem, error) {
 			&i.Visible,
 			&i.Sort,
 			&i.CreatedAt,
+			&i.AltEn,
+			&i.CaptionEn,
 		); err != nil {
 			return nil, err
 		}
@@ -256,7 +270,7 @@ func (q *Queries) ListAllGallery(ctx context.Context) ([]GalleryItem, error) {
 }
 
 const listAllTestimonials = `-- name: ListAllTestimonials :many
-SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at FROM testimonials ORDER BY created_at DESC
+SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at, lang FROM testimonials ORDER BY created_at DESC
 `
 
 func (q *Queries) ListAllTestimonials(ctx context.Context) ([]Testimonial, error) {
@@ -281,6 +295,7 @@ func (q *Queries) ListAllTestimonials(ctx context.Context) ([]Testimonial, error
 			&i.BlurredConfirmed,
 			&i.Published,
 			&i.CreatedAt,
+			&i.Lang,
 		); err != nil {
 			return nil, err
 		}
@@ -322,7 +337,7 @@ func (q *Queries) ListCollabs(ctx context.Context) ([]Collab, error) {
 }
 
 const listPublishedTestimonials = `-- name: ListPublishedTestimonials :many
-SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at FROM testimonials
+SELECT id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at, lang FROM testimonials
 WHERE published
   AND ($1::text IS NULL OR source = $1)
   AND ($2::text IS NULL OR tech_key = $2)
@@ -356,6 +371,7 @@ func (q *Queries) ListPublishedTestimonials(ctx context.Context, arg ListPublish
 			&i.BlurredConfirmed,
 			&i.Published,
 			&i.CreatedAt,
+			&i.Lang,
 		); err != nil {
 			return nil, err
 		}
@@ -436,8 +452,71 @@ func (q *Queries) ListTechs(ctx context.Context) ([]Tech, error) {
 	return items, nil
 }
 
+const listTechsByLang = `-- name: ListTechsByLang :many
+SELECT t.key, t.name, t.family, t.generation, t.needs,
+       COALESCE(i.tagline, t.tagline)::text AS tagline,
+       COALESCE(i.sub, t.sub)::text AS sub,
+       COALESCE(i.description, t.description)::text AS description,
+       COALESCE(i.chips, t.chips)::text[] AS chips,
+       t.fits, t.technology_label, t.on_rack, t.sort
+FROM techs t
+LEFT JOIN tech_i18n i ON i.tech_key = t.key AND i.lang = $1::text
+ORDER BY t.sort
+`
+
+type ListTechsByLangRow struct {
+	Key             string   `json:"key"`
+	Name            string   `json:"name"`
+	Family          string   `json:"family"`
+	Generation      int32    `json:"generation"`
+	Needs           []string `json:"needs"`
+	Tagline         string   `json:"tagline"`
+	Sub             string   `json:"sub"`
+	Description     string   `json:"description"`
+	Chips           []string `json:"chips"`
+	Fits            []string `json:"fits"`
+	TechnologyLabel string   `json:"technology_label"`
+	OnRack          bool     `json:"on_rack"`
+	Sort            int32    `json:"sort"`
+}
+
+// Falls back to the techs columns, so a tech without a translation still shows (FR-113).
+func (q *Queries) ListTechsByLang(ctx context.Context, lang string) ([]ListTechsByLangRow, error) {
+	rows, err := q.db.Query(ctx, listTechsByLang, lang)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTechsByLangRow{}
+	for rows.Next() {
+		var i ListTechsByLangRow
+		if err := rows.Scan(
+			&i.Key,
+			&i.Name,
+			&i.Family,
+			&i.Generation,
+			&i.Needs,
+			&i.Tagline,
+			&i.Sub,
+			&i.Description,
+			&i.Chips,
+			&i.Fits,
+			&i.TechnologyLabel,
+			&i.OnRack,
+			&i.Sort,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listVisibleGallery = `-- name: ListVisibleGallery :many
-SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at FROM gallery_items
+SELECT id, category, alt, caption, image_key, width, height, visible, sort, created_at, alt_en, caption_en FROM gallery_items
 WHERE visible AND ($1::text IS NULL OR category = $1)
 ORDER BY sort, created_at DESC
 `
@@ -462,6 +541,8 @@ func (q *Queries) ListVisibleGallery(ctx context.Context, category *string) ([]G
 			&i.Visible,
 			&i.Sort,
 			&i.CreatedAt,
+			&i.AltEn,
+			&i.CaptionEn,
 		); err != nil {
 			return nil, err
 		}
@@ -526,18 +607,21 @@ func (q *Queries) SetTechOnRack(ctx context.Context, arg SetTechOnRackParams) (T
 
 const updateGalleryItem = `-- name: UpdateGalleryItem :one
 UPDATE gallery_items
-SET category = $1, alt = $2, caption = $3, visible = $4, sort = $5
-WHERE id = $6
-RETURNING id, category, alt, caption, image_key, width, height, visible, sort, created_at
+SET category = $1, alt = $2, caption = $3, alt_en = $4, caption_en = $5,
+    visible = $6, sort = $7
+WHERE id = $8
+RETURNING id, category, alt, caption, image_key, width, height, visible, sort, created_at, alt_en, caption_en
 `
 
 type UpdateGalleryItemParams struct {
-	Category string    `json:"category"`
-	Alt      string    `json:"alt"`
-	Caption  string    `json:"caption"`
-	Visible  bool      `json:"visible"`
-	Sort     int32     `json:"sort"`
-	ID       uuid.UUID `json:"id"`
+	Category  string    `json:"category"`
+	Alt       string    `json:"alt"`
+	Caption   string    `json:"caption"`
+	AltEn     string    `json:"alt_en"`
+	CaptionEn string    `json:"caption_en"`
+	Visible   bool      `json:"visible"`
+	Sort      int32     `json:"sort"`
+	ID        uuid.UUID `json:"id"`
 }
 
 func (q *Queries) UpdateGalleryItem(ctx context.Context, arg UpdateGalleryItemParams) (GalleryItem, error) {
@@ -545,6 +629,8 @@ func (q *Queries) UpdateGalleryItem(ctx context.Context, arg UpdateGalleryItemPa
 		arg.Category,
 		arg.Alt,
 		arg.Caption,
+		arg.AltEn,
+		arg.CaptionEn,
 		arg.Visible,
 		arg.Sort,
 		arg.ID,
@@ -561,6 +647,8 @@ func (q *Queries) UpdateGalleryItem(ctx context.Context, arg UpdateGalleryItemPa
 		&i.Visible,
 		&i.Sort,
 		&i.CreatedAt,
+		&i.AltEn,
+		&i.CaptionEn,
 	)
 	return i, err
 }
@@ -572,10 +660,11 @@ SET source = $1,
     tech_key = $3,
     rating = $4,
     transcript = $5,
-    blurred_confirmed = $6,
-    published = $7
-WHERE id = $8
-RETURNING id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at
+    lang = $6,
+    blurred_confirmed = $7,
+    published = $8
+WHERE id = $9
+RETURNING id, source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published, created_at, lang
 `
 
 type UpdateTestimonialParams struct {
@@ -584,6 +673,7 @@ type UpdateTestimonialParams struct {
 	TechKey          *string   `json:"tech_key"`
 	Rating           *int16    `json:"rating"`
 	Transcript       string    `json:"transcript"`
+	Lang             string    `json:"lang"`
 	BlurredConfirmed bool      `json:"blurred_confirmed"`
 	Published        bool      `json:"published"`
 	ID               uuid.UUID `json:"id"`
@@ -596,6 +686,7 @@ func (q *Queries) UpdateTestimonial(ctx context.Context, arg UpdateTestimonialPa
 		arg.TechKey,
 		arg.Rating,
 		arg.Transcript,
+		arg.Lang,
 		arg.BlurredConfirmed,
 		arg.Published,
 		arg.ID,
@@ -614,6 +705,7 @@ func (q *Queries) UpdateTestimonial(ctx context.Context, arg UpdateTestimonialPa
 		&i.BlurredConfirmed,
 		&i.Published,
 		&i.CreatedAt,
+		&i.Lang,
 	)
 	return i, err
 }

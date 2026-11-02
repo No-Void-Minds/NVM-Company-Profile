@@ -14,9 +14,9 @@ import { useI18n } from '@/i18n'
 
 const SWIPE_DISTANCE = 48
 
-const { t } = useI18n()
+const { lang, t } = useI18n()
+const { data, error, loading, run } = useAsync(() => api.gallery(lang.value))
 
-const { data, error, loading, run } = useAsync(() => api.gallery())
 const items = computed(() => data.value ?? [])
 const categories = computed(() => [...new Set(items.value.map((item) => item.category))])
 const category = ref<string | null>(null)

@@ -113,17 +113,21 @@ func (s *server) lookupError(c *gin.Context, err error) {
 }
 
 type galleryInput struct {
-	Category string `json:"category"`
-	Alt      string `json:"alt"`
-	Caption  string `json:"caption"`
-	Visible  bool   `json:"visible"`
-	Sort     int32  `json:"sort"`
+	Category  string `json:"category"`
+	Alt       string `json:"alt"`
+	Caption   string `json:"caption"`
+	AltEn     string `json:"alt_en"`
+	CaptionEn string `json:"caption_en"`
+	Visible   bool   `json:"visible"`
+	Sort      int32  `json:"sort"`
 }
 
 func (in *galleryInput) clean() map[string]string {
 	in.Category = strings.TrimSpace(in.Category)
 	in.Alt = strings.TrimSpace(in.Alt)
 	in.Caption = strings.TrimSpace(in.Caption)
+	in.AltEn = strings.TrimSpace(in.AltEn)
+	in.CaptionEn = strings.TrimSpace(in.CaptionEn)
 
 	fields := map[string]string{}
 	if n := utf8.RuneCountInString(in.Category); n < 1 || n > 60 {
@@ -134,6 +138,13 @@ func (in *galleryInput) clean() map[string]string {
 	}
 	if utf8.RuneCountInString(in.Caption) > 300 {
 		fields["caption"] = "Keterangan maksimal 300 karakter."
+	}
+	// The English pair is optional, empty falls back to Indonesian (FR-115).
+	if utf8.RuneCountInString(in.AltEn) > 300 {
+		fields["alt_en"] = "Teks alt Inggris maksimal 300 karakter."
+	}
+	if utf8.RuneCountInString(in.CaptionEn) > 300 {
+		fields["caption_en"] = "Keterangan Inggris maksimal 300 karakter."
 	}
 	return fields
 }
@@ -153,11 +164,13 @@ func (s *server) adminCreateGallery(c *gin.Context) {
 	}
 	sort, _ := strconv.Atoi(c.PostForm("sort"))
 	in := galleryInput{
-		Category: c.PostForm("category"),
-		Alt:      c.PostForm("alt"),
-		Caption:  c.PostForm("caption"),
-		Visible:  c.DefaultPostForm("visible", "true") == "true",
-		Sort:     int32(sort),
+		Category:  c.PostForm("category"),
+		Alt:       c.PostForm("alt"),
+		Caption:   c.PostForm("caption"),
+		AltEn:     c.PostForm("alt_en"),
+		CaptionEn: c.PostForm("caption_en"),
+		Visible:   c.DefaultPostForm("visible", "true") == "true",
+		Sort:      int32(sort),
 	}
 	if fields := in.clean(); len(fields) > 0 {
 		respondError(c, http.StatusBadRequest, codeValidation, "Periksa lagi isian yang ditandai.", fields)
@@ -168,14 +181,16 @@ func (s *server) adminCreateGallery(c *gin.Context) {
 		return
 	}
 	item, err := s.q.CreateGalleryItem(c, sqlc.CreateGalleryItemParams{
-		Category: in.Category,
-		Alt:      in.Alt,
-		Caption:  in.Caption,
-		ImageKey: stored.Key,
-		Width:    stored.Width,
-		Height:   stored.Height,
-		Visible:  in.Visible,
-		Sort:     in.Sort,
+		Category:  in.Category,
+		Alt:       in.Alt,
+		Caption:   in.Caption,
+		AltEn:     in.AltEn,
+		CaptionEn: in.CaptionEn,
+		ImageKey:  stored.Key,
+		Width:     stored.Width,
+		Height:    stored.Height,
+		Visible:   in.Visible,
+		Sort:      in.Sort,
 	})
 	if err != nil {
 		s.media.Remove(stored.Key)
@@ -198,11 +213,13 @@ func (s *server) adminUpdateGallery(c *gin.Context) {
 	}
 	// Decoding over the stored values gives PATCH its partial update behavior.
 	in := galleryInput{
-		Category: current.Category,
-		Alt:      current.Alt,
-		Caption:  current.Caption,
-		Visible:  current.Visible,
-		Sort:     current.Sort,
+		Category:  current.Category,
+		Alt:       current.Alt,
+		Caption:   current.Caption,
+		AltEn:     current.AltEn,
+		CaptionEn: current.CaptionEn,
+		Visible:   current.Visible,
+		Sort:      current.Sort,
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -214,12 +231,14 @@ func (s *server) adminUpdateGallery(c *gin.Context) {
 		return
 	}
 	item, err := s.q.UpdateGalleryItem(c, sqlc.UpdateGalleryItemParams{
-		ID:       id,
-		Category: in.Category,
-		Alt:      in.Alt,
-		Caption:  in.Caption,
-		Visible:  in.Visible,
-		Sort:     in.Sort,
+		ID:        id,
+		Category:  in.Category,
+		Alt:       in.Alt,
+		Caption:   in.Caption,
+		AltEn:     in.AltEn,
+		CaptionEn: in.CaptionEn,
+		Visible:   in.Visible,
+		Sort:      in.Sort,
 	})
 	if err != nil {
 		s.lookupError(c, err)
@@ -248,6 +267,7 @@ type testimonialInput struct {
 	TechKey          *string `json:"tech_key"`
 	Rating           *int16  `json:"rating"`
 	Transcript       string  `json:"transcript"`
+	Lang             string  `json:"lang"`
 	BlurredConfirmed bool    `json:"blurred_confirmed"`
 	Published        bool    `json:"published"`
 }
@@ -271,6 +291,9 @@ func (in *testimonialInput) clean() (time.Time, map[string]string) {
 	}
 	if n := utf8.RuneCountInString(in.Transcript); n < 1 || n > 5000 {
 		fields["transcript"] = "Transkrip wajib diisi, maksimal 5000 karakter."
+	}
+	if in.Lang != content.LangID && in.Lang != content.LangEN {
+		fields["lang"] = "Pilih bahasa transkrip: Indonesia atau Inggris."
 	}
 	return date, fields
 }
@@ -307,6 +330,7 @@ func (s *server) adminCreateTestimonial(c *gin.Context) {
 		Source:           c.PostForm("source"),
 		ReviewDate:       c.PostForm("review_date"),
 		Transcript:       c.PostForm("transcript"),
+		Lang:             c.DefaultPostForm("lang", content.LangID),
 		BlurredConfirmed: c.PostForm("blurred_confirmed") == "true",
 		Published:        c.PostForm("published") == "true",
 	}
@@ -346,6 +370,7 @@ func (s *server) adminCreateTestimonial(c *gin.Context) {
 		TechKey:          in.TechKey,
 		Rating:           in.Rating,
 		Transcript:       in.Transcript,
+		Lang:             in.Lang,
 		ImageKey:         stored.Key,
 		Width:            stored.Width,
 		Height:           stored.Height,
@@ -381,6 +406,7 @@ func (s *server) adminUpdateTestimonial(c *gin.Context) {
 		TechKey:          current.TechKey,
 		Rating:           current.Rating,
 		Transcript:       current.Transcript,
+		Lang:             current.Lang,
 		BlurredConfirmed: current.BlurredConfirmed,
 		Published:        current.Published,
 	}
@@ -405,6 +431,7 @@ func (s *server) adminUpdateTestimonial(c *gin.Context) {
 		TechKey:          in.TechKey,
 		Rating:           in.Rating,
 		Transcript:       in.Transcript,
+		Lang:             in.Lang,
 		BlurredConfirmed: in.BlurredConfirmed,
 		Published:        in.Published,
 	})

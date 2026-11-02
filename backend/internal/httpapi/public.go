@@ -13,8 +13,23 @@ import (
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/db/sqlc"
 )
 
+// langQuery reads ?lang=id|en (FR-113). Indonesian is the default site language.
+func langQuery(c *gin.Context) (string, bool) {
+	switch lang := c.DefaultQuery("lang", content.LangID); lang {
+	case content.LangID, content.LangEN:
+		return lang, true
+	default:
+		respondError(c, http.StatusBadRequest, codeValidation, "Bahasa harus id atau en.", map[string]string{"lang": "id atau en"})
+		return "", false
+	}
+}
+
 func (s *server) listTechs(c *gin.Context) {
-	techs, err := s.q.ListTechs(c)
+	lang, ok := langQuery(c)
+	if !ok {
+		return
+	}
+	techs, err := s.q.ListTechsByLang(c, lang)
 	if err != nil {
 		s.internalError(c, err)
 		return
@@ -52,12 +67,18 @@ func optionalQuery(c *gin.Context, name string) *string {
 }
 
 func (s *server) listGallery(c *gin.Context) {
+	lang, ok := langQuery(c)
+	if !ok {
+		return
+	}
 	items, err := s.q.ListVisibleGallery(c, optionalQuery(c, "category"))
 	if err != nil {
 		s.internalError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, content.MapSlice(items, content.NewGalleryItem))
+	c.JSON(http.StatusOK, content.MapSlice(items, func(g sqlc.GalleryItem) content.GalleryItem {
+		return content.NewGalleryItem(g, lang)
+	}))
 }
 
 func (s *server) listTestimonials(c *gin.Context) {

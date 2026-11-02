@@ -1,0 +1,79 @@
+[
+  {
+    "key": "aezy",
+    "tagline": "Untuk hari-hari yang terasa gerah.",
+    "sub": "Performa, iklim, stretch",
+    "description": "Kain performa yang ringan. Bernapas, cepat kering, dan lembut seperti udara. Direkayasa untuk bergerak dan menjaga kenyamanan di iklim sehari-hari, dengan pemulihan elastis yang tetap stabil setelah lama dipakai.",
+    "chips": ["Bernapas", "Cepat kering", "Lembut seperti udara", "Pemulihan elastis"]
+  },
+  {
+    "key": "aezy-cotton",
+    "tagline": "AEZY, dengan sentuhan katun.",
+    "sub": "Sentuhan katun, bernapas, sehari-hari",
+    "description": "Sistem AEZY dengan sentuhan katun. Rasa katun yang alami dan akrab di kulit, dengan kemampuan bernapas khas AEZY. Dibuat untuk hari yang panjang dan pemakaian sehari-hari.",
+    "chips": ["Rasa katun", "Bernapas", "Nyaman sehari-hari"]
+  },
+  {
+    "key": "aezy-2",
+    "tagline": "AEZY, disempurnakan.",
+    "sub": "Generasi berikutnya, ringan seperti udara, gerak",
+    "description": "Generasi berikutnya dari sistem AEZY kami. Ringan seperti udara yang sudah kamu kenal, disempurnakan di lab untuk sentuhan yang lebih halus dan gerak yang lebih leluasa sepanjang hari.",
+    "chips": ["Generasi kedua", "Ringan seperti udara", "Sentuhan lebih halus"]
+  },
+  {
+    "key": "formlock",
+    "tagline": "Untuk potongan yang menolak melorot.",
+    "sub": "Struktur, daya tahan bentuk, konstruksi",
+    "description": "Sistem konstruksi struktural. Panel seam-lock dan rajutan kontur yang padat, direkayasa untuk menjaga siluetnya dari cucian ke cucian, sehingga potongannya tetap setajam hari pertama.",
+    "chips": ["Panel seam-lock", "Rajutan kontur padat", "Bentuk terjaga"]
+  },
+  {
+    "key": "formlock-2",
+    "tagline": "FORMLOCK, dalam lebih banyak potongan.",
+    "sub": "Generasi berikutnya, struktur, siluet",
+    "description": "Generasi berikutnya dari FORMLOCK. Struktur penahan bentuk yang sama, dikembangkan lebih jauh ke lebih banyak siluet, dari potongan regular yang rapi sampai fit boxy dan oversized yang tetap terjaga bentuknya.",
+    "chips": ["Generasi kedua", "Menahan bentuk", "Regular, Boxy, Oversized"]
+  },
+  {
+    "key": "curflex",
+    "tagline": "Untuk tubuh yang tidak pernah diam.",
+    "sub": "Lekuk, lentur, pemulihan",
+    "description": "Stretch curve-flex empat arah. Bergerak bersama tubuhmu dan kembali ke bentuknya, untuk mobilitas sepanjang hari tanpa kehilangan struktur. Dibuat untuk menonjolkan bentuk tubuh dan membebaskan gerak.",
+    "chips": ["Stretch empat arah", "Kembali ke bentuk", "Mobilitas sepanjang hari"]
+  },
+  {
+    "key": "puffmax",
+    "tagline": "Untuk saat lembut adalah tujuannya.",
+    "sub": "Loft, empuk, kelembutan",
+    "description": "Loft dan kepadatan maksimal. Sentuhan tebal dan empuk yang terasa seperti dibungkus awan. Ekstra lembut dan berbobot, dengan kenyamanan yang bertahan dari pemakaian ke pemakaian.",
+    "chips": ["Loft maksimal", "Sentuhan tebal", "Nyaman tahan lama"]
+  },
+  {
+    "key": "therco",
+    "tagline": "Untuk pagi yang dingin dan kantor yang membeku.",
+    "sub": "Termal, nyaman, berlapis",
+    "description": "Sistem kenyamanan termal untuk jam-jam yang lebih sejuk. Dirancang untuk menjaga hangat tetap dekat dengan tubuh, sambil tetap mudah dilapis dan nyaman dari pagi sampai malam.",
+    "chips": ["Nyaman termal", "Mudah dilapis", "Dipakai seharian"]
+  },
+  {
+    "key": "antshell",
+    "tagline": "Untuk lapisan luar yang lebih rapi.",
+    "sub": "Cangkang, ringan, pelindung sehari-hari",
+    "description": "Sistem lapisan luar yang terinspirasi dari cangkang ringan. Dibuat agar terasa ringan di badan, sambil memberi pakaian sehari-hari permukaan luar yang rapi dan melindungi.",
+    "chips": ["Cangkang ringan", "Permukaan luar rapi", "Lapisan sehari-hari"]
+  },
+  {
+    "key": "flexe",
+    "tagline": "Untuk rentang gerak penuh.",
+    "sub": "Lentur, mobilitas, leluasa",
+    "description": "Sistem lentur yang dibuat untuk rentang gerak penuh. Menekuk dan bergerak bersamamu, lalu kembali ke bentuknya, sehingga fit terasa leluasa saat kamu bergerak maupun diam.",
+    "chips": ["Rentang gerak penuh", "Fit leluasa", "Kembali ke bentuk"]
+  },
+  {
+    "key": "meltwrap",
+    "tagline": "Untuk jatuh kain seperti kulit kedua.",
+    "sub": "Jatuh kain, kelembutan, kulit kedua",
+    "description": "Sistem yang lembut dan cair, jatuh dekat ke tubuh. Halus di kulit dan ringan di tangan, membalut bentuk tubuh dengan lembut untuk rasa nyaman seperti kulit kedua.",
+    "chips": ["Jatuh kain cair", "Sentuhan halus", "Rasa kulit kedua"]
+  }
+]

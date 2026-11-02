@@ -43,6 +43,9 @@ export interface GalleryItem {
 }
 
 export interface AdminGalleryItem extends GalleryItem {
+  // Optional English text, empty means the English site shows alt and caption (FR-115)
+  alt_en: string
+  caption_en: string
   visible: boolean
   sort: number
   created_at: string
@@ -57,6 +60,8 @@ export interface Testimonial {
   tech_key: string | null
   rating: number | null
   transcript: string
+  // Language the buyer wrote in, transcripts are never translated (FR-115)
+  lang: 'id' | 'en'
   image: ImageSet
 }
 

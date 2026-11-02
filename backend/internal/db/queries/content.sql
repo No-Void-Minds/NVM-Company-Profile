@@ -1,6 +1,18 @@
 -- name: ListTechs :many
 SELECT * FROM techs ORDER BY sort;
 
+-- Falls back to the techs columns, so a tech without a translation still shows (FR-113).
+-- name: ListTechsByLang :many
+SELECT t.key, t.name, t.family, t.generation, t.needs,
+       COALESCE(i.tagline, t.tagline)::text AS tagline,
+       COALESCE(i.sub, t.sub)::text AS sub,
+       COALESCE(i.description, t.description)::text AS description,
+       COALESCE(i.chips, t.chips)::text[] AS chips,
+       t.fits, t.technology_label, t.on_rack, t.sort
+FROM techs t
+LEFT JOIN tech_i18n i ON i.tech_key = t.key AND i.lang = @lang::text
+ORDER BY t.sort;
+
 -- name: SetTechOnRack :one
 UPDATE techs SET on_rack = @on_rack WHERE key = @key RETURNING *;
 
@@ -45,13 +57,14 @@ SELECT * FROM gallery_items ORDER BY sort, created_at DESC;
 SELECT * FROM gallery_items WHERE id = @id;
 
 -- name: CreateGalleryItem :one
-INSERT INTO gallery_items (category, alt, caption, image_key, width, height, visible, sort)
-VALUES (@category, @alt, @caption, @image_key, @width, @height, @visible, @sort)
+INSERT INTO gallery_items (category, alt, caption, alt_en, caption_en, image_key, width, height, visible, sort)
+VALUES (@category, @alt, @caption, @alt_en, @caption_en, @image_key, @width, @height, @visible, @sort)
 RETURNING *;
 
 -- name: UpdateGalleryItem :one
 UPDATE gallery_items
-SET category = @category, alt = @alt, caption = @caption, visible = @visible, sort = @sort
+SET category = @category, alt = @alt, caption = @caption, alt_en = @alt_en, caption_en = @caption_en,
+    visible = @visible, sort = @sort
 WHERE id = @id
 RETURNING *;
 
@@ -72,8 +85,8 @@ SELECT * FROM testimonials ORDER BY created_at DESC;
 SELECT * FROM testimonials WHERE id = @id;
 
 -- name: CreateTestimonial :one
-INSERT INTO testimonials (source, review_date, tech_key, rating, transcript, image_key, width, height, blurred_confirmed, published)
-VALUES (@source, @review_date, sqlc.narg('tech_key'), sqlc.narg('rating'), @transcript, @image_key, @width, @height, @blurred_confirmed, @published)
+INSERT INTO testimonials (source, review_date, tech_key, rating, transcript, lang, image_key, width, height, blurred_confirmed, published)
+VALUES (@source, @review_date, sqlc.narg('tech_key'), sqlc.narg('rating'), @transcript, @lang, @image_key, @width, @height, @blurred_confirmed, @published)
 RETURNING *;
 
 -- name: UpdateTestimonial :one
@@ -83,6 +96,7 @@ SET source = @source,
     tech_key = sqlc.narg('tech_key'),
     rating = sqlc.narg('rating'),
     transcript = @transcript,
+    lang = @lang,
     blurred_confirmed = @blurred_confirmed,
     published = @published
 WHERE id = @id
