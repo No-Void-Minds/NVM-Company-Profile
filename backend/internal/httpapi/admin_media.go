@@ -3,7 +3,6 @@ package httpapi
 import (
 	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -43,16 +42,27 @@ func (s *server) serveMedia(c *gin.Context) {
 	c.File(path)
 }
 
+// parseUpload must run before any PostForm call, which would otherwise read the
+// whole body with no size limit and hide the parse error.
+func parseUpload(c *gin.Context) bool {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, media.MaxUploadBytes+maxMultipartOverhead)
+	err := c.Request.ParseMultipartForm(media.MaxUploadBytes + maxMultipartOverhead)
+	if err == nil {
+		return true
+	}
+	var tooBig *http.MaxBytesError
+	if errors.As(err, &tooBig) {
+		respondError(c, http.StatusBadRequest, codeValidation, maxUploadMessage, map[string]string{"image": maxUploadMessage})
+		return false
+	}
+	respondError(c, http.StatusBadRequest, codeValidation, "Formulir unggahan tidak bisa dibaca.", nil)
+	return false
+}
+
 // readUpload returns the stored variants, or writes the error response and false.
 func (s *server) readUpload(c *gin.Context) (media.Stored, bool) {
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, media.MaxUploadBytes+maxMultipartOverhead)
 	header, err := c.FormFile("image")
 	if err != nil {
-		var tooBig *http.MaxBytesError
-		if errors.As(err, &tooBig) {
-			respondError(c, http.StatusBadRequest, codeValidation, maxUploadMessage, map[string]string{"image": maxUploadMessage})
-			return media.Stored{}, false
-		}
 		respondError(c, http.StatusBadRequest, codeValidation, "Pilih file gambar.", map[string]string{"image": "Pilih file gambar."})
 		return media.Stored{}, false
 	}
@@ -138,6 +148,9 @@ func (s *server) adminListGallery(c *gin.Context) {
 }
 
 func (s *server) adminCreateGallery(c *gin.Context) {
+	if !parseUpload(c) {
+		return
+	}
 	sort, _ := strconv.Atoi(c.PostForm("sort"))
 	in := galleryInput{
 		Category: c.PostForm("category"),
@@ -287,6 +300,9 @@ func (s *server) adminListTestimonials(c *gin.Context) {
 }
 
 func (s *server) adminCreateTestimonial(c *gin.Context) {
+	if !parseUpload(c) {
+		return
+	}
 	in := testimonialInput{
 		Source:           c.PostForm("source"),
 		ReviewDate:       c.PostForm("review_date"),
@@ -414,6 +430,5 @@ func (s *server) adminDeleteTestimonial(c *gin.Context) {
 		return
 	}
 	s.media.Remove(key)
-	slog.Info("testimoni dihapus", "id", id)
 	c.Status(http.StatusNoContent)
 }

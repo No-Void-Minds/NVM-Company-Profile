@@ -1,0 +1,43 @@
+<script setup lang="ts">
+import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/composables/site'
+</script>
+
+<template>
+  <footer class="border-t border-line bg-surface">
+    <div class="wrap grid gap-4 py-6 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:py-8">
+      <div>
+        <p class="text-h3">No Void Minds</p>
+        <p class="mt-1 text-muted">Bandung</p>
+      </div>
+
+      <div>
+        <p class="spec-label mb-1">Kontak</p>
+        <a
+          :href="whatsappUrl('Halo NVM, saya ingin bertanya.')"
+          target="_blank"
+          rel="noopener"
+          class="text-link"
+        >
+          WhatsApp {{ WHATSAPP_DISPLAY }}
+        </a>
+      </div>
+
+      <div>
+        <p class="spec-label mb-1">Toko</p>
+        <ul>
+          <li>
+            <a :href="SHOP_URL" target="_blank" rel="noopener" class="text-link">Shopify</a>
+          </li>
+          <li v-for="link in MARKETPLACE_LINKS" :key="link.label">
+            <a :href="link.url" target="_blank" rel="noopener" class="text-link">{{
+              link.label
+            }}</a>
+          </li>
+          <li>
+            <RouterLink to="/privasi" class="text-link">Kebijakan privasi</RouterLink>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</template>

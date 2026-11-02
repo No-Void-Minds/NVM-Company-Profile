@@ -16,7 +16,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 1 | Database: migrasi, role, seed | M | selesai |
 | 2 | API publik dan inquiry | M | selesai |
 | 3 | Auth admin, API admin, media, ekspor, CLI | M | selesai |
-| 4 | Kerangka frontend dan komponen state | M | belum |
+| 4 | Kerangka frontend dan komponen state | M | selesai |
 | 5 | Beranda (Knit Field), Brand, Teknologi | M | belum |
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | belum |
 | 7 | Galeri, Testimoni, halaman admin | M | belum |
@@ -151,4 +151,13 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: ekspor tidak memuat `ip_hash` dan `idempotency_key` (SRS 8: hash hanya untuk rate limit). Sel CSV dinetralkan dari injeksi formula. WhatsApp ditulis `="0812..."` agar nol di depan tidak hilang di Excel.
 - Keputusan: CSV memakai koma + BOM. Excel berlocale Indonesia bisa jadi memakai `;`, cek saat AC-09. XLSX tidak terpengaruh.
 - Keputusan: `purge-inquiries` dijalankan lewat cron (Sprint 9). `reset-password` juga mengakhiri sesi aktif.
+- Menunggu user: tidak ada.
+
+### Sprint 4
+
+- Dibuat: `api/client.ts`, `api/types.ts`, komponen state, `useAsync`, `useHead`, `useFocusTrap`, `useReducedMotion`, `useInView`, header, footer, layout publik, router dengan meta per route, komponen dasar.
+- Keputusan: helper link dan konstanta brand di `composables/site.ts`. URL Shopee, TikTok Shop, Instagram dibaca dari `VITE_*`, kosong berarti link tidak tampil.
+- Keputusan: UUID memakai `crypto.getRandomValues`, karena `crypto.randomUUID` tidak ada di HTTP LAN.
+- Keputusan: ikut memperbaiki Sprint 3: multipart kini diparse dengan batas ukuran sebelum `PostForm`.
+- Sementara: route selain Beranda memakai `PendingPage`, diganti di Sprint 5 sampai 7.
 - Menunggu user: tidak ada.
