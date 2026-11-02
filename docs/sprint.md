@@ -17,7 +17,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 2 | API publik dan inquiry | M | selesai |
 | 3 | Auth admin, API admin, media, ekspor, CLI | M | selesai |
 | 4 | Kerangka frontend dan komponen state | M | selesai |
-| 5 | Beranda (Knit Field), Brand, Teknologi | M | belum |
+| 5 | Beranda (Knit Field), Brand, Teknologi | M | selesai |
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | belum |
 | 7 | Galeri, Testimoni, halaman admin | M | belum |
 | 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | belum |
@@ -160,4 +160,13 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: UUID memakai `crypto.getRandomValues`, karena `crypto.randomUUID` tidak ada di HTTP LAN.
 - Keputusan: ikut memperbaiki Sprint 3: multipart kini diparse dengan batas ukuran sebelum `PostForm`.
 - Sementara: route selain Beranda memakai `PendingPage`, diganti di Sprint 5 sampai 7.
+- Menunggu user: tidak ada.
+
+### Sprint 5
+
+- Dibuat: `motion/KnitField.ts`, Beranda, Brand, Teknologi (index, panel sticky, accordion, filter, deep link), spec reveal di `SectionHeading`.
+- Keputusan: Knit Field berhenti meminta frame saat titik sudah diam, jadi tidak ada animasi tanpa pemicu (NFR-04).
+- Keputusan: `@theme static`, agar semua token tersedia sebagai variabel CSS untuk `app.css` dan kanvas.
+- Temuan: `public/fonts/D-DIN.ttf` isinya WOFF2 (signature `wOF2`, 20 KB). `@font-face` memakai `format('woff2')`. Cakupan glyph perlu dilihat di Sprint 10.
+- Catatan: FR-16 hanya menampilkan "2021, Bandung". SRS 8 tidak punya tabel garis waktu, jadi entri tambahan lewat data belum bisa.
 - Menunggu user: tidak ada.

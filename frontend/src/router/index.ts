@@ -31,7 +31,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'brand',
-        component: pending,
+        component: () => import('@/pages/BrandPage.vue'),
         meta: {
           title: 'Brand',
           description:
@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'teknologi',
-        component: pending,
+        component: () => import('@/pages/TechPage.vue'),
         meta: {
           title: 'Teknologi',
           description:

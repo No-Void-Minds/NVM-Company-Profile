@@ -1,5 +1,148 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { api } from '@/api/client'
+import AppButton from '@/components/AppButton.vue'
+import KnitDivider from '@/components/KnitDivider.vue'
+import SectionHeading from '@/components/SectionHeading.vue'
+import StateError from '@/components/state/StateError.vue'
+import StateLoading from '@/components/state/StateLoading.vue'
+import { formatDate, pad2, SHOP_URL } from '@/composables/site'
+import { useAsync } from '@/composables/useAsync'
+import { KnitField } from '@/motion/KnitField'
+
+const hero = ref<HTMLElement | null>(null)
+const canvas = ref<HTMLCanvasElement | null>(null)
+let field: KnitField | null = null
+
+onMounted(() => {
+  if (!hero.value || !canvas.value) return
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  field = new KnitField(canvas.value, hero.value, reduced)
+  field.start()
+})
+onBeforeUnmount(() => field?.destroy())
+
+const stats = useAsync(() => api.labStats())
+// These two only decide whether a section exists, so a failure just hides it (FR-13).
+const gallery = useAsync(() => api.gallery().catch(() => []))
+const testimonials = useAsync(() => api.testimonials().catch(() => []))
+
+const galleryPreview = computed(() => (gallery.data.value ?? []).slice(0, 4))
+const testimonialPreview = computed(() => (testimonials.data.value ?? []).slice(0, 3))
+
+const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
+</script>
+
 <template>
-  <main>
-    <h1 class="text-h1">Fabric first.</h1>
-  </main>
+  <section ref="hero" class="hero relative overflow-hidden border-b border-line">
+    <canvas ref="canvas" aria-hidden="true" class="absolute inset-0 h-full w-full"></canvas>
+    <div class="wrap pointer-events-none relative py-8 lg:py-12">
+      <p class="spec-label">Engineered to perfection</p>
+      <h1 class="mt-2 text-h1">Fabric first.</h1>
+      <p class="mt-3 max-w-[44ch] bg-void text-h3">
+        Most brands draw the shirt, then go looking for a fabric. We do it the other way round.
+      </p>
+      <div class="pointer-events-auto mt-4 flex flex-wrap gap-2">
+        <AppButton to="/teknologi">Lihat 11 material system</AppButton>
+        <AppButton variant="secondary" :href="SHOP_URL">Belanja di Shopify</AppButton>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="lab-index-title" class="wrap section">
+    <h2 id="lab-index-title" class="spec-label">Lab index</h2>
+    <StateLoading v-if="stats.loading.value" label="Memuat Lab index" height="120px" class="mt-3" />
+    <StateError
+      v-else-if="stats.error.value"
+      :message="stats.error.value"
+      class="mt-3"
+      @retry="stats.run"
+    />
+    <dl v-else-if="stats.data.value" class="mt-3 flex flex-wrap gap-x-8 gap-y-4">
+      <div>
+        <dd class="text-h1 leading-none">{{ pad2(stats.data.value.systems) }}</dd>
+        <dt class="spec-label mt-1">Material system</dt>
+      </div>
+      <div v-if="stats.data.value.on_rack > 0">
+        <dd class="text-h1 leading-none">{{ pad2(stats.data.value.on_rack) }}</dd>
+        <dt class="spec-label mt-1 text-signal">On the rack</dt>
+      </div>
+      <div>
+        <dd class="text-h1 leading-none">{{ stats.data.value.est_year }}</dd>
+        <dt class="spec-label mt-1">Berdiri di Bandung</dt>
+      </div>
+    </dl>
+  </section>
+
+  <KnitDivider />
+
+  <section class="wrap section grid gap-6 lg:grid-cols-[3fr_2fr] lg:gap-12">
+    <div>
+      <SectionHeading number="01" title="Core dan Graphic" />
+      <p class="mt-3 max-w-[56ch] text-muted">
+        Core berisi semua produk selain collab, dipilih dari tech dan fit. Graphic berisi produk
+        collab karakter berlisensi, dipilih dari nama collab.
+      </p>
+      <AppButton to="/produk" variant="secondary" class="mt-4"
+        >Bandingkan Core dan Graphic</AppButton
+      >
+    </div>
+    <div class="border-t border-line pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+      <SectionHeading number="02" title="B2B" />
+      <p class="mt-3 text-muted">
+        Punya toko, atau punya ide dan audiens? Ada dua jalur kerja sama: Wholesale dan
+        Collaboration.
+      </p>
+      <AppButton to="/b2b" variant="secondary" class="mt-4">Kirim inquiry wholesale</AppButton>
+    </div>
+  </section>
+
+  <template v-if="testimonialPreview.length > 0">
+    <KnitDivider />
+    <section class="wrap section">
+      <SectionHeading number="03" title="Kata pembeli" />
+      <ul class="mt-4 grid gap-4 lg:grid-cols-3">
+        <li v-for="item in testimonialPreview" :key="item.id" class="border-t border-line pt-2">
+          <p class="spec-label">
+            {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date) }}
+          </p>
+          <p class="mt-1 line-clamp-5">{{ item.transcript }}</p>
+        </li>
+      </ul>
+      <AppButton to="/testimoni" variant="link" class="mt-3">Baca semua testimoni</AppButton>
+    </section>
+  </template>
+
+  <template v-if="galleryPreview.length > 0">
+    <KnitDivider />
+    <section class="wrap section">
+      <SectionHeading number="04" title="Galeri" />
+      <ul class="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <li v-for="item in galleryPreview" :key="item.id">
+          <img
+            :src="item.image.src"
+            :srcset="item.image.srcset"
+            sizes="(min-width: 64rem) 25vw, 50vw"
+            :width="item.image.width"
+            :height="item.image.height"
+            :alt="item.alt"
+            loading="lazy"
+            decoding="async"
+            class="h-auto w-full"
+          />
+        </li>
+      </ul>
+      <AppButton to="/galeri" variant="link" class="mt-3">Buka galeri lengkap</AppButton>
+    </section>
+  </template>
 </template>
+
+<style scoped>
+/* Vertical swipes must still scroll the page on touch screens */
+.hero {
+  touch-action: pan-y;
+  min-height: min(80svh, 720px);
+  display: flex;
+  align-items: flex-end;
+}
+</style>
