@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS audit_log;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS admin_users;
+DROP TABLE IF EXISTS inquiries;
+DROP TABLE IF EXISTS testimonials;
+DROP TABLE IF EXISTS gallery_items;
+DROP TABLE IF EXISTS size_charts;
+DROP TABLE IF EXISTS collabs;
+DROP TABLE IF EXISTS techs;

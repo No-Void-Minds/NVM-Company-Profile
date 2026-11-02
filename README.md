@@ -22,3 +22,15 @@ npm run dev
 ```
 
 Pemeriksaan sebelum commit: `./scripts/check.sh`.
+
+## Database
+
+Sekali di awal, sebagai superuser Postgres: jalankan `deploy/sql/00-bootstrap.sql` dengan `psql`.
+
+Migrasi memakai role `compro_migrator`:
+
+```bash
+migrate -path backend/migrations -database "$MIGRATOR_URL" up
+```
+
+Setelah mengubah `backend/internal/db/queries/` jalankan `sqlc generate` dari folder `backend`.

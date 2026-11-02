@@ -13,7 +13,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | Sprint | Isi | Prio | Status |
 |---|---|---|---|
 | 0 | Fondasi repo, tooling, token, font, check.sh | M | selesai |
-| 1 | Database: migrasi, role, seed | M | belum |
+| 1 | Database: migrasi, role, seed | M | selesai |
 | 2 | API publik dan inquiry | M | belum |
 | 3 | Auth admin, API admin, media, ekspor, CLI | M | belum |
 | 4 | Kerangka frontend dan komponen state | M | belum |
@@ -125,3 +125,12 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: hanya `@font-face` D-DIN regular, karena `D-DIN-Bold.ttf` tidak ada. Judul memakai weight 400.
 - Keputusan: `docs/srs.txt` dibuat dengan skrip Node, karena pandoc tidak terpasang.
 - Menunggu user: tidak ada.
+
+### Sprint 1
+
+- Dibuat: `deploy/sql/00-bootstrap.sql`, migrasi `0001_init` dan `0002_seed`, `sqlc.yaml`, query, `/api/health` dengan `pool.Ping`. Belum ada SQL yang dijalankan ke database.
+- Keputusan: tambah kolom `techs.technology_label` (ada di seed, tidak di SRS 8) serta `testimonials.width` dan `height` (mencegah CLS).
+- Keputusan: bootstrap juga memberi hak sequence ke `compro_app`, tanpa itu INSERT `audit_log` gagal. `schema_migrations` dicabut dari `compro_app`.
+- Keputusan: BR-02 juga dijaga CHECK di database.
+- Catatan: seed `on_rack` semua `false`, sesuai JSON. Tombol Shopify di Teknologi tersembunyi sampai admin mengubahnya.
+- Menunggu user: jalankan bootstrap dan migrasi.

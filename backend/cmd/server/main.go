@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/config"
+	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/db"
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/httpapi"
 )
 
@@ -23,7 +24,17 @@ func main() {
 
 func run() error {
 	cfg := config.Load()
-	router, err := httpapi.NewRouter(cfg)
+	if err := cfg.ValidateServer(); err != nil {
+		return err
+	}
+
+	pool, err := db.Open(context.Background(), cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	router, err := httpapi.NewRouter(cfg, pool)
 	if err != nil {
 		return err
 	}
