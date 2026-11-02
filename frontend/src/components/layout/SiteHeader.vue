@@ -1,22 +1,30 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import BrandLogo from '@/components/BrandLogo.vue'
 import IconSvg from '@/components/IconSvg.vue'
+import LangToggle from '@/components/LangToggle.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { SHOP_URL } from '@/composables/site'
+import { useI18n } from '@/i18n'
 
-const MENU = [
-  { to: '/brand', label: 'Brand' },
-  { to: '/teknologi', label: 'Teknologi' },
-  { to: '/produk', label: 'Produk' },
-  { to: '/b2b', label: 'B2B' },
-  { to: '/galeri', label: 'Galeri' },
-  { to: '/testimoni', label: 'Testimoni' },
-  { to: '/size', label: 'Size' },
-  { to: '/kontak', label: 'Kontak' },
-]
+const { t, to } = useI18n()
+
+const MENU = computed(() =>
+  (
+    [
+      ['/brand', 'brand'],
+      ['/teknologi', 'tech'],
+      ['/produk', 'product'],
+      ['/b2b', 'b2b'],
+      ['/galeri', 'gallery'],
+      ['/testimoni', 'testimonial'],
+      ['/size', 'size'],
+      ['/kontak', 'contact'],
+    ] as const
+  ).map(([path, key]) => ({ to: to(path), label: t.value.nav[key] })),
+)
 
 const open = ref(false)
 const panel = ref<HTMLElement | null>(null)
@@ -32,11 +40,11 @@ watch(
 <template>
   <header class="fixed inset-x-0 top-0 z-40 border-b border-line bg-bg">
     <div class="wrap flex h-8 items-center justify-between gap-2">
-      <RouterLink to="/" class="tap flex items-center" aria-label="No Void Minds, ke Beranda">
+      <RouterLink :to="to('/')" class="tap flex items-center" :aria-label="t.layout.homeLink">
         <BrandLogo />
       </RouterLink>
 
-      <nav aria-label="Menu utama" class="hidden lg:block">
+      <nav :aria-label="t.layout.mainMenu" class="hidden lg:block">
         <ul class="flex items-center gap-2 xl:gap-3">
           <li v-for="item in MENU" :key="item.to">
             <RouterLink
@@ -51,20 +59,21 @@ watch(
         </ul>
       </nav>
 
-      <div class="flex items-center gap-1">
+      <div class="flex items-center">
         <a
           :href="SHOP_URL"
           target="_blank"
           rel="noopener"
-          class="btn btn-secondary hidden min-h-[44px] whitespace-nowrap sm:inline-flex"
+          class="btn btn-secondary mr-1 hidden min-h-[44px] whitespace-nowrap sm:inline-flex"
         >
-          Belanja di Shopify
+          {{ t.layout.shop }}
         </a>
+        <LangToggle />
         <ThemeToggle />
         <button
           type="button"
           class="tap flex items-center justify-center lg:hidden"
-          aria-label="Buka menu"
+          :aria-label="t.layout.openMenu"
           aria-haspopup="dialog"
           :aria-expanded="open"
           @click="open = true"
@@ -79,14 +88,14 @@ watch(
         ref="panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu utama"
+        :aria-label="t.layout.mainMenu"
         class="ml-auto flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l border-line bg-surface"
       >
         <div class="flex h-8 flex-none items-center justify-end px-2">
           <button
             type="button"
             class="tap flex items-center justify-center"
-            aria-label="Tutup menu"
+            :aria-label="t.layout.closeMenu"
             @click="open = false"
           >
             <IconSvg name="close" />
@@ -105,7 +114,7 @@ watch(
         </ul>
         <div class="p-2">
           <a :href="SHOP_URL" target="_blank" rel="noopener" class="btn btn-primary w-full">
-            Belanja di Shopify
+            {{ t.layout.shop }}
           </a>
         </div>
       </div>

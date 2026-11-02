@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from '@/i18n'
 
 const props = defineProps<{
   id: string
@@ -8,6 +9,8 @@ const props = defineProps<{
   hint?: string
   optional?: boolean
 }>()
+
+const { t } = useI18n()
 
 const describedby = computed(
   () =>
@@ -21,7 +24,7 @@ const describedby = computed(
   <div>
     <label :for="id" class="field-label">
       {{ label }}
-      <span v-if="optional" class="text-muted">(opsional)</span>
+      <span v-if="optional" class="text-muted">{{ t.state.optional }}</span>
     </label>
     <slot :describedby="describedby" :invalid="error ? true : undefined" />
     <p v-if="hint" :id="`${id}-hint`" class="field-hint">{{ hint }}</p>

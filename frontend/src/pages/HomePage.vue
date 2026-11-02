@@ -7,10 +7,12 @@ import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { formatDate, pad2, SHOP_URL } from '@/composables/site'
+import { pad2, SHOP_URL } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { formatDate, useI18n } from '@/i18n'
 import { KnitField } from '@/motion/KnitField'
 
+const { lang, t, to } = useI18n()
 const hero = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 let field: KnitField | null = null
@@ -40,42 +42,41 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
     <div class="wrap pointer-events-none relative py-8 lg:py-12">
       <p class="spec-label">Engineered to perfection</p>
       <h1 class="mt-2 text-h1">Fabric first.</h1>
-      <p class="mt-3 max-w-[44ch] bg-bg text-h3">
-        Most brands draw the shirt, then go looking for a fabric. We do it the other way round.
-      </p>
+      <p class="mt-3 max-w-[44ch] bg-bg text-h3">{{ t.home.lead }}</p>
       <div class="pointer-events-auto mt-4 flex flex-wrap gap-2">
-        <AppButton to="/teknologi">Lihat 11 material system</AppButton>
-        <AppButton variant="secondary" :href="SHOP_URL">Belanja di Shopify</AppButton>
+        <AppButton :to="to('/teknologi')">{{ t.cta.seeSystems }}</AppButton>
+        <AppButton variant="secondary" :href="SHOP_URL">{{ t.layout.shop }}</AppButton>
       </div>
     </div>
   </section>
 
   <section aria-labelledby="lab-index-title" class="wrap section">
-    <h2 id="lab-index-title" class="spec-label">Lab index</h2>
-    <StateLoading v-if="stats.loading.value" label="Memuat Lab index" height="120px" class="mt-3" />
+    <h2 id="lab-index-title" class="spec-label">{{ t.home.labIndex }}</h2>
+    <StateLoading
+      v-if="stats.loading.value"
+      :label="t.home.labLoading"
+      height="120px"
+      class="mt-3"
+    />
     <StateError
       v-else-if="stats.error.value"
       :message="stats.error.value"
       class="mt-3"
       @retry="stats.run"
     />
-    <StateEmpty
-      v-else-if="stats.data.value?.systems === 0"
-      title="Lab index belum tersedia"
-      class="mt-3"
-    />
+    <StateEmpty v-else-if="stats.data.value?.systems === 0" :title="t.home.labEmpty" class="mt-3" />
     <dl v-else-if="stats.data.value" class="mt-3 flex flex-wrap gap-x-8 gap-y-4">
       <div>
         <dd class="text-h1 leading-none">{{ pad2(stats.data.value.systems) }}</dd>
-        <dt class="spec-label mt-1">Material system</dt>
+        <dt class="spec-label mt-1">{{ t.home.systems }}</dt>
       </div>
       <div v-if="stats.data.value.on_rack > 0">
         <dd class="text-h1 leading-none">{{ pad2(stats.data.value.on_rack) }}</dd>
-        <dt class="spec-label mt-1 text-signal">On the rack</dt>
+        <dt class="spec-label mt-1 text-signal">{{ t.home.onRack }}</dt>
       </div>
       <div>
         <dd class="text-h1 leading-none">{{ stats.data.value.est_year }}</dd>
-        <dt class="spec-label mt-1">Berdiri di Bandung</dt>
+        <dt class="spec-label mt-1">{{ t.home.founded }}</dt>
       </div>
     </dl>
   </section>
@@ -84,45 +85,41 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
 
   <section class="wrap section grid gap-6 lg:grid-cols-[3fr_2fr] lg:gap-12">
     <div>
-      <SectionHeading number="01" title="Core dan Graphic" />
-      <p class="mt-3 max-w-[56ch] text-muted">
-        Core berisi semua produk selain collab, dipilih dari tech dan fit. Graphic berisi produk
-        collab karakter berlisensi, dipilih dari nama collab.
-      </p>
-      <AppButton to="/produk" variant="secondary" class="mt-4"
-        >Bandingkan Core dan Graphic</AppButton
-      >
+      <SectionHeading number="01" :title="t.home.lineTitle" />
+      <p class="mt-3 max-w-[56ch] text-muted">{{ t.home.lineBody }}</p>
+      <AppButton :to="to('/produk')" variant="secondary" class="mt-4">
+        {{ t.home.lineCta }}
+      </AppButton>
     </div>
     <div class="border-t border-line pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
-      <SectionHeading number="02" title="B2B" />
-      <p class="mt-3 text-muted">
-        Punya toko, atau punya ide dan audiens? Ada dua jalur kerja sama: Wholesale dan
-        Collaboration.
-      </p>
-      <AppButton to="/b2b" variant="secondary" class="mt-4">Kirim inquiry wholesale</AppButton>
+      <SectionHeading number="02" :title="t.home.b2bTitle" />
+      <p class="mt-3 text-muted">{{ t.home.b2bBody }}</p>
+      <AppButton :to="to('/b2b')" variant="secondary" class="mt-4">{{ t.home.b2bCta }}</AppButton>
     </div>
   </section>
 
   <template v-if="testimonialPreview.length > 0">
     <KnitDivider />
     <section class="wrap section">
-      <SectionHeading number="03" title="Kata pembeli" />
+      <SectionHeading number="03" :title="t.home.buyersTitle" />
       <ul class="mt-4 grid gap-4 lg:grid-cols-3">
         <li v-for="item in testimonialPreview" :key="item.id" class="border-t border-line pt-2">
           <p class="spec-label">
-            {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date) }}
+            {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date, lang) }}
           </p>
           <p class="mt-1 line-clamp-5">{{ item.transcript }}</p>
         </li>
       </ul>
-      <AppButton to="/testimoni" variant="link" class="mt-3">Baca semua testimoni</AppButton>
+      <AppButton :to="to('/testimoni')" variant="link" class="mt-3">
+        {{ t.home.buyersCta }}
+      </AppButton>
     </section>
   </template>
 
   <template v-if="galleryPreview.length > 0">
     <KnitDivider />
     <section class="wrap section">
-      <SectionHeading number="04" title="Galeri" />
+      <SectionHeading number="04" :title="t.home.galleryTitle" />
       <ul class="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <li v-for="item in galleryPreview" :key="item.id">
           <img
@@ -138,7 +135,9 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
           />
         </li>
       </ul>
-      <AppButton to="/galeri" variant="link" class="mt-3">Buka galeri lengkap</AppButton>
+      <AppButton :to="to('/galeri')" variant="link" class="mt-3">
+        {{ t.home.galleryCta }}
+      </AppButton>
     </section>
   </template>
 </template>

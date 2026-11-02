@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/composables/site'
+import { useI18n } from '@/i18n'
+
+const { t, to } = useI18n()
 </script>
 
 <template>
@@ -11,9 +14,9 @@ import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/co
       </div>
 
       <div>
-        <p class="spec-label mb-1">Kontak</p>
+        <p class="spec-label mb-1">{{ t.footer.contact }}</p>
         <a
-          :href="whatsappUrl('Halo NVM, saya ingin bertanya.')"
+          :href="whatsappUrl(t.footer.whatsappMessage)"
           target="_blank"
           rel="noopener"
           class="text-link"
@@ -23,7 +26,7 @@ import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/co
       </div>
 
       <div>
-        <p class="spec-label mb-1">Toko</p>
+        <p class="spec-label mb-1">{{ t.footer.store }}</p>
         <ul>
           <li>
             <a :href="SHOP_URL" target="_blank" rel="noopener" class="text-link">Shopify</a>
@@ -34,7 +37,7 @@ import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/co
             }}</a>
           </li>
           <li>
-            <RouterLink to="/privasi" class="text-link">Kebijakan privasi</RouterLink>
+            <RouterLink :to="to('/privasi')" class="text-link">{{ t.footer.privacy }}</RouterLink>
           </li>
         </ul>
       </div>

@@ -8,14 +8,16 @@ import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import TechDetail from '@/components/TechDetail.vue'
-import { NEED_FILTERS, pad2, techName } from '@/composables/site'
+import { NEED_KEYS, pad2, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useMediaQuery } from '@/composables/useMediaQuery'
+import { useI18n } from '@/i18n'
 
 const HASH_PREFIX = '#lab-'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const isDesktop = useMediaQuery('(min-width: 64rem)', true)
 const { data, error, loading, run } = useAsync(() => api.techs())
 
@@ -69,24 +71,15 @@ function choose(key: string) {
 
 <template>
   <div class="wrap section">
-    <SectionHeading
-      level="h1"
-      number="The Lab"
-      title="Fabric first."
-      lead="Most brands draw the shirt, then go looking for a fabric. We do it the other way round."
-    />
+    <SectionHeading level="h1" number="The Lab" title="Fabric first." :lead="t.tech.lead" />
 
-    <StateLoading v-if="loading" label="Memuat material system" height="480px" class="mt-6" />
+    <StateLoading v-if="loading" :label="t.tech.loading" height="480px" class="mt-6" />
     <StateError v-else-if="error" :message="error" class="mt-6" @retry="run" />
-    <StateEmpty
-      v-else-if="techs.length === 0"
-      title="Daftar material system belum tersedia"
-      class="mt-6"
-    />
+    <StateEmpty v-else-if="techs.length === 0" :title="t.tech.empty" class="mt-6" />
 
     <template v-else>
       <div class="mt-6">
-        <p id="need-filter-label" class="spec-label">Your day</p>
+        <p id="need-filter-label" class="spec-label">{{ t.tech.filterLabel }}</p>
         <div
           role="group"
           aria-labelledby="need-filter-label"
@@ -98,21 +91,20 @@ function choose(key: string) {
             :aria-pressed="need === null"
             @click="need = null"
           >
-            All
+            {{ t.tech.all }}
           </button>
           <button
-            v-for="filter in NEED_FILTERS"
-            :key="filter.key"
+            v-for="key in NEED_KEYS"
+            :key="key"
             type="button"
             class="filter-button"
-            :aria-pressed="need === filter.key"
-            lang="en"
-            @click="need = filter.key"
+            :aria-pressed="need === key"
+            @click="need = key"
           >
-            {{ filter.label }}
+            {{ t.needs[key] }}
           </button>
         </div>
-        <p class="spec-label mt-2" aria-live="polite">{{ pad2(matchCount) }} fit</p>
+        <p class="spec-label mt-2" aria-live="polite">{{ t.tech.matchCount(pad2(matchCount)) }}</p>
       </div>
 
       <div class="mt-4 grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
@@ -161,7 +153,7 @@ function choose(key: string) {
           v-if="isDesktop && activeTech"
           class="tech-panel"
           aria-live="polite"
-          aria-label="Detail material system"
+          :aria-label="t.tech.panel"
           tabindex="0"
         >
           <Transition name="index-sync" mode="out-in">

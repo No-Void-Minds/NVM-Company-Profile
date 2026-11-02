@@ -1,41 +1,31 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
-import { api, ApiError, errorMessage } from '@/api/client'
+import { api, ApiError } from '@/api/client'
 import type { InquiryInput, InquiryKind } from '@/api/types'
 import AppButton from '@/components/AppButton.vue'
 import FormField from '@/components/FormField.vue'
 import IconSvg from '@/components/IconSvg.vue'
 import KnitDivider from '@/components/KnitDivider.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
-import { validateInquiry } from '@/composables/inquiryValidation'
+import {
+  serverFieldErrors,
+  validateInquiry,
+  type InquiryErrorKey,
+} from '@/composables/inquiryValidation'
 import { newUuid, techName, whatsappUrl } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { apiErrorText, useI18n } from '@/i18n'
 
-const PATHS: Array<{
-  kind: InquiryKind
-  title: string
-  audience: string
-  body: string
-  points: string[]
-  cta: string
-}> = [
-  {
-    kind: 'wholesale',
-    title: 'Wholesale',
-    audience: 'Stores dan resellers',
-    body: 'You run a store and want NVM on your rack. Tiered pricing on bulk orders across our systems, full size runs, and restocks you can plan around.',
-    points: ['Tiered pricing', 'Full size runs', 'Reliable restocks'],
-    cta: 'Isi inquiry wholesale',
-  },
-  {
-    kind: 'collaboration',
-    title: 'Collaboration',
-    audience: 'Brands, communities, teams',
-    body: 'You have an idea and an audience. We have the fabric. Co-branded capsules built on our material systems, with custom design and limited runs. Minimum order applies.',
-    points: ['Custom design', 'Limited runs', 'Our materials'],
-    cta: 'Isi inquiry collaboration',
-  },
-]
+const { lang, t, to } = useI18n()
+
+// Wholesale and Collaboration are the path names on both sites
+const PATHS = computed(() =>
+  (['wholesale', 'collaboration'] as const).map((kind) => ({
+    kind: kind as InquiryKind,
+    title: kind === 'wholesale' ? 'Wholesale' : 'Collaboration',
+    ...t.value.b2b[kind],
+  })),
+)
 
 const form = reactive<InquiryInput>({
   kind: 'wholesale',
@@ -55,7 +45,12 @@ const form = reactive<InquiryInput>({
 // Optional field, so a failed load just removes the list instead of blocking the form.
 const techs = useAsync(() => api.techs().catch(() => []))
 
-const errors = ref<Record<string, string>>({})
+const errorKeys = ref<Record<string, InquiryErrorKey>>({})
+const errors = computed(() =>
+  Object.fromEntries(
+    Object.entries(errorKeys.value).map(([field, key]) => [field, t.value.b2b.errors[key]]),
+  ),
+)
 const submitError = ref('')
 const submitting = ref(false)
 const successCode = ref('')
@@ -66,13 +61,9 @@ const successHeading = ref<HTMLElement | null>(null)
 let idempotencyKey: string | null = null
 watch(form, () => (idempotencyKey = null), { deep: true })
 
-const submitLabel = computed(() =>
-  form.kind === 'wholesale' ? 'Kirim inquiry wholesale' : 'Kirim inquiry collaboration',
-)
+const submitLabel = computed(() => t.value.b2b[form.kind].submit)
 
-const successWhatsapp = computed(() =>
-  whatsappUrl(`Halo NVM, saya baru mengirim inquiry B2B dengan kode ${successCode.value}.`),
-)
+const successWhatsapp = computed(() => whatsappUrl(t.value.b2b.sentMessage(successCode.value)))
 
 function choosePath(kind: InquiryKind) {
   form.kind = kind
@@ -88,8 +79,8 @@ async function focusFirstError() {
 async function submit() {
   if (submitting.value) return
   submitError.value = ''
-  errors.value = validateInquiry(form)
-  if (Object.keys(errors.value).length > 0) {
+  errorKeys.value = validateInquiry(form)
+  if (Object.keys(errorKeys.value).length > 0) {
     await focusFirstError()
     return
   }
@@ -102,9 +93,9 @@ async function submit() {
     await nextTick()
     successHeading.value?.focus()
   } catch (err) {
-    submitError.value = errorMessage(err)
+    submitError.value = apiErrorText(err, lang.value)
     if (err instanceof ApiError && Object.keys(err.fields).length > 0) {
-      errors.value = err.fields
+      errorKeys.value = serverFieldErrors(err.fields)
       await focusFirstError()
     }
   } finally {
@@ -115,12 +106,7 @@ async function submit() {
 
 <template>
   <div class="wrap section">
-    <SectionHeading
-      level="h1"
-      number="B2B"
-      title="Dua jalur kerja sama"
-      lead="Ceritakan kebutuhanmu lewat formulir. Tim NVM menjawab lewat WhatsApp atau email."
-    />
+    <SectionHeading level="h1" number="B2B" :title="t.b2b.title" :lead="t.b2b.lead" />
 
     <div class="mt-6 grid gap-4 lg:grid-cols-[3fr_2fr]">
       <section
@@ -132,8 +118,8 @@ async function submit() {
       >
         <p class="spec-label">{{ path.audience }}</p>
         <h2 :id="`path-${path.kind}`" class="mt-1 text-h2">{{ path.title }}</h2>
-        <p class="mt-2 max-w-[56ch] text-muted" lang="en">{{ path.body }}</p>
-        <ul class="mt-2" lang="en">
+        <p class="mt-2 max-w-[56ch] text-muted">{{ path.body }}</p>
+        <ul class="mt-2">
           <li v-for="point in path.points" :key="point" class="border-t border-line py-1">
             {{ point }}
           </li>
@@ -149,24 +135,23 @@ async function submit() {
 
   <section ref="formSection" aria-labelledby="form-title" class="wrap section">
     <div v-if="successCode" class="max-w-[640px]">
-      <h2 id="form-title" ref="successHeading" tabindex="-1" class="text-h2">Inquiry terkirim</h2>
-      <p class="spec-label mt-3">Kode inquiry</p>
+      <h2 id="form-title" ref="successHeading" tabindex="-1" class="text-h2">
+        {{ t.b2b.sentTitle }}
+      </h2>
+      <p class="spec-label mt-3">{{ t.b2b.codeLabel }}</p>
       <p class="mt-1 font-mono text-h2">{{ successCode }}</p>
-      <p class="mt-3 text-muted">
-        Simpan kode ini. Tim NVM akan menghubungi kontak yang kamu tulis, atau lanjutkan sekarang
-        lewat WhatsApp.
-      </p>
+      <p class="mt-3 text-muted">{{ t.b2b.sentBody }}</p>
       <AppButton :href="successWhatsapp" class="mt-3">
         <IconSvg name="chat" />
-        Lanjut chat WhatsApp
+        {{ t.b2b.sentCta }}
       </AppButton>
     </div>
 
     <template v-else>
-      <h2 id="form-title" class="text-h2">Formulir inquiry</h2>
+      <h2 id="form-title" class="text-h2">{{ t.b2b.formTitle }}</h2>
       <form class="mt-4 grid max-w-[800px] gap-3" novalidate @submit.prevent="submit">
         <fieldset>
-          <legend class="field-label">Jenis kerja sama</legend>
+          <legend class="field-label">{{ t.b2b.kind }}</legend>
           <div class="flex flex-wrap gap-x-4">
             <label v-for="path in PATHS" :key="path.kind" class="check-row">
               <input v-model="form.kind" type="radio" name="kind" :value="path.kind" />
@@ -176,7 +161,7 @@ async function submit() {
         </fieldset>
 
         <div class="grid gap-3 md:grid-cols-2">
-          <FormField id="name" v-slot="f" label="Nama" :error="errors.name">
+          <FormField id="name" v-slot="f" :label="t.b2b.name" :error="errors.name">
             <input
               id="name"
               v-model="form.name"
@@ -186,7 +171,7 @@ async function submit() {
               :aria-invalid="f.invalid"
             />
           </FormField>
-          <FormField id="org" v-slot="f" label="Nama usaha atau komunitas" :error="errors.org">
+          <FormField id="org" v-slot="f" :label="t.b2b.org" :error="errors.org">
             <input
               id="org"
               v-model="form.org"
@@ -196,7 +181,7 @@ async function submit() {
               :aria-invalid="f.invalid"
             />
           </FormField>
-          <FormField id="city" v-slot="f" label="Kota" :error="errors.city">
+          <FormField id="city" v-slot="f" :label="t.b2b.city" :error="errors.city">
             <input
               id="city"
               v-model="form.city"
@@ -209,7 +194,7 @@ async function submit() {
           <FormField
             id="channels"
             v-slot="f"
-            label="Kanal penjualan"
+            :label="t.b2b.channels"
             optional
             :error="errors.channels"
           >
@@ -224,8 +209,8 @@ async function submit() {
           <FormField
             id="phone"
             v-slot="f"
-            label="WhatsApp"
-            hint="Isi WhatsApp atau email, salah satu cukup."
+            :label="t.b2b.phone"
+            :hint="t.b2b.contactHint"
             :error="errors.phone"
           >
             <input
@@ -238,7 +223,7 @@ async function submit() {
               :aria-invalid="f.invalid"
             />
           </FormField>
-          <FormField id="email" v-slot="f" label="Email" :error="errors.email">
+          <FormField id="email" v-slot="f" :label="t.b2b.email" :error="errors.email">
             <input
               id="email"
               v-model="form.email"
@@ -253,7 +238,7 @@ async function submit() {
 
         <fieldset v-if="(techs.data.value ?? []).length > 0">
           <legend class="field-label">
-            Tech yang diminati <span class="text-muted">(opsional)</span>
+            {{ t.b2b.techs }} <span class="text-muted">{{ t.state.optional }}</span>
           </legend>
           <div class="grid sm:grid-cols-2 lg:grid-cols-3">
             <label v-for="tech in techs.data.value" :key="tech.key" class="check-row">
@@ -267,7 +252,7 @@ async function submit() {
         <FormField
           id="quantity_note"
           v-slot="f"
-          label="Perkiraan jumlah"
+          :label="t.b2b.quantity"
           optional
           :error="errors.quantity_note"
         >
@@ -280,7 +265,7 @@ async function submit() {
           />
         </FormField>
 
-        <FormField id="message" v-slot="f" label="Pesan" :error="errors.message">
+        <FormField id="message" v-slot="f" :label="t.b2b.message" :error="errors.message">
           <textarea
             id="message"
             v-model="form.message"
@@ -313,9 +298,9 @@ async function submit() {
               :aria-describedby="errors.consent ? 'consent-error' : undefined"
             />
             <span>
-              Saya setuju data ini diproses untuk menjawab inquiry saya, sesuai
-              <RouterLink to="/privasi" class="underline underline-offset-4">
-                kebijakan privasi
+              {{ t.b2b.consentBefore }}
+              <RouterLink :to="to('/privasi')" class="underline underline-offset-4">
+                {{ t.b2b.consentLink }}
               </RouterLink>
               .
             </span>
@@ -327,7 +312,7 @@ async function submit() {
 
         <div>
           <AppButton type="submit" :disabled="submitting">
-            {{ submitting ? 'Mengirim inquiry' : submitLabel }}
+            {{ submitting ? t.b2b.sending : submitLabel }}
           </AppButton>
         </div>
       </form>

@@ -7,7 +7,8 @@ import FormField from '@/components/FormField.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { formatDate, techName } from '@/composables/site'
+import { techName } from '@/composables/site'
+import { formatDate } from '@/i18n'
 import { useAsync } from '@/composables/useAsync'
 
 const SOURCE_LABEL: Record<TestimonialSource, string> = {
@@ -283,7 +284,7 @@ async function confirmDelete() {
     >
       <div class="min-w-[200px] flex-1">
         <p class="spec-label">
-          {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date) }},
+          {{ SOURCE_LABEL[item.source] }}, {{ formatDate(item.review_date, 'id') }},
           {{ item.published ? 'dipublikasikan' : 'draf' }},
           {{ item.blurred_confirmed ? 'sudah buram' : 'belum buram' }}
         </p>

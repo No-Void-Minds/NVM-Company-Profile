@@ -20,6 +20,7 @@ const ROUTES = [
   '/privasi',
 ]
 
+const HTML_LANG = '<html lang="id">'
 const APP_OUTLET = '<!--app-outlet-->'
 const HEAD_OUTLET = '<!--head-outlet-->'
 
@@ -28,7 +29,7 @@ const dist = join(root, 'dist')
 const ssrDist = join(root, 'dist-ssr')
 
 const template = await readFile(join(dist, 'index.html'), 'utf8')
-if (!template.includes(APP_OUTLET) || !template.includes(HEAD_OUTLET)) {
+if (![APP_OUTLET, HEAD_OUTLET, HTML_LANG].every((marker) => template.includes(marker))) {
   throw new Error('index.html hasil build kehilangan penanda outlet')
 }
 
@@ -47,16 +48,21 @@ await writeFile(join(dist, 'spa.html'), template)
 
 const { render } = await import(pathToFileURL(join(ssrDist, 'entry-server.js')).href)
 
-for (const route of ROUTES) {
-  const page = await render(route)
-  const html = template
-    .replace(/<title>.*?<\/title>/, () => `<title>${page.title}</title>`)
-    .replace(HEAD_OUTLET, () => page.headTags)
-    .replace(APP_OUTLET, () => page.html)
-  const target = route === '/' ? dist : join(dist, route)
-  await mkdir(target, { recursive: true })
-  await writeFile(join(target, 'index.html'), html)
-  console.log(`prerender ${route}`)
+// Every route twice: Indonesian at the root, English under /en (FR-117)
+for (const prefix of ['', '/en']) {
+  for (const route of ROUTES) {
+    const url = prefix && route === '/' ? prefix : prefix + route
+    const page = await render(url)
+    const html = template
+      .replace(HTML_LANG, () => `<html lang="${page.lang}">`)
+      .replace(/<title>.*?<\/title>/, () => `<title>${page.title}</title>`)
+      .replace(HEAD_OUTLET, () => page.headTags)
+      .replace(APP_OUTLET, () => page.html)
+    const target = url === '/' ? dist : join(dist, url)
+    await mkdir(target, { recursive: true })
+    await writeFile(join(target, 'index.html'), html)
+    console.log(`prerender ${url}`)
+  }
 }
 
 await rm(ssrDist, { recursive: true, force: true })

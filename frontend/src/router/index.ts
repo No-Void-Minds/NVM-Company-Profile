@@ -6,14 +6,51 @@ import {
 } from 'vue-router'
 import PublicLayout from '@/components/layout/PublicLayout.vue'
 import { setUnauthorizedHandler } from '@/api/client'
-import type { HeadMeta } from '@/composables/useHead'
 import { useSession } from '@/composables/useSession'
+import type { PageKey } from '@/i18n'
 import HomePage from '@/pages/HomePage.vue'
 
 declare module 'vue-router' {
-  interface RouteMeta extends Partial<HeadMeta> {
+  interface RouteMeta {
+    // Public pages take title and description from the dictionary of the path language
+    page?: PageKey
+    // Admin pages stay Indonesian (FR-118) and carry their own text
+    title?: string
+    description?: string
     requiresAdmin?: boolean
   }
+}
+
+// Keep in sync with ROUTES in scripts/prerender.mjs and publicRoutes in the backend.
+const PUBLIC_PAGES: Array<{ path: string; page: PageKey; component: RouteRecordRaw['component'] }> =
+  [
+    { path: '', page: 'home', component: HomePage },
+    { path: 'brand', page: 'brand', component: () => import('@/pages/BrandPage.vue') },
+    { path: 'teknologi', page: 'tech', component: () => import('@/pages/TechPage.vue') },
+    { path: 'produk', page: 'product', component: () => import('@/pages/ProductPage.vue') },
+    { path: 'b2b', page: 'b2b', component: () => import('@/pages/B2BPage.vue') },
+    { path: 'galeri', page: 'gallery', component: () => import('@/pages/GalleryPage.vue') },
+    {
+      path: 'testimoni',
+      page: 'testimonial',
+      component: () => import('@/pages/TestimonialPage.vue'),
+    },
+    { path: 'size', page: 'size', component: () => import('@/pages/SizePage.vue') },
+    { path: 'kontak', page: 'contact', component: () => import('@/pages/ContactPage.vue') },
+    { path: 'privasi', page: 'privacy', component: () => import('@/pages/PrivacyPage.vue') },
+    {
+      path: ':pathMatch(.*)*',
+      page: 'notFound',
+      component: () => import('@/pages/NotFoundPage.vue'),
+    },
+  ]
+
+function publicPages(): RouteRecordRaw[] {
+  return PUBLIC_PAGES.map(({ path, page, component }) => ({
+    path,
+    component,
+    meta: { page },
+  })) as RouteRecordRaw[]
 }
 
 const adminMeta = (title: string) => ({
@@ -65,109 +102,9 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  {
-    path: '/',
-    component: PublicLayout,
-    children: [
-      {
-        path: '',
-        component: HomePage,
-        meta: {
-          title: 'No Void Minds',
-          description:
-            'No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 11 material system, lini Core dan Graphic, serta peluang kerja sama B2B.',
-        },
-      },
-      {
-        path: 'brand',
-        component: () => import('@/pages/BrandPage.vue'),
-        meta: {
-          title: 'Brand',
-          description:
-            'Cara No Void Minds bekerja: engineered to perfection, fabric first, dan tiga tahap membuat sebuah material system. Berdiri 2021 di Bandung.',
-        },
-      },
-      {
-        path: 'teknologi',
-        component: () => import('@/pages/TechPage.vue'),
-        meta: {
-          title: 'Teknologi',
-          description:
-            'Index 11 material system NVM, dari AEZY sampai MELTWRAP. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia.',
-        },
-      },
-      {
-        path: 'produk',
-        component: () => import('@/pages/ProductPage.vue'),
-        meta: {
-          title: 'Produk',
-          description:
-            'Beda lini Core dan Graphic. Core dipilih dari tech dan fit, Graphic dari daftar collab karakter berlisensi.',
-        },
-      },
-      {
-        path: 'b2b',
-        component: () => import('@/pages/B2BPage.vue'),
-        meta: {
-          title: 'B2B',
-          description:
-            'Dua jalur kerja sama dengan NVM: Wholesale untuk toko dan reseller, Collaboration untuk brand, komunitas, dan tim. Kirim inquiry lewat formulir.',
-        },
-      },
-      {
-        path: 'galeri',
-        component: () => import('@/pages/GalleryPage.vue'),
-        meta: {
-          title: 'Galeri',
-          description: 'Foto lookbook, produksi, dan event No Void Minds.',
-        },
-      },
-      {
-        path: 'testimoni',
-        component: () => import('@/pages/TestimonialPage.vue'),
-        meta: {
-          title: 'Testimoni',
-          description:
-            'Tangkapan layar ulasan pembeli NVM dari Shopee dan TikTok Shop, lengkap dengan transkrip teks.',
-        },
-      },
-      {
-        path: 'size',
-        component: () => import('@/pages/SizePage.vue'),
-        meta: {
-          title: 'Size',
-          description:
-            'Cari ukuran NVM dari tinggi badan atau dari kaos favoritmu, memakai size chart resmi per tech dan fit.',
-        },
-      },
-      {
-        path: 'kontak',
-        component: () => import('@/pages/ContactPage.vue'),
-        meta: {
-          title: 'Kontak',
-          description:
-            'Hubungi tim NVM lewat WhatsApp untuk tanya tech, wholesale, atau collaboration.',
-        },
-      },
-      {
-        path: 'privasi',
-        component: () => import('@/pages/PrivacyPage.vue'),
-        meta: {
-          title: 'Kebijakan Privasi',
-          description:
-            'Data apa yang NVM simpan dari formulir B2B, tujuannya, lama penyimpanan, dan cara meminta penghapusan.',
-        },
-      },
-      {
-        path: ':pathMatch(.*)*',
-        component: () => import('@/pages/NotFoundPage.vue'),
-        meta: {
-          title: 'Halaman tidak ditemukan',
-          description: 'Alamat yang kamu buka tidak ada di situs No Void Minds.',
-        },
-      },
-    ],
-  },
+  // Indonesian lives at the root and English under /en (FR-110), from one page list.
+  { path: '/en', component: PublicLayout, children: publicPages() },
+  { path: '/', component: PublicLayout, children: publicPages() },
 ]
 
 const scrollBehavior: RouterScrollBehavior = (to, from, saved) => {

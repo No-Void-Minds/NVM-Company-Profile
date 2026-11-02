@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import IconSvg from '@/components/IconSvg.vue'
 import { useReducedMotion } from '@/composables/useReducedMotion'
+import { useI18n } from '@/i18n'
 
 const ITEMS = [
   'CURFLEX SMOOTH FLEX TECHNOLOGY',
@@ -10,6 +11,7 @@ const ITEMS = [
   'FORMLOCK CONTOUR CONDITIONING TECHNOLOGY',
 ]
 
+const { t } = useI18n()
 const paused = ref(false)
 const reduced = useReducedMotion()
 </script>
@@ -31,7 +33,7 @@ const reduced = useReducedMotion()
       v-if="!reduced"
       type="button"
       class="tap flex flex-none items-center justify-center bg-bg active:bg-raised"
-      :aria-label="paused ? 'Jalankan teks berjalan' : 'Jeda teks berjalan'"
+      :aria-label="paused ? t.layout.playTicker : t.layout.pauseTicker"
       @click="paused = !paused"
     >
       <IconSvg :name="paused ? 'play' : 'pause'" :size="16" />

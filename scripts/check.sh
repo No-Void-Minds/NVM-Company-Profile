@@ -19,5 +19,6 @@ npx vue-tsc --noEmit
 npx vitest run
 npx eslint .
 npx prettier --check .
+node scripts/terjemahan.mjs --check
 
 echo "check.sh: OK"

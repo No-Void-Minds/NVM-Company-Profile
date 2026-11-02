@@ -26,7 +26,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 10 | Pengujian menyeluruh dan Delivery Gate | M | selesai |
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
 | 12 | Token semantik dua tema, tombol tema, anti-kedip + hash CSP, logo, kanvas ikut tema | M | selesai |
-| 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | belum |
+| 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | selesai |
 | 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | belum |
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | belum |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | belum |
@@ -285,3 +285,13 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 - Keputusan: `prerender.mjs` menghitung sha256 setiap skrip inline dan menggagalkan build bila hash tidak ada di `nginx-security-headers.conf`. Build sekali dijalankan untuk memastikan ini, tanpa server atau browser.
 - Catatan: favicon masih logo putih, sehingga hampir tak terlihat di tab browser bertema terang.
 - Menunggu user: file logo resmi versi gelap atau SVG satu warna (untuk favicon dan pengganti mask).
+
+### Sprint 13
+
+- Dibuat: `src/i18n` (`id.ts` sumber tipe, `en.ts` bertipe `Messages`, `useI18n`, `localePath`, `apiErrorText`), route `/en` dari satu daftar halaman, `LangToggle` (menjaga path, query, dan hash), `routeHead` untuk canonical, hreflang id/en/x-default, `og:locale`, `html lang`. Prerender 20 halaman. Sitemap backend memuat kedua bahasa dengan `xhtml:link`.
+- Keputusan: slug path sama di dua bahasa (`/en/teknologi`, contoh di FR-110). Halaman diberi key bahasa di `PublicLayout`, agar ganti bahasa memuat ulang data.
+- Keputusan: slogan brand (Fabric first., Engineered to perfection., The Lab), nama tech, fit, Wholesale, Collaboration, dan On the rack tidak diterjemahkan. Validasi formulir mengembalikan kunci kamus, error API dan field dari backend ditampilkan lewat kode (FR-116). Admin tetap memakai teks backend.
+- Keputusan: `docs/terjemahan.md` dibuat otomatis oleh `frontend/scripts/terjemahan.mjs` dari kamus, dan `check.sh` gagal bila file itu tertinggal. Bisa dibuat dari Sprint 13 karena teks UI sudah diterjemahkan sekarang.
+- Keputusan: `VITE_PUBLIC_BASE_URL` (dari `PUBLIC_BASE_URL` di compose) membuat canonical dan hreflang absolut. Tanpa itu, misalnya di laptop dev, URL tetap relatif.
+- Catatan: teks tech (tagline, sub, deskripsi, chip) masih Inggris di kedua bahasa sampai Sprint 14.
+- Menunggu user: cek isi `docs/terjemahan.md`.

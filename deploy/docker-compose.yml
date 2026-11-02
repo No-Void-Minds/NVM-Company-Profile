@@ -32,6 +32,8 @@ services:
         VITE_SHOPEE_URL: ${VITE_SHOPEE_URL:-}
         VITE_TIKTOK_SHOP_URL: ${VITE_TIKTOK_SHOP_URL:-}
         VITE_INSTAGRAM_URL: ${VITE_INSTAGRAM_URL:-}
+        # Same address as the sitemap, so canonical and hreflang agree with it
+        VITE_PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?isi PUBLIC_BASE_URL di deploy/.env}
     restart: unless-stopped
     depends_on:
       - backend

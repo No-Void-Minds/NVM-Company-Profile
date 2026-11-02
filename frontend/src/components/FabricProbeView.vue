@@ -3,18 +3,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SpecLabel from '@/components/SpecLabel.vue'
 import { useInView } from '@/composables/useInView'
 import { useReducedMotion } from '@/composables/useReducedMotion'
+import { useI18n } from '@/i18n'
 import { FabricProbe, type ProbeVariant } from '@/motion/FabricProbe'
 
 const props = defineProps<{ needs: string[] }>()
 
-const CAPTIONS: Record<ProbeVariant, string> = {
-  hot: 'Aliran udara melewati rajutan',
-  shape: 'Grid menahan bentuk saat digeser',
-  move: 'Grid melar ke empat arah',
-  soft: 'Titik mengembang, memberi loft',
-  cold: 'Lapisan menutup permukaan',
-  layer: 'Cangkang di atas grid',
-}
+const { t } = useI18n()
 
 const variant = computed(() =>
   props.needs.includes('hot') ? 'hot' : ((props.needs[0] ?? 'shape') as ProbeVariant),
@@ -70,8 +64,8 @@ onBeforeUnmount(() => {
     ></canvas>
     <figcaption class="mt-1 flex flex-wrap items-center justify-between gap-1">
       <span>
-        <SpecLabel class="block">Ilustrasi, bukan hasil uji</SpecLabel>
-        <span class="text-muted">{{ CAPTIONS[variant] }}</span>
+        <SpecLabel class="block">{{ t.probe.label }}</SpecLabel>
+        <span class="text-muted">{{ t.probe[variant] }}</span>
       </span>
       <button
         v-if="!reduced"
@@ -80,7 +74,7 @@ onBeforeUnmount(() => {
         :disabled="playing"
         @click="play"
       >
-        Peragakan sifat kain
+        {{ t.probe.play }}
       </button>
     </figcaption>
   </figure>

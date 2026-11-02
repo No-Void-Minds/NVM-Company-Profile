@@ -8,9 +8,11 @@ import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { collectionUrl, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { useI18n } from '@/i18n'
 
 const FIT_ORDER = ['Regular', 'Fitted', 'Mini Fitted', 'Oversized', 'Boxy', 'Polo']
 
+const { t, to } = useI18n()
 const techs = useAsync(() => api.techs())
 const collabs = useAsync(() => api.collabs())
 
@@ -23,24 +25,24 @@ const fits = computed(() =>
   <div class="wrap section">
     <SectionHeading
       level="h1"
-      number="Produk"
-      title="Core dan Graphic"
-      lead="Core dipilih dari tech dan fit. Graphic dipilih dari collab. Harga dan stok selalu mengikuti toko Shopify."
+      :number="t.product.number"
+      :title="t.product.title"
+      :lead="t.product.lead"
     />
 
     <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,5fr)_minmax(0,2fr)] xl:gap-6">
       <section aria-labelledby="core-title">
         <div class="flex flex-wrap items-end justify-between gap-2">
           <h2 id="core-title" class="text-h2">Core</h2>
-          <AppButton variant="link" :href="collectionUrl('core')">Lihat semua Core</AppButton>
+          <AppButton variant="link" :href="collectionUrl('core')">{{
+            t.product.coreAll
+          }}</AppButton>
         </div>
-        <p class="mt-1 max-w-[56ch] text-muted">
-          Semua produk selain collab. Pilih tech, lalu fit.
-        </p>
+        <p class="mt-1 max-w-[56ch] text-muted">{{ t.product.coreBody }}</p>
 
         <StateLoading
           v-if="techs.loading.value"
-          label="Memuat matriks"
+          :label="t.product.matrixLoading"
           height="400px"
           class="mt-3"
         />
@@ -52,7 +54,7 @@ const fits = computed(() =>
         />
         <StateEmpty
           v-else-if="(techs.data.value ?? []).length === 0"
-          title="Daftar tech belum tersedia"
+          :title="t.product.techEmpty"
           class="mt-3"
         />
         <div
@@ -60,22 +62,24 @@ const fits = computed(() =>
           class="scroll-x mt-3 border border-line"
           tabindex="0"
           role="region"
-          aria-label="Matriks tech dan fit, bisa digeser ke samping"
+          :aria-label="t.product.matrixRegion"
         >
           <table class="spec-table min-w-[720px]">
             <caption class="sr-only">
-              Kombinasi tech dan fit lini Core, setiap sel menuju koleksi di Shopify
+              {{
+                t.product.matrixCaption
+              }}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Tech</th>
+                <th scope="col">{{ t.product.tech }}</th>
                 <th v-for="fit in fits" :key="fit" scope="col">{{ fit }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="tech in techs.data.value" :key="tech.key">
                 <th scope="row" class="font-normal whitespace-nowrap">
-                  <RouterLink :to="`/teknologi#lab-${tech.key}`" class="text-link">
+                  <RouterLink :to="`${to('/teknologi')}#lab-${tech.key}`" class="text-link">
                     {{ techName(tech.name) }}
                   </RouterLink>
                 </th>
@@ -85,9 +89,9 @@ const fits = computed(() =>
                     target="_blank"
                     rel="noopener"
                     class="text-link"
-                    :aria-label="`${tech.name} di Shopify, tanpa pilihan fit`"
+                    :aria-label="t.product.noFitLabel(tech.name)"
                   >
-                    Tanpa pilihan fit
+                    {{ t.product.noFit }}
                   </a>
                 </td>
                 <template v-else>
@@ -98,13 +102,13 @@ const fits = computed(() =>
                       target="_blank"
                       rel="noopener"
                       class="text-link"
-                      :aria-label="`Lihat ${tech.name} ${fit} di Shopify`"
+                      :aria-label="t.product.cellLabel(tech.name, fit)"
                     >
-                      Lihat
+                      {{ t.product.see }}
                     </a>
                     <span v-else class="text-line-strong">
                       <span aria-hidden="true">-</span>
-                      <span class="sr-only">Tidak tersedia</span>
+                      <span class="sr-only">{{ t.product.unavailable }}</span>
                     </span>
                   </td>
                 </template>
@@ -117,13 +121,15 @@ const fits = computed(() =>
       <section aria-labelledby="graphic-title">
         <div class="flex flex-wrap items-end justify-between gap-2">
           <h2 id="graphic-title" class="text-h2">Graphic</h2>
-          <AppButton variant="link" :href="collectionUrl('graphic')">Lihat semua Graphic</AppButton>
+          <AppButton variant="link" :href="collectionUrl('graphic')">
+            {{ t.product.graphicAll }}
+          </AppButton>
         </div>
-        <p class="mt-1 text-muted">Produk collab karakter berlisensi.</p>
+        <p class="mt-1 text-muted">{{ t.product.graphicBody }}</p>
 
         <StateLoading
           v-if="collabs.loading.value"
-          label="Memuat daftar collab"
+          :label="t.product.collabLoading"
           height="400px"
           class="mt-3"
         />
@@ -135,7 +141,7 @@ const fits = computed(() =>
         />
         <StateEmpty
           v-else-if="(collabs.data.value ?? []).length === 0"
-          title="Daftar collab belum tersedia"
+          :title="t.product.collabEmpty"
           class="mt-3"
         />
         <ul v-else class="mt-3 border-t border-line">
@@ -151,11 +157,11 @@ const fits = computed(() =>
               target="_blank"
               rel="noopener"
               class="text-link"
-              :aria-label="`Lihat ${collab.name} di Shopify`"
+              :aria-label="t.product.collabLabel(collab.name)"
             >
-              Lihat
+              {{ t.product.see }}
             </a>
-            <span v-else class="spec-label">Coming soon</span>
+            <span v-else class="spec-label">{{ t.product.comingSoon }}</span>
           </li>
         </ul>
       </section>

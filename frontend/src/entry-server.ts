@@ -2,7 +2,7 @@ import { createSSRApp } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import { createMemoryHistory } from 'vue-router'
 import App from './App.vue'
-import { fullTitle, renderHeadTags } from './composables/useHead'
+import { fullTitle, renderHeadTags, routeHead } from './composables/useHead'
 import { createAppRouter } from './router'
 
 export async function render(url: string) {
@@ -13,10 +13,11 @@ export async function render(url: string) {
   await router.isReady()
 
   const html = await renderToString(app)
-  const { title = 'No Void Minds', description = '' } = router.currentRoute.value.meta
+  const head = routeHead(router.currentRoute.value)
   return {
     html,
-    title: fullTitle(title),
-    headTags: renderHeadTags({ title, description }),
+    lang: head.lang,
+    title: fullTitle(head.title),
+    headTags: renderHeadTags(head),
   }
 }

@@ -10,8 +10,11 @@ import StateLoading from '@/components/state/StateLoading.vue'
 import { INSTAGRAM_URL, SHOP_URL } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useFocusTrap } from '@/composables/useFocusTrap'
+import { useI18n } from '@/i18n'
 
 const SWIPE_DISTANCE = 48
+
+const { t } = useI18n()
 
 const { data, error, loading, run } = useAsync(() => api.gallery())
 const items = computed(() => data.value ?? [])
@@ -69,27 +72,27 @@ function onPointerUp(event: PointerEvent) {
 
 <template>
   <div class="wrap section">
-    <SectionHeading level="h1" number="Galeri" title="Lookbook, produksi, dan event" />
+    <SectionHeading level="h1" :number="t.gallery.number" :title="t.gallery.title" />
 
-    <StateLoading v-if="loading" label="Memuat galeri" height="480px" class="mt-6" />
+    <StateLoading v-if="loading" :label="t.gallery.loading" height="480px" class="mt-6" />
     <StateError v-else-if="error" :message="error" class="mt-6" @retry="run" />
     <StateEmpty
       v-else-if="items.length === 0"
-      title="Galeri sedang disiapkan"
-      message="Foto baru muncul di sini setelah tim kami mengunggahnya."
+      :title="t.gallery.emptyTitle"
+      :message="t.gallery.emptyBody"
       class="mt-6"
     >
       <AppButton v-if="INSTAGRAM_URL" variant="secondary" :href="INSTAGRAM_URL">
-        Lihat Instagram NVM
+        {{ t.gallery.instagram }}
       </AppButton>
-      <AppButton v-else variant="secondary" :href="SHOP_URL">Belanja di Shopify</AppButton>
+      <AppButton v-else variant="secondary" :href="SHOP_URL">{{ t.layout.shop }}</AppButton>
     </StateEmpty>
 
     <template v-else>
       <div
         v-if="categories.length > 1"
         role="group"
-        aria-label="Saring kategori"
+        :aria-label="t.gallery.filter"
         class="mt-6 flex flex-wrap gap-1"
       >
         <button
@@ -98,7 +101,7 @@ function onPointerUp(event: PointerEvent) {
           :aria-pressed="category === null"
           @click="category = null"
         >
-          Semua
+          {{ t.gallery.all }}
         </button>
         <button
           v-for="name in categories"
@@ -117,7 +120,7 @@ function onPointerUp(event: PointerEvent) {
           <button
             type="button"
             class="block w-full cursor-pointer active:opacity-80"
-            :aria-label="`Perbesar foto: ${item.alt}`"
+            :aria-label="t.gallery.enlarge(item.alt)"
             @click="lightboxIndex = index"
           >
             <img
@@ -143,7 +146,7 @@ function onPointerUp(event: PointerEvent) {
     ref="lightbox"
     role="dialog"
     aria-modal="true"
-    :aria-label="`Foto: ${current.alt}`"
+    :aria-label="t.gallery.dialog(current.alt)"
     class="lightbox fixed inset-0 z-50 flex flex-col bg-bg"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
@@ -153,13 +156,13 @@ function onPointerUp(event: PointerEvent) {
         {{ (lightboxIndex ?? 0) + 1 }} / {{ filtered.length }}
       </p>
       <div class="flex gap-1">
-        <button type="button" class="tap-icon" aria-label="Foto sebelumnya" @click="step(-1)">
+        <button type="button" class="tap-icon" :aria-label="t.gallery.previous" @click="step(-1)">
           <IconSvg name="arrow-left" />
         </button>
-        <button type="button" class="tap-icon" aria-label="Foto berikutnya" @click="step(1)">
+        <button type="button" class="tap-icon" :aria-label="t.gallery.next" @click="step(1)">
           <IconSvg name="arrow-right" />
         </button>
-        <button type="button" class="tap-icon" aria-label="Tutup foto" @click="close">
+        <button type="button" class="tap-icon" :aria-label="t.gallery.close" @click="close">
           <IconSvg name="close" />
         </button>
       </div>

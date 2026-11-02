@@ -11,6 +11,7 @@ import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { collectionUrl, sizeChartKey, techName, whatsappUrl } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { useI18n } from '@/i18n'
 import {
   parseSizeChart,
   recommendByGarment,
@@ -20,6 +21,7 @@ import {
 type Mode = 'height' | 'garment'
 
 const route = useRoute()
+const { t } = useI18n()
 const techs = useAsync(() => api.techs())
 
 const techKey = ref('')
@@ -82,20 +84,19 @@ const shopUrl = computed(() =>
     : collectionUrl('core'),
 )
 
-const askWhatsapp = computed(() => {
-  const sizes = selected.value.length > 0 ? `, hasilnya ${selected.value.join(' atau ')}` : ''
-  return whatsappUrl(
-    `Halo NVM, saya ingin bertanya ukuran ${tech.value?.name ?? ''} ${fit.value}${sizes}.`.replace(
-      /\s+/g,
-      ' ',
-    ),
-  )
-})
+const askWhatsapp = computed(() =>
+  whatsappUrl(
+    t.value.size
+      .askMessage(tech.value?.name ?? '', fit.value, selected.value)
+      .replace(/\s+/g, ' ')
+      .replace(' ,', ','),
+  ),
+)
 
-const tabs: Array<{ key: Mode; label: string }> = [
-  { key: 'height', label: 'Dari tinggi badan' },
-  { key: 'garment', label: 'Dari kaos favorit' },
-]
+const tabs = computed<Array<{ key: Mode; label: string }>>(() => [
+  { key: 'height', label: t.value.size.byHeight },
+  { key: 'garment', label: t.value.size.byGarment },
+])
 
 function onTabKeydown(event: KeyboardEvent) {
   if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
@@ -131,25 +132,20 @@ if (!import.meta.env.SSR) {
 
 <template>
   <div class="wrap section">
-    <SectionHeading
-      level="h1"
-      number="Size"
-      title="Cari ukuranmu"
-      lead="Hitungan memakai size chart resmi per tech dan fit. Kalau datanya belum ada, kami bilang belum ada."
-    />
+    <SectionHeading level="h1" number="Size" :title="t.size.title" :lead="t.size.lead" />
 
-    <StateLoading v-if="techs.loading.value" label="Memuat pilihan tech" class="mt-6" />
+    <StateLoading v-if="techs.loading.value" :label="t.size.loading" class="mt-6" />
     <StateError
       v-else-if="techs.error.value"
       :message="techs.error.value"
       class="mt-6"
       @retry="techs.run"
     />
-    <StateEmpty v-else-if="!tech" title="Daftar tech belum tersedia" class="mt-6" />
+    <StateEmpty v-else-if="!tech" :title="t.size.empty" class="mt-6" />
 
     <div v-else class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6">
       <div class="grid content-start gap-3">
-        <FormField id="size-tech" v-slot="f" label="Tech">
+        <FormField id="size-tech" v-slot="f" :label="t.size.tech">
           <select
             id="size-tech"
             v-model="techKey"
@@ -162,15 +158,15 @@ if (!import.meta.env.SSR) {
           </select>
         </FormField>
 
-        <FormField v-if="tech.fits.length > 0" id="size-fit" v-slot="f" label="Fit">
+        <FormField v-if="tech.fits.length > 0" id="size-fit" v-slot="f" :label="t.size.fit">
           <select id="size-fit" v-model="fit" class="field-input" :aria-describedby="f.describedby">
             <option v-for="item in tech.fits" :key="item" :value="item">{{ item }}</option>
           </select>
         </FormField>
-        <p v-else class="text-muted">{{ techName(tech.name) }} tidak punya pilihan fit.</p>
+        <p v-else class="text-muted">{{ t.size.noFit(techName(tech.name)) }}</p>
 
         <div>
-          <div role="tablist" aria-label="Cara mencari ukuran" class="flex border-b border-line">
+          <div role="tablist" :aria-label="t.size.modes" class="flex border-b border-line">
             <button
               v-for="tab in tabs"
               :id="`tab-${tab.key}`"
@@ -195,7 +191,7 @@ if (!import.meta.env.SSR) {
             aria-labelledby="tab-height"
             class="pt-3"
           >
-            <FormField id="size-height" v-slot="f" label="Tinggi badan (cm)">
+            <FormField id="size-height" v-slot="f" :label="t.size.height">
               <input
                 id="size-height"
                 v-model.number="height"
@@ -216,7 +212,7 @@ if (!import.meta.env.SSR) {
             aria-labelledby="tab-garment"
             class="grid gap-2 pt-3 sm:grid-cols-2"
           >
-            <FormField id="size-width" v-slot="f" label="Lebar badan kaos (cm)">
+            <FormField id="size-width" v-slot="f" :label="t.size.width">
               <input
                 id="size-width"
                 v-model.number="garmentWidth"
@@ -228,7 +224,7 @@ if (!import.meta.env.SSR) {
                 :aria-describedby="f.describedby"
               />
             </FormField>
-            <FormField id="size-length" v-slot="f" label="Panjang badan kaos (cm)">
+            <FormField id="size-length" v-slot="f" :label="t.size.length">
               <input
                 id="size-length"
                 v-model.number="garmentLength"
@@ -247,7 +243,7 @@ if (!import.meta.env.SSR) {
       <section aria-labelledby="size-result-title">
         <h2 id="size-result-title" class="text-h3">{{ comboLabel }}</h2>
 
-        <StateLoading v-if="chart.loading.value" label="Memuat size chart" class="mt-3" />
+        <StateLoading v-if="chart.loading.value" :label="t.size.chartLoading" class="mt-3" />
         <StateError
           v-else-if="chart.error.value"
           :message="chart.error.value"
@@ -256,30 +252,31 @@ if (!import.meta.env.SSR) {
         />
         <StateEmpty
           v-else-if="!parsed"
-          title="Size chart untuk kombinasi ini belum tersedia"
-          message="Tanyakan langsung ke tim NVM, kami tidak menebak ukuran tanpa data."
+          :title="t.size.chartEmptyTitle"
+          :message="t.size.chartEmptyBody"
           class="mt-3"
         >
           <AppButton :href="askWhatsapp">
             <IconSvg name="chat" />
-            Tanya ukuran lewat WhatsApp
+            {{ t.size.ask }}
           </AppButton>
         </StateEmpty>
 
         <template v-else>
           <p class="mt-2 min-h-[56px]" role="status">
             <template v-if="result && result.between">
-              Hasilmu ada di antara
-              <strong class="font-normal text-signal">{{ selected[0] }}</strong> dan
+              {{ t.size.betweenBefore }}
+              <strong class="font-normal text-signal">{{ selected[0] }}</strong>
+              {{ t.size.and }}
               <strong class="font-normal text-signal">{{ selected[1] }}</strong
-              >. Tanyakan pilihan terbaiknya lewat WhatsApp.
+              >{{ t.size.betweenAfter }}
             </template>
             <template v-else-if="result">
-              Rekomendasi:
+              {{ t.size.recommendation }}
               <strong class="text-h2 font-normal text-signal">{{ selected[0] }}</strong>
             </template>
             <template v-else>
-              <span class="text-muted">Isi data di samping untuk melihat rekomendasi.</span>
+              <span class="text-muted">{{ t.size.prompt }}</span>
             </template>
           </p>
 
@@ -288,7 +285,7 @@ if (!import.meta.env.SSR) {
             class="scroll-x relative mt-2 border border-line"
             tabindex="0"
             role="region"
-            aria-label="Tabel size chart, bisa digeser ke samping"
+            :aria-label="t.size.tableRegion"
           >
             <div
               v-if="markerStyle"
@@ -305,7 +302,7 @@ if (!import.meta.env.SSR) {
               <thead>
                 <tr>
                   <th v-for="header in parsed.headers" :key="header" scope="col">{{ header }}</th>
-                  <th v-if="result && mode === 'garment'" scope="col">Selisih (cm)</th>
+                  <th v-if="result && mode === 'garment'" scope="col">{{ t.size.difference }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -318,7 +315,7 @@ if (!import.meta.env.SSR) {
                   <td v-for="(cell, index) in row.cells" :key="index">
                     {{ cell }}
                     <span v-if="index === 0 && selected.includes(row.size)" class="sr-only">
-                      (ukuran terpilih)
+                      {{ t.size.selected }}
                     </span>
                   </td>
                   <td v-if="result && mode === 'garment'">{{ result.differences[row.size] }}</td>
@@ -328,18 +325,18 @@ if (!import.meta.env.SSR) {
           </div>
 
           <ul class="field-hint">
-            <li>Toleransi 1 sampai 2 cm.</li>
-            <li>Tinggi badan hanya rekomendasi.</li>
+            <li>{{ t.size.tolerance }}</li>
+            <li>{{ t.size.heightNote }}</li>
           </ul>
           <p v-if="chart.data.value?.note" class="field-hint whitespace-pre-line" lang="en">
             {{ chart.data.value.note }}
           </p>
 
           <div class="mt-3 flex flex-wrap gap-2">
-            <AppButton :href="shopUrl">Lihat ukuran ini di Shopify</AppButton>
+            <AppButton :href="shopUrl">{{ t.size.shopCta }}</AppButton>
             <AppButton :href="askWhatsapp" :variant="result?.between ? 'primary' : 'secondary'">
               <IconSvg name="chat" />
-              Tanya ukuran lewat WhatsApp
+              {{ t.size.ask }}
             </AppButton>
           </div>
         </template>

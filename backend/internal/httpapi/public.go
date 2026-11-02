@@ -89,22 +89,53 @@ var publicRoutes = []string{
 	"/", "/brand", "/teknologi", "/produk", "/b2b", "/galeri", "/testimoni", "/size", "/kontak", "/privasi",
 }
 
+type sitemapLink struct {
+	Rel      string `xml:"rel,attr"`
+	Hreflang string `xml:"hreflang,attr"`
+	Href     string `xml:"href,attr"`
+}
+
 type sitemapURL struct {
-	Loc string `xml:"loc"`
+	Loc   string        `xml:"loc"`
+	Links []sitemapLink `xml:"xhtml:link"`
 }
 
 type sitemapSet struct {
 	XMLName xml.Name     `xml:"urlset"`
 	Xmlns   string       `xml:"xmlns,attr"`
+	Xhtml   string       `xml:"xmlns:xhtml,attr"`
 	URLs    []sitemapURL `xml:"url"`
 }
 
-func (s *server) sitemap(c *gin.Context) {
-	set := sitemapSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
-	for _, route := range publicRoutes {
-		set.URLs = append(set.URLs, sitemapURL{Loc: s.cfg.PublicBaseURL + route})
+// englishPath mirrors localePath in the frontend: the English site lives under /en (FR-110).
+func englishPath(route string) string {
+	if route == "/" {
+		return "/en"
 	}
-	body, err := xml.Marshal(set)
+	return "/en" + route
+}
+
+func (s *server) sitemapSet() sitemapSet {
+	set := sitemapSet{
+		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		Xhtml: "http://www.w3.org/1999/xhtml",
+	}
+	for _, route := range publicRoutes {
+		id := s.cfg.PublicBaseURL + route
+		en := s.cfg.PublicBaseURL + englishPath(route)
+		// Both language versions list the same alternates, Indonesian is the default (FR-117).
+		links := []sitemapLink{
+			{Rel: "alternate", Hreflang: "id", Href: id},
+			{Rel: "alternate", Hreflang: "en", Href: en},
+			{Rel: "alternate", Hreflang: "x-default", Href: id},
+		}
+		set.URLs = append(set.URLs, sitemapURL{Loc: id, Links: links}, sitemapURL{Loc: en, Links: links})
+	}
+	return set
+}
+
+func (s *server) sitemap(c *gin.Context) {
+	body, err := xml.Marshal(s.sitemapSet())
 	if err != nil {
 		s.internalError(c, err)
 		return

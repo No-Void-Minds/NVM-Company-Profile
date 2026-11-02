@@ -11,14 +11,13 @@ export const MARKETPLACE_LINKS = [
 
 export const INSTAGRAM_URL = (import.meta.env.VITE_INSTAGRAM_URL as string | undefined) || ''
 
-export const NEED_FILTERS = [
-  { key: 'hot', label: 'Runs hot' },
-  { key: 'shape', label: 'Holds shape' },
-  { key: 'move', label: 'Moves a lot' },
-  { key: 'soft', label: 'Wants soft' },
-  { key: 'cold', label: 'Runs cold' },
-  { key: 'layer', label: 'Needs a layer' },
-]
+// Labels live in the dictionaries under needs
+export const NEED_KEYS = ['hot', 'shape', 'move', 'soft', 'cold', 'layer'] as const
+export type NeedKey = (typeof NEED_KEYS)[number]
+
+export function isNeedKey(value: string): value is NeedKey {
+  return (NEED_KEYS as readonly string[]).includes(value)
+}
 
 export function handleize(value: string): string {
   return value
@@ -45,19 +44,6 @@ export function pad2(value: number): string {
 
 export function sizeChartKey(techKey: string, fit: string | null): string {
   return fit ? `${techKey}-${handleize(fit)}` : techKey
-}
-
-const dateFormatter = new Intl.DateTimeFormat('id-ID', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'Asia/Jakarta',
-})
-
-export function formatDate(value: string): string {
-  // A bare date would parse as UTC midnight, the time part pins it to Jakarta.
-  const date = new Date(value.length === 10 ? `${value}T00:00:00+07:00` : value)
-  return dateFormatter.format(date)
 }
 
 // crypto.randomUUID only exists on HTTPS, and the LAN deployment runs on plain HTTP.

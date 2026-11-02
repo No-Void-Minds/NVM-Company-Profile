@@ -1,8 +1,12 @@
 import type { InquiryInput } from '@/api/types'
+import type { Messages } from '@/i18n'
+
+export type InquiryErrorKey = keyof Messages['b2b']['errors']
 
 // Same rules as backend/internal/inquiry (FR-42). The backend stays the authority.
-export function validateInquiry(input: InquiryInput): Record<string, string> {
-  const errors: Record<string, string> = {}
+// Returns dictionary keys, so the page shows the message in the visitor's language.
+export function validateInquiry(input: InquiryInput): Record<string, InquiryErrorKey> {
+  const errors: Record<string, InquiryErrorKey> = {}
   const name = input.name.trim()
   const org = input.org.trim()
   const city = input.city.trim()
@@ -10,30 +14,45 @@ export function validateInquiry(input: InquiryInput): Record<string, string> {
   const email = input.email.trim()
   const message = input.message.trim()
 
-  if (name.length < 2 || name.length > 80) errors.name = 'Nama harus 2 sampai 80 karakter.'
-  if (org.length < 2 || org.length > 120) {
-    errors.org = 'Nama usaha atau komunitas harus 2 sampai 120 karakter.'
-  }
-  if (city.length < 2 || city.length > 80) errors.city = 'Kota harus 2 sampai 80 karakter.'
+  if (name.length < 2 || name.length > 80) errors.name = 'name'
+  if (org.length < 2 || org.length > 120) errors.org = 'org'
+  if (city.length < 2 || city.length > 80) errors.city = 'city'
 
   if (phone) {
     const digits = phone.replace('+', '').length
     if (!/^(08|\+62)\d+$/.test(phone) || digits < 10 || digits > 15) {
-      errors.phone = 'Nomor WhatsApp harus diawali 08 atau +62, 10 sampai 15 digit.'
+      errors.phone = 'phoneFormat'
     }
   }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errors.email = 'Format email belum benar.'
-  }
-  if (!phone && !email) errors.phone = 'Isi WhatsApp atau email, salah satu cukup.'
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'emailFormat'
+  if (!phone && !email) errors.phone = 'contactRequired'
 
-  if (input.channels.trim().length > 200) errors.channels = 'Kanal penjualan maksimal 200 karakter.'
-  if (input.quantity_note.trim().length > 200) {
-    errors.quantity_note = 'Perkiraan jumlah maksimal 200 karakter.'
+  if (input.channels.trim().length > 200) errors.channels = 'channels'
+  if (input.quantity_note.trim().length > 200) errors.quantity_note = 'quantity'
+  if (message.length < 10 || message.length > 1000) errors.message = 'message'
+  if (!input.consent) errors.consent = 'consent'
+  return errors
+}
+
+// The backend names the field, not the language, so its own wording is not shown (FR-116).
+const SERVER_FIELD_KEYS: Record<string, InquiryErrorKey> = {
+  name: 'name',
+  org: 'org',
+  city: 'city',
+  phone: 'phoneFormat',
+  email: 'emailFormat',
+  channels: 'channels',
+  quantity_note: 'quantity',
+  message: 'message',
+  consent: 'consent',
+  techs: 'techs',
+}
+
+export function serverFieldErrors(fields: Record<string, string>): Record<string, InquiryErrorKey> {
+  const errors: Record<string, InquiryErrorKey> = {}
+  for (const field of Object.keys(fields)) {
+    const key = SERVER_FIELD_KEYS[field]
+    if (key) errors[field] = key
   }
-  if (message.length < 10 || message.length > 1000) {
-    errors.message = 'Pesan harus 10 sampai 1000 karakter.'
-  }
-  if (!input.consent) errors.consent = 'Centang persetujuan agar kami bisa memproses data ini.'
   return errors
 }
