@@ -39,6 +39,7 @@ nvm-company-profile/
   frontend/
     src/ api/ components/ composables/ motion/ pages/ router/ styles/
     public/fonts/  public/brand/
+    fonts-src/                      sumber OTF, tidak ikut dist
     nginx.conf  Dockerfile  package.json  vite.config.ts
   deploy/docker-compose.yml
   docs/sprint.md  docs/SRS-NVM-CompanyProfile-v1.1.docx
