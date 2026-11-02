@@ -229,7 +229,9 @@
     color: var(--color-muted);
   }
 
+  /* Positioned so sr-only text in a wide table stays clipped here and not on the page */
   .scroll-x {
+    position: relative;
     overflow-x: auto;
   }
 
