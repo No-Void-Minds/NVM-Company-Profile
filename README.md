@@ -67,6 +67,7 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
    ```bash
    sudo mkdir -p /srv/nvm-compro/media /srv/nvm-compro/backup
    sudo chown -R 65532:65532 /srv/nvm-compro/media
+   sudo chown "$USER" /srv/nvm-compro/backup
    ```
 
 5. Nyalakan dan buat akun admin pertama:
