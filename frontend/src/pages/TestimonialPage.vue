@@ -110,10 +110,9 @@ const average = computed(() => {
         <li v-for="item in filtered" :key="item.id" class="border-t border-line pt-2">
           <p class="spec-label">{{ SOURCE_LABEL[item.source] }}</p>
           <p class="mt-1 text-muted">
-            {{ formatDate(item.review_date) }}
-            <template v-if="item.tech_key && techLabel(item.tech_key)">
-              , {{ techLabel(item.tech_key) }}
-            </template>
+            {{
+              [formatDate(item.review_date), techLabel(item.tech_key)].filter(Boolean).join(', ')
+            }}
           </p>
           <p v-if="item.rating !== null" class="mt-1">{{ item.rating }} dari 5 bintang</p>
           <img

@@ -110,6 +110,15 @@ export interface Inquiry {
   created_at: string
 }
 
+export interface AuditEntry {
+  id: number
+  action: string
+  entity: string
+  entity_id: string
+  at: string
+  username: string | null
+}
+
 export interface AdminSession {
   username: string
   csrf_token: string

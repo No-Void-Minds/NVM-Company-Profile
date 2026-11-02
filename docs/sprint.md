@@ -20,7 +20,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 5 | Beranda (Knit Field), Brand, Teknologi | M | selesai |
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | selesai |
 | 7 | Galeri, Testimoni, halaman admin | M | selesai |
-| 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | belum |
+| 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | selesai |
 | 9 | Docker Compose dan deploy LAN | M | belum |
 | 10 | Pengujian menyeluruh dan Delivery Gate | M | belum |
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
@@ -186,4 +186,13 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: `/admin` membuka Inquiry dulu, karena itu pekerjaan harian admin.
 - Keputusan: filter dan ringkasan Testimoni (FR-62, FR-63) sekalian dibuat di halaman ini, dihitung di sisi klien.
 - Keputusan: `PendingPage` dihapus, semua route sudah tersambung ke halaman asli.
+- Menunggu user: tidak ada.
+
+### Sprint 8
+
+- Dibuat: `motion/FabricProbe.ts` dan tampilannya, ticker dengan tombol jeda, `entry-server.ts` + `scripts/prerender.mjs`, audit log (`GET /api/admin/audit-log`, halaman admin).
+- Keputusan: Fabric Probe diputar sekali lewat tombol, bukan berulang, sesuai NFR-04. Tech dengan kebutuhan hot memakai varian hot.
+- Keputusan: bagian berbasis data di HTML prerender tampil sebagai skeleton, karena API tidak tersedia saat build. Teks statis dan meta tetap ada di HTML.
+- Keputusan: Nginx memakai `spa.html` (tanpa markup) untuk `/admin` dan alamat lain, agar tidak terjadi hydration mismatch.
+- Belum diverifikasi: `npm run build` dan prerender belum pernah dijalankan, karena `check.sh` tidak memuat build. Pertama dijalankan di Sprint 10.
 - Menunggu user: tidak ada.

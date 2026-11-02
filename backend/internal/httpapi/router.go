@@ -79,7 +79,9 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 	admin.GET("/inquiries/export", s.adminExportInquiries)
 	admin.GET("/inquiries/:id", s.adminGetInquiry)
 
-	mutate := admin.Group("", requireCSRF)
+	admin.GET("/audit-log", s.adminListAudit)
+
+	mutate := admin.Group("", requireCSRF, s.auditMutations)
 	mutate.POST("/logout", s.logout)
 	mutate.POST("/gallery", s.adminCreateGallery)
 	mutate.PATCH("/gallery/:id", s.adminUpdateGallery)

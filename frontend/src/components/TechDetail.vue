@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Tech } from '@/api/types'
 import AppButton from '@/components/AppButton.vue'
+import FabricProbeView from '@/components/FabricProbeView.vue'
 import SpecLabel from '@/components/SpecLabel.vue'
 import { collectionUrl, NEED_FILTERS, pad2, techName } from '@/composables/site'
 
@@ -62,7 +63,7 @@ const sizeLink = computed(() => ({
       <p class="mt-1">{{ tech.fits.length > 0 ? tech.fits.join(', ') : 'Tanpa pilihan fit' }}</p>
     </div>
 
-    <slot />
+    <FabricProbeView :needs="tech.needs" />
 
     <div class="mt-4 flex flex-wrap gap-2">
       <AppButton v-if="tech.on_rack" :href="collectionUrl(tech.key)">Lihat di Shopify</AppButton>

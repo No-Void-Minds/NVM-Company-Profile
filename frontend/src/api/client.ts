@@ -2,6 +2,7 @@ import type {
   AdminGalleryItem,
   AdminSession,
   AdminTestimonial,
+  AuditEntry,
   Collab,
   GalleryItem,
   Inquiry,
@@ -116,6 +117,7 @@ export const adminApi = {
     request<AdminSession>('/api/admin/login', { method: 'POST', json: { username, password } }),
   logout: () => request<void>('/api/admin/logout', { method: 'POST' }),
   me: () => request<AdminSession>('/api/admin/me'),
+  auditLog: () => request<AuditEntry[]>('/api/admin/audit-log'),
 
   gallery: () => request<AdminGalleryItem[]>('/api/admin/gallery'),
   createGallery: (form: FormData) =>

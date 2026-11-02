@@ -28,6 +28,27 @@ func (q *Queries) CreateAdminUser(ctx context.Context, arg CreateAdminUserParams
 	return id, err
 }
 
+const createAuditLog = `-- name: CreateAuditLog :exec
+INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES ($1, $2, $3, $4)
+`
+
+type CreateAuditLogParams struct {
+	UserID   *uuid.UUID `json:"user_id"`
+	Action   string     `json:"action"`
+	Entity   string     `json:"entity"`
+	EntityID string     `json:"entity_id"`
+}
+
+func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) error {
+	_, err := q.db.Exec(ctx, createAuditLog,
+		arg.UserID,
+		arg.Action,
+		arg.Entity,
+		arg.EntityID,
+	)
+	return err
+}
+
 const createSession = `-- name: CreateSession :exec
 INSERT INTO sessions (id, user_id, csrf_token, expires_at) VALUES ($1, $2, $3, $4)
 `
@@ -119,6 +140,50 @@ func (q *Queries) GetAdminUserByUsername(ctx context.Context, username string) (
 		&i.LastLoginAt,
 	)
 	return i, err
+}
+
+const listAuditLog = `-- name: ListAuditLog :many
+SELECT a.id, a.action, a.entity, a.entity_id, a.at, u.username
+FROM audit_log a
+LEFT JOIN admin_users u ON u.id = a.user_id
+ORDER BY a.at DESC, a.id DESC
+LIMIT 200
+`
+
+type ListAuditLogRow struct {
+	ID       int64     `json:"id"`
+	Action   string    `json:"action"`
+	Entity   string    `json:"entity"`
+	EntityID string    `json:"entity_id"`
+	At       time.Time `json:"at"`
+	Username *string   `json:"username"`
+}
+
+func (q *Queries) ListAuditLog(ctx context.Context) ([]ListAuditLogRow, error) {
+	rows, err := q.db.Query(ctx, listAuditLog)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAuditLogRow{}
+	for rows.Next() {
+		var i ListAuditLogRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Action,
+			&i.Entity,
+			&i.EntityID,
+			&i.At,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setAdminPassword = `-- name: SetAdminPassword :execrows

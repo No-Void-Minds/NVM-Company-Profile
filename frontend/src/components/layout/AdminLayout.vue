@@ -10,6 +10,7 @@ const MENU = [
   { to: '/admin/testimoni', label: 'Testimoni' },
   { to: '/admin/size-chart', label: 'Size chart' },
   { to: '/admin/katalog', label: 'Tech dan collab' },
+  { to: '/admin/audit', label: 'Log audit' },
 ]
 
 const session = useSession()

@@ -58,6 +58,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/admin/AdminCatalog.vue'),
         meta: adminMeta('Tech dan collab'),
       },
+      {
+        path: 'audit',
+        component: () => import('@/pages/admin/AdminAudit.vue'),
+        meta: adminMeta('Log audit'),
+      },
     ],
   },
   {

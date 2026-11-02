@@ -30,3 +30,13 @@ DELETE FROM sessions WHERE expires_at <= now();
 
 -- name: DeleteUserSessions :exec
 DELETE FROM sessions WHERE user_id = (SELECT id FROM admin_users WHERE username = @username);
+
+-- name: CreateAuditLog :exec
+INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (@user_id, @action, @entity, @entity_id);
+
+-- name: ListAuditLog :many
+SELECT a.id, a.action, a.entity, a.entity_id, a.at, u.username
+FROM audit_log a
+LEFT JOIN admin_users u ON u.id = a.user_id
+ORDER BY a.at DESC, a.id DESC
+LIMIT 200;
