@@ -16,15 +16,15 @@ const link = computed(() => ({
 </script>
 
 <template>
+  <!-- The name starts with the visible "ID EN" so voice control users can say it (WCAG 2.5.3) -->
   <RouterLink
     :to="link"
     class="tap flex items-center justify-center gap-0.5 font-mono text-[0.8125rem] active:text-muted"
     :hreflang="target"
-    :lang="target"
-    :aria-label="t.layout.switchLang"
   >
     <span :class="lang === 'id' ? 'text-fg' : 'text-muted'">ID</span>
     <span class="text-muted" aria-hidden="true">/</span>
     <span :class="lang === 'en' ? 'text-fg' : 'text-muted'">EN</span>
+    <span class="sr-only" :lang="target">, {{ t.layout.switchLang }}</span>
   </RouterLink>
 </template>

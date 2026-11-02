@@ -170,8 +170,10 @@ export class Swatch {
       this.draw({ deform: Math.sin(Math.PI * progress), progress, reveal: 1 })
     }
     if (progress >= 1) {
+      // The last frame is the rest frame exactly, so no air or shell lift is left behind
       this.frameId = 0
       this.mode = null
+      this.draw(REST)
       return
     }
     this.frameId = requestAnimationFrame(this.frame)
