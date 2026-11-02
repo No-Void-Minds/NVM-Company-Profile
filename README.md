@@ -104,3 +104,7 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
 
 `COOKIE_SECURE` tetap `false` selama akses lewat HTTP LAN.
+
+## Kredit
+
+Font [D-DIN](https://www.datto.com/fonts/d-din) oleh Datto, dengan lisensi SIL Open Font License 1.1. Salinan lisensinya ada di `frontend/public/fonts/OFL.txt`.

@@ -11,6 +11,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'D-DIN';
+  src: url('/fonts/D-DIN-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* static keeps every token as a CSS variable, app.css and the canvas read them directly */
 @theme static {
   /* Clearing the defaults makes any color outside the SRS palette fail to compile */
@@ -44,6 +52,8 @@
   html {
     /* Native select lists, date pickers, and spinners would otherwise stay light */
     color-scheme: dark;
+    /* The fallback fonts only ship weight 400, and a smeared fake bold is worse than none */
+    font-synthesis-weight: none;
     background: var(--color-void);
     color: var(--color-bone);
     font-family: var(--font-sans);

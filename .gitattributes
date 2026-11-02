@@ -2,4 +2,6 @@
 *.sh text eol=lf
 *.png binary
 *.ttf binary
+*.otf binary
+*.woff2 binary
 *.docx binary
