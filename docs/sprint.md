@@ -298,8 +298,9 @@ Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang sit
 
 ### Sprint 14
 
-- Dibuat: migrasi  (tabel ,  dan , ), seed , query ,  dan , kolom baru di admin Galeri dan Testimoni, atribut  pada transkrip.
-- Keputusan: migrasi aman untuk produksi. Tidak ada yang dihapus. Baris  disalin dari kolom , baris  hanya untuk tech yang masih ada (JOIN), dan semua INSERT memakai . Kolom baru punya default. Belum dijalankan ke database mana pun.
-- Keputusan: kolom tech di  tetap ada sebagai cadangan, query memakai COALESCE.  kosong berarti , nilai lain ditolak 400. Hak  atas  datang dari default privileges di bootstrap.
+- Dibuat: migrasi `0003_i18n` (tabel `tech_i18n`, `gallery_items.alt_en` dan `caption_en`, `testimonials.lang`), seed `techs_id.json`, query `ListTechsByLang`, `GET /api/techs?lang` dan `/api/gallery?lang`, kolom baru di admin Galeri dan Testimoni, atribut `lang` pada transkrip.
+- Keputusan: migrasi aman untuk produksi. Tidak ada yang dihapus. Baris `en` disalin dari kolom `techs`, baris `id` hanya untuk tech yang masih ada (JOIN), dan semua INSERT memakai `ON CONFLICT DO NOTHING`. Kolom baru punya default. Belum dijalankan ke database mana pun.
+- Keputusan: kolom tech di `techs` tetap ada sebagai cadangan, query memakai COALESCE. `?lang` kosong berarti `id`, nilai lain ditolak 400. Hak `compro_app` atas `tech_i18n` datang dari default privileges di bootstrap.
 - Keputusan: admin belum bisa mengubah teks tech per bahasa. SRS tidak meminta editor, jadi perubahan teks tech lewat migrasi seperti seed.
-- Menunggu user: cek terjemahan tech di  (bagian tech (seed)), lalu  di VM saat Sprint 17.
+- Koreksi proses: laporan ini sempat ter-commit rusak di `b68261a`, karena backtick di string shell ikut dijalankan. Salah satunya `migrate up` tanpa `-database`, yang hanya mencetak bantuan, jadi tidak ada migrasi yang berjalan.
+- Menunggu user: cek terjemahan tech di `docs/terjemahan.md` (bagian tech (seed)), lalu `migrate up` di VM saat Sprint 17.
