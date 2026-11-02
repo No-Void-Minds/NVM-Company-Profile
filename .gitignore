@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-ssr/
+.env
+backend/var/
+*.exe
+docs/srs.txt

@@ -1,0 +1,62 @@
+[
+  {
+    "key": "marvel",
+    "name": "Marvel",
+    "available": true,
+    "sort": 1
+  },
+  {
+    "key": "toy-story",
+    "name": "Toy Story",
+    "available": true,
+    "sort": 2
+  },
+  {
+    "key": "star-wars",
+    "name": "Star Wars",
+    "available": true,
+    "sort": 3
+  },
+  {
+    "key": "mickey-mouse",
+    "name": "Mickey Mouse",
+    "available": true,
+    "sort": 4
+  },
+  {
+    "key": "donald-duck",
+    "name": "Donald Duck",
+    "available": true,
+    "sort": 5
+  },
+  {
+    "key": "inside-out",
+    "name": "Inside Out",
+    "available": true,
+    "sort": 6
+  },
+  {
+    "key": "the-incredibles",
+    "name": "The Incredibles",
+    "available": true,
+    "sort": 7
+  },
+  {
+    "key": "villains",
+    "name": "Villains",
+    "available": true,
+    "sort": 8
+  },
+  {
+    "key": "moana",
+    "name": "Moana",
+    "available": false,
+    "sort": 9
+  },
+  {
+    "key": "zootopia",
+    "name": "Zootopia",
+    "available": true,
+    "sort": 10
+  }
+]

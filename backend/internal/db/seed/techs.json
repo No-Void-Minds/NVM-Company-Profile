@@ -1,0 +1,262 @@
+[
+  {
+    "key": "aezy",
+    "name": "AEZY",
+    "family": "AEZY",
+    "generation": 1,
+    "needs": [
+      "hot"
+    ],
+    "tagline": "For days that run hot.",
+    "sub": "Performance, climate, stretch",
+    "description": "Lightweight performance fabric. Breathable, fast-drying and air-feel soft. Engineered for movement and everyday climate control, with elastic recovery that stays stable after long wear.",
+    "chips": [
+      "Breathable",
+      "Fast-drying",
+      "Air-feel soft",
+      "Elastic recovery"
+    ],
+    "fits": [
+      "Regular",
+      "Fitted",
+      "Polo"
+    ],
+    "technology_label": "Air feel technology",
+    "on_rack": false,
+    "sort": 1
+  },
+  {
+    "key": "aezy-cotton",
+    "name": "AEZY COTTON",
+    "family": "AEZY",
+    "generation": 1,
+    "needs": [
+      "hot",
+      "soft"
+    ],
+    "tagline": "AEZY, with a cotton hand.",
+    "sub": "Cotton touch, breathable, everyday",
+    "description": "The AEZY system with a cotton touch. The natural, familiar feel of cotton on the skin, with the easy breathability AEZY is known for. Made for long days and everyday wear.",
+    "chips": [
+      "Cotton hand-feel",
+      "Breathable",
+      "Everyday comfort"
+    ],
+    "fits": [
+      "Regular",
+      "Polo"
+    ],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 2
+  },
+  {
+    "key": "aezy-2",
+    "name": "AEZY 2",
+    "family": "AEZY",
+    "generation": 2,
+    "needs": [
+      "hot",
+      "move"
+    ],
+    "tagline": "AEZY, refined.",
+    "sub": "Next generation, air-feel, movement",
+    "description": "The next generation of our AEZY system. The same air-feel lightness you know, refined in the lab for a smoother hand and easier movement through the day.",
+    "chips": [
+      "Second generation",
+      "Air-feel light",
+      "Refined hand"
+    ],
+    "fits": [
+      "Regular",
+      "Fitted"
+    ],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 3
+  },
+  {
+    "key": "formlock",
+    "name": "FORMLOCK",
+    "family": "FORMLOCK",
+    "generation": 1,
+    "needs": [
+      "shape"
+    ],
+    "tagline": "For cuts that refuse to sag.",
+    "sub": "Structure, hold, construction",
+    "description": "A structural construction system. Seam-lock paneling and dense contour knits engineered to hold their silhouette wash after wash, so the cut stays as sharp as day one.",
+    "chips": [
+      "Seam-lock paneling",
+      "Dense contour knit",
+      "Holds its shape"
+    ],
+    "fits": [
+      "Oversized",
+      "Regular",
+      "Boxy",
+      "Fitted"
+    ],
+    "technology_label": "Contour conditioning technology",
+    "on_rack": false,
+    "sort": 4
+  },
+  {
+    "key": "formlock-2",
+    "name": "FORMLOCK 2",
+    "family": "FORMLOCK",
+    "generation": 2,
+    "needs": [
+      "shape"
+    ],
+    "tagline": "FORMLOCK, in more cuts.",
+    "sub": "Next generation, structure, silhouette",
+    "description": "The next generation of FORMLOCK. The same shape-holding structure, developed further across more silhouettes, from clean regular cuts to boxy and oversized fits that keep their form.",
+    "chips": [
+      "Second generation",
+      "Shape-holding",
+      "Regular, Boxy, Oversized"
+    ],
+    "fits": [
+      "Regular",
+      "Boxy",
+      "Oversized"
+    ],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 5
+  },
+  {
+    "key": "curflex",
+    "name": "CURFLEX",
+    "family": "CURFLEX",
+    "generation": 1,
+    "needs": [
+      "move"
+    ],
+    "tagline": "For bodies that never sit still.",
+    "sub": "Curve, flex, recovery",
+    "description": "Four-way curve-flex stretch. Moves with your body and recovers its shape for all-day mobility without losing structure. Built to flatter the figure and free the movement.",
+    "chips": [
+      "Four-way stretch",
+      "Shape recovery",
+      "All-day mobility"
+    ],
+    "fits": [
+      "Regular",
+      "Fitted",
+      "Mini Fitted"
+    ],
+    "technology_label": "Smooth flex technology",
+    "on_rack": false,
+    "sort": 6
+  },
+  {
+    "key": "puffmax",
+    "name": "PUFFMAX",
+    "family": "PUFFMAX",
+    "generation": 1,
+    "needs": [
+      "soft"
+    ],
+    "tagline": "For when soft is the whole point.",
+    "sub": "Loft, cushion, softness",
+    "description": "Maximum loft and density. A plush, cushioned hand that feels like being wrapped in a cloud. Extra-soft and substantial, with comfort that holds up wear after wear.",
+    "chips": [
+      "Maximum loft",
+      "Plush hand",
+      "Lasting comfort"
+    ],
+    "fits": [
+      "Oversized",
+      "Regular"
+    ],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 7
+  },
+  {
+    "key": "therco",
+    "name": "THERCO",
+    "family": "THERCO",
+    "generation": 1,
+    "needs": [
+      "cold"
+    ],
+    "tagline": "For cold mornings and freezing offices.",
+    "sub": "Thermal, comfort, layering",
+    "description": "A thermal comfort system built for cooler hours. Designed to keep warmth close to the body while staying easy to layer and comfortable from morning to night.",
+    "chips": [
+      "Thermal comfort",
+      "Easy layering",
+      "All-day wear"
+    ],
+    "fits": [],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 8
+  },
+  {
+    "key": "antshell",
+    "name": "ANTSHELL",
+    "family": "ANTSHELL",
+    "generation": 1,
+    "needs": [
+      "layer"
+    ],
+    "tagline": "For a cleaner outer layer.",
+    "sub": "Shell, light, everyday armor",
+    "description": "An outer-layer system inspired by a lightweight shell. Built to feel light on the body while giving everyday pieces a clean, protective outer face.",
+    "chips": [
+      "Lightweight shell",
+      "Clean outer face",
+      "Everyday layer"
+    ],
+    "fits": [],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 9
+  },
+  {
+    "key": "flexe",
+    "name": "FLEXE",
+    "family": "FLEXE",
+    "generation": 1,
+    "needs": [
+      "move"
+    ],
+    "tagline": "For a full range of motion.",
+    "sub": "Flex, mobility, ease",
+    "description": "A flexible system made for full range of motion. Bends and moves with you, then settles back into shape, so the fit feels easy whether you are moving or standing still.",
+    "chips": [
+      "Full range of motion",
+      "Easy fit",
+      "Settles back into shape"
+    ],
+    "fits": [],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 10
+  },
+  {
+    "key": "meltwrap",
+    "name": "MELTWRAP",
+    "family": "MELTWRAP",
+    "generation": 1,
+    "needs": [
+      "soft"
+    ],
+    "tagline": "For a second-skin drape.",
+    "sub": "Drape, softness, second skin",
+    "description": "A soft, fluid system that drapes close to the body. Smooth against the skin and light in the hand, it wraps the figure gently for an easy, second-skin feel.",
+    "chips": [
+      "Fluid drape",
+      "Smooth hand",
+      "Second-skin feel"
+    ],
+    "fits": [],
+    "technology_label": "",
+    "on_rack": false,
+    "sort": 11
+  }
+]

@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+@import '@fontsource/space-grotesk/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+
+@font-face {
+  font-family: 'D-DIN';
+  src: url('/fonts/D-DIN.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Clearing the defaults makes any color outside the SRS palette fail to compile */
+  --color-*: initial;
+  --color-void: #08090b;
+  --color-surface: #0d0f12;
+  --color-raised: #15181d;
+  --color-bone: #e8ebef;
+  --color-muted: #9aa1ab;
+  --color-line-strong: #6b7380;
+  --color-line: #2a2f36;
+  --color-signal: #ff5a36;
+
+  --font-sans: 'D-DIN', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --radius-*: initial;
+  --radius-control: 2px;
+
+  /* One spacing step is 8px, so integer utilities stay on the 8px grid */
+  --spacing: 0.5rem;
+
+  --text-h1: clamp(2.5rem, 1.45rem + 5.25vw, 7rem);
+  --text-h2: clamp(1.75rem, 1.3rem + 2.25vw, 3.5rem);
+  --text-h3: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  --text-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --text-label: 0.75rem;
+}
+
+@layer base {
+  html {
+    background: var(--color-void);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 96px;
+  }
+
+  body {
+    min-width: 320px;
+    overflow-x: clip;
+    font-size: var(--text-body);
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 400;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
