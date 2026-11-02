@@ -2,3 +2,5 @@ dist/
 dist-ssr/
 public/
 package-lock.json
+test-results/
+playwright-report/

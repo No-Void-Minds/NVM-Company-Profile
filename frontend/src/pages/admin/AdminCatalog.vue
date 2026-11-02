@@ -65,13 +65,8 @@ async function toggleCollab(collab: Collab) {
           class="flex items-center justify-between gap-2 border-b border-line py-1"
         >
           <span>{{ techName(tech.name) }}</span>
-          <button
-            type="button"
-            class="btn btn-secondary min-h-[44px]"
-            :aria-pressed="tech.on_rack"
-            :aria-label="`${tech.name} on the rack`"
-            @click="toggleTech(tech)"
-          >
+          <button type="button" class="btn btn-secondary min-h-[44px]" @click="toggleTech(tech)">
+            <span class="sr-only">{{ tech.name }}: </span>
             {{ tech.on_rack ? 'On the rack' : 'Belum tersedia' }}
           </button>
         </li>
@@ -102,10 +97,9 @@ async function toggleCollab(collab: Collab) {
           <button
             type="button"
             class="btn btn-secondary min-h-[44px]"
-            :aria-pressed="collab.available"
-            :aria-label="`${collab.name} tersedia`"
             @click="toggleCollab(collab)"
           >
+            <span class="sr-only">{{ collab.name }}: </span>
             {{ collab.available ? 'Tersedia' : 'Coming soon' }}
           </button>
         </li>

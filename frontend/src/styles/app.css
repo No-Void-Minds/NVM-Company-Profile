@@ -10,6 +10,12 @@
 }
 
 @layer components {
+  /* An implicit grid track grows to fit its widest child, and a wide table would then
+     push the whole page sideways. Utilities such as sm:grid-cols-2 still override this. */
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .wrap {
     width: 100%;
     max-width: 1440px;
@@ -127,6 +133,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    min-width: 44px;
     color: var(--color-bone);
     text-decoration: underline;
     text-underline-offset: 4px;

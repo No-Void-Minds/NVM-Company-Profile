@@ -98,7 +98,7 @@ const fits = computed(() =>
                       target="_blank"
                       rel="noopener"
                       class="text-link"
-                      :aria-label="`${tech.name} ${fit} di Shopify`"
+                      :aria-label="`Lihat ${tech.name} ${fit} di Shopify`"
                     >
                       Lihat
                     </a>
@@ -151,7 +151,7 @@ const fits = computed(() =>
               target="_blank"
               rel="noopener"
               class="text-link"
-              :aria-label="`${collab.name} di Shopify`"
+              :aria-label="`Lihat ${collab.name} di Shopify`"
             >
               Lihat
             </a>

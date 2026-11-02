@@ -5,3 +5,5 @@ dist-ssr/
 backend/var/
 *.exe
 docs/srs.txt
+test-results/
+playwright-report/
