@@ -62,6 +62,9 @@ func WriteCSV(w io.Writer, inquiries []sqlc.Inquiry) error {
 		return err
 	}
 	out := csv.NewWriter(w)
+	// Excel on an Indonesian list separator reads a comma file as one column. A sep= hint
+	// would fix that but makes Excel ignore the BOM and garble accents, tested on Excel 16.
+	out.Comma = ';'
 	if err := out.Write(header); err != nil {
 		return err
 	}

@@ -147,7 +147,7 @@ if (!import.meta.env.SSR) {
     />
     <StateEmpty v-else-if="!tech" title="Daftar tech belum tersedia" class="mt-6" />
 
-    <div v-else class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-12">
+    <div v-else class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6">
       <div class="grid content-start gap-3">
         <FormField id="size-tech" v-slot="f" label="Tech">
           <select

@@ -23,6 +23,23 @@ npm run dev
 
 Pemeriksaan sebelum commit: `./scripts/check.sh`.
 
+## Pengujian
+
+```bash
+./scripts/check.sh            # format, lint, tipe, go test, vitest
+```
+
+Uji browser memakai Chrome yang terpasang. Backend harus jalan, dan akun uji dibaca dari `UJI_ADMIN_PASSWORD`:
+
+```bash
+cd frontend
+npx playwright test                                   # lawan server dev di 5175
+npm run build && node e2e/serve-dist.mjs              # build produksi di 4180, meniru nginx.conf
+E2E_BASE_URL=http://127.0.0.1:4180 npx playwright test
+```
+
+Rate limit tersimpan di memori backend, jadi restart backend sebelum mengulang suite. Data uji dihapus dengan `deploy/sql/90-cleanup-test-data.sql`.
+
 ## Database
 
 Sekali di awal, sebagai superuser Postgres: jalankan `deploy/sql/00-bootstrap.sql` dengan `psql`.

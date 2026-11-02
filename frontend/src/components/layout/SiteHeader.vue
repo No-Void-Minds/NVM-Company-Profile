@@ -54,7 +54,7 @@ watch(
           :href="SHOP_URL"
           target="_blank"
           rel="noopener"
-          class="btn btn-secondary hidden min-h-[44px] sm:inline-flex"
+          class="btn btn-secondary hidden min-h-[44px] whitespace-nowrap sm:inline-flex"
         >
           Belanja di Shopify
         </a>

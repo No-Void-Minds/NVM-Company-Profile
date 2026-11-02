@@ -42,6 +42,8 @@
 
 @layer base {
   html {
+    /* Native select lists, date pickers, and spinners would otherwise stay light */
+    color-scheme: dark;
     background: var(--color-void);
     color: var(--color-bone);
     font-family: var(--font-sans);

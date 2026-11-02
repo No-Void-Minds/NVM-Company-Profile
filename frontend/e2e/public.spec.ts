@@ -90,6 +90,15 @@ test.describe('AC-02, AC-03 Teknologi', () => {
         page.getByRole('heading', { level: 2, name: 'FORMLOCK™', exact: true }),
       ).toBeVisible()
       await expect(page.getByText('For cuts that refuse to sag.')).toBeVisible()
+      await expect(
+        page.getByRole('heading', { level: 2, name: 'FORMLOCK™', exact: true }),
+      ).toBeInViewport({ ratio: 1 })
+      if (width >= 1024) {
+        // The panel top must clear the fixed header, and the panel must fit the screen.
+        const panel = await page.locator('.tech-panel').boundingBox()
+        expect(panel?.y ?? 0).toBeGreaterThanOrEqual(64)
+        expect((panel?.y ?? 0) + (panel?.height ?? 0)).toBeLessThanOrEqual(900)
+      }
     })
   }
 
@@ -115,6 +124,24 @@ test.describe('AC-02, AC-03 Teknologi', () => {
 })
 
 test.describe('AC-04, AC-05 Size', () => {
+  test('tabel utuh tanpa geser di 1024, kontrol native gelap, tombol header satu baris', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 800 })
+    await page.goto('/size?tech=aezy&fit=Regular')
+    await settled(page)
+    const clipped = await page
+      .locator('.scroll-x')
+      .evaluate((el) => el.scrollWidth - el.clientWidth)
+    expect(clipped).toBeLessThanOrEqual(0)
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark')
+    const shop = await page
+      .getByRole('banner')
+      .getByRole('link', { name: 'Belanja di Shopify' })
+      .boundingBox()
+    expect(shop?.height ?? 99).toBeLessThanOrEqual(48)
+  })
+
   test('AC-04 tinggi 172 menandai L, kaos 51 x 69 menandai M', async ({ page }) => {
     await page.goto('/size?tech=aezy&fit=Regular')
     await settled(page)

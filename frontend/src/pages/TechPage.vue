@@ -43,7 +43,11 @@ watch(
     if (key === activeKey.value || !techs.value.some((t) => t.key === key)) return
     activeKey.value = key
     await nextTick()
-    document.getElementById(`lab-${key}`)?.scrollIntoView({ block: 'start' })
+    // On desktop the panel is what the link opened, the row may sit far below its top.
+    const target = isDesktop.value
+      ? document.querySelector('.tech-panel')
+      : document.getElementById(`lab-${key}`)
+    target?.scrollIntoView({ block: 'start' })
   },
   { immediate: true },
 )
@@ -147,7 +151,13 @@ function choose(key: string) {
           </li>
         </ol>
 
-        <aside v-if="isDesktop && activeTech" class="tech-panel" aria-live="polite">
+        <aside
+          v-if="isDesktop && activeTech"
+          class="tech-panel"
+          aria-live="polite"
+          aria-label="Detail material system"
+          tabindex="0"
+        >
           <Transition name="index-sync" mode="out-in">
             <TechDetail :key="activeTech.key" :tech="activeTech" :number="activeIndex + 1" />
           </Transition>
@@ -205,6 +215,9 @@ function choose(key: string) {
   position: sticky;
   top: 96px;
   align-self: start;
+  /* Taller than the screen it could not stay in view, and FR-20 wants it to */
+  max-height: calc(100svh - 112px);
+  overflow-y: auto;
   border: 1px solid var(--color-line);
   background: var(--color-surface);
   padding: 32px;
