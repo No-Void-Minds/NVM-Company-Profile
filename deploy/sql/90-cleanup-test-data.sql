@@ -1,5 +1,7 @@
 -- Menghapus data hasil Sprint 10. Dijalankan user sebagai compro_app, sekali, setelah pengujian:
 --   psql "$DATABASE_URL" -f deploy/sql/90-cleanup-test-data.sql
+-- Laptop dev tidak punya psql, jadi dari folder repo di VM bisa memakai container Postgres:
+--   docker exec -i -e PGPASSWORD=<password> <container> psql -U compro_app -d nvm_compro < deploy/sql/90-cleanup-test-data.sql
 --
 -- Awalan dicocokkan sebagai 'UJI ' dengan spasi, sehingga nama asli seperti "UJIAN" tidak ikut.
 -- Audit log dihapus lebih dulu, karena menghapus akun hanya mengosongkan user_id-nya.

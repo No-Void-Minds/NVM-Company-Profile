@@ -4,6 +4,7 @@ import { api } from '@/api/client'
 import AppButton from '@/components/AppButton.vue'
 import KnitDivider from '@/components/KnitDivider.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
+import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { formatDate, pad2, SHOP_URL } from '@/composables/site'
@@ -57,6 +58,11 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
       :message="stats.error.value"
       class="mt-3"
       @retry="stats.run"
+    />
+    <StateEmpty
+      v-else-if="stats.data.value?.systems === 0"
+      title="Lab index belum tersedia"
+      class="mt-3"
     />
     <dl v-else-if="stats.data.value" class="mt-3 flex flex-wrap gap-x-8 gap-y-4">
       <div>

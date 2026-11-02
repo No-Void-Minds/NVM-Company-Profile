@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api/client'
 import IconSvg from '@/components/IconSvg.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
+import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import TechDetail from '@/components/TechDetail.vue'
@@ -77,6 +78,11 @@ function choose(key: string) {
 
     <StateLoading v-if="loading" label="Memuat material system" height="480px" class="mt-6" />
     <StateError v-else-if="error" :message="error" class="mt-6" @retry="run" />
+    <StateEmpty
+      v-else-if="techs.length === 0"
+      title="Daftar material system belum tersedia"
+      class="mt-6"
+    />
 
     <template v-else>
       <div class="mt-6">

@@ -213,6 +213,19 @@ test.describe('Produk', () => {
 })
 
 test.describe('AC-10 state', () => {
+  test('Teknologi dan Lab index kosong punya pesan jujur', async ({ page }) => {
+    await page.route('**/api/techs', (route) => route.fulfill({ json: [] }))
+    await page.route('**/api/lab-stats', (route) =>
+      route.fulfill({ json: { systems: 0, on_rack: 0, est_year: 2021 } }),
+    )
+    await page.goto('/teknologi')
+    await settled(page)
+    await expect(page.getByText('Daftar material system belum tersedia')).toBeVisible()
+    await page.goto('/')
+    await settled(page)
+    await expect(page.getByText('Lab index belum tersedia')).toBeVisible()
+  })
+
   test('Galeri dan Testimoni kosong jujur', async ({ page }) => {
     await page.route('**/api/gallery', (route) => route.fulfill({ json: [] }))
     await page.route('**/api/testimonials', (route) => route.fulfill({ json: [] }))
