@@ -16,6 +16,7 @@ ENV VITE_PUBLIC_BASE_URL=$VITE_PUBLIC_BASE_URL
 RUN npm run build
 
 FROM nginx:1.29-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Rendered to /etc/nginx/conf.d/default.conf at start, with COMPRO_GATEWAY_IP filled in
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build /app/dist /usr/share/nginx/html

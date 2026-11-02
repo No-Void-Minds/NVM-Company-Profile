@@ -121,7 +121,9 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 
 ## Sprint 11: Rilis publik
 
-Tertahan sampai atasan menyetujui dan domain ditentukan.
+Tertahan sampai atasan menyetujui. Domain: `novoidminds.id`.
+
+Rencana: tanpa service cloudflared di compose. Tunnel Cloudflare yang sudah ada berjalan sebagai service sistem di VM dan diarahkan ke `http://localhost:8092`. Nginx memercayai `CF-Connecting-IP` hanya dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`), `COOKIE_SECURE=true`, `PUBLIC_BASE_URL=https://novoidminds.id`. Langkahnya di README bagian Rilis publik.
 
 ## Sprint 12: Dua tema
 

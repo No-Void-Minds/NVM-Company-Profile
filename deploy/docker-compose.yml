@@ -37,6 +37,11 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      # Must be the gateway set on the compro network below, see nginx.conf real_ip
+      COMPRO_GATEWAY_IP: ${COMPRO_GATEWAY_IP:-172.30.92.1}
+      # Only COMPRO_* is substituted, so nginx variables such as $remote_addr stay intact
+      NGINX_ENVSUBST_FILTER: COMPRO_
     ports:
       - "8092:80"
     networks:
@@ -47,6 +52,8 @@ networks:
     ipam:
       config:
         - subnet: ${COMPRO_SUBNET:-172.30.92.0/24}
+          # Explicit, because nginx trusts CF-Connecting-IP only from this address
+          gateway: ${COMPRO_GATEWAY_IP:-172.30.92.1}
   postgres:
     external: true
     name: ${PG_NETWORK:?isi PG_NETWORK di deploy/.env}

@@ -110,9 +110,50 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
 7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
 
-`COOKIE_SECURE` tetap `false` selama akses lewat HTTP LAN.
+`COOKIE_SECURE` tetap `false` selama akses hanya lewat HTTP LAN. Untuk rilis publik lihat bagian berikut.
+
+## Rilis publik
+
+Situs dibuka lewat Cloudflare Tunnel yang sudah berjalan sebagai service sistem di `nvm-server` (bukan service di compose). Tunnel meneruskan ke `http://localhost:8092`.
 
 DNS `novoidminds.id` dikelola di Cloudflare sejak 2 November 2026. Record di GoDaddy hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
+
+1. Isi `deploy/.env` (lihat `deploy/.env.example`):
+
+   ```bash
+   PUBLIC_BASE_URL=https://novoidminds.id
+   COOKIE_SECURE=true
+   COMPRO_SUBNET=172.30.92.0/24
+   COMPRO_GATEWAY_IP=172.30.92.1
+   ```
+
+   Dengan `COOKIE_SECURE=true`, login admin hanya bisa lewat `https://novoidminds.id/admin`. Login lewat `http://<IP VM>:8092` tidak bisa lagi, karena browser tidak mengirim cookie Secure lewat HTTP.
+
+2. Nyalakan ulang. Gateway jaringan `compro` kini ditetapkan di compose, jadi jaringan lama perlu dibuat ulang sekali dengan `down` lalu `up`:
+
+   ```bash
+   docker compose --env-file deploy/.env -f deploy/docker-compose.yml down
+   docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
+   ```
+
+3. Di dashboard Cloudflare (Zero Trust, Networks, Tunnels), buka tunnel `nvm-server` (dulu `NVM-ERP-Tunnel`), lalu tambahkan published application route: hostname `novoidminds.id`, service `http://localhost:8092`.
+
+4. Arahkan `www.novoidminds.id` ke `https://novoidminds.id` lewat Redirect Rules di Cloudflare (301, path dan query ikut).
+
+IP pengunjung: request dari tunnel masuk ke container frontend dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`). Nginx hanya memercayai header `CF-Connecting-IP` dari alamat itu, lalu meneruskannya ke backend sebagai `X-Real-IP` dan `X-Forwarded-For`. Request LAN langsung ke port 8092 tetap memakai alamat aslinya. Cek di VM setelah deploy:
+
+```bash
+# Dari VM sendiri (lewat gateway): log harus mencatat 203.0.113.7
+curl -s -o /dev/null -H 'CF-Connecting-IP: 203.0.113.7' http://localhost:8092/api/health
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml logs --tail=1 frontend
+
+# Dari komputer lain di LAN: log harus mencatat IP komputer itu, bukan 203.0.113.7
+curl -s -o /dev/null -H 'CF-Connecting-IP: 203.0.113.7' http://<IP VM>:8092/api/health
+```
+
+Kalau uji LAN mencatat alamat gateway, Docker meneruskan port lewat userland proxy, dan header dari LAN ikut dipercaya. Periksa pengaturan `userland-proxy` dan iptables Docker di VM sebelum rilis.
+
+Uji yang sama di laptop dev memakai nginx sungguhan: `NGINX_BIN=/path/ke/nginx node scripts/test-real-ip.mjs` dari folder `frontend`. Tanpa `NGINX_BIN`, `check.sh` hanya menjalankan pemeriksaan statis (satu `set_real_ip_from`, gateway sama di compose dan `.env.example`, berada di dalam subnet).
 
 ## Pulihkan dari backup
 

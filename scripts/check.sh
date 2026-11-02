@@ -20,5 +20,7 @@ npx vitest run
 npx eslint .
 npx prettier --check .
 node scripts/terjemahan.mjs --check
+# Static real_ip checks. The nginx behavior part also runs when NGINX_BIN is set.
+node scripts/test-real-ip.mjs
 
 echo "check.sh: OK"
