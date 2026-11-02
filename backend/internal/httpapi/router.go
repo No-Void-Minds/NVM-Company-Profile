@@ -12,6 +12,7 @@ import (
 
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/config"
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/db/sqlc"
+	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/media"
 	"github.com/No-Void-Minds/nvm-company-profile/backend/internal/ratelimit"
 )
 
@@ -19,7 +20,9 @@ type server struct {
 	cfg          config.Config
 	pool         *pgxpool.Pool
 	q            *sqlc.Queries
+	media        *media.Store
 	inquiryLimit *ratelimit.Limiter
+	loginLimit   *ratelimit.Limiter
 }
 
 func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
@@ -33,11 +36,18 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 		respondError(c, http.StatusNotFound, codeNotFound, "Alamat tidak ditemukan.", nil)
 	})
 
+	store, err := media.NewStore(cfg.MediaDir)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &server{
 		cfg:          cfg,
 		pool:         pool,
 		q:            sqlc.New(pool),
+		media:        store,
 		inquiryLimit: ratelimit.New(5, time.Hour),
+		loginLimit:   ratelimit.New(10, 15*time.Minute),
 	}
 
 	r.GET("/sitemap.xml", s.sitemap)
@@ -54,6 +64,34 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 	public.GET("/gallery", s.listGallery)
 	public.GET("/testimonials", s.listTestimonials)
 	public.GET("/size-charts/:key", s.getSizeChart)
+
+	r.GET("/media/:name", s.serveMedia)
+
+	api.POST("/admin/login", s.login)
+
+	admin := api.Group("/admin", s.requireSession)
+	admin.GET("/me", s.me)
+	admin.GET("/gallery", s.adminListGallery)
+	admin.GET("/testimonials", s.adminListTestimonials)
+	admin.GET("/size-charts", s.adminListSizeCharts)
+	admin.GET("/size-charts/:key", s.adminGetSizeChart)
+	admin.GET("/inquiries", s.adminListInquiries)
+	admin.GET("/inquiries/export", s.adminExportInquiries)
+	admin.GET("/inquiries/:id", s.adminGetInquiry)
+
+	mutate := admin.Group("", requireCSRF)
+	mutate.POST("/logout", s.logout)
+	mutate.POST("/gallery", s.adminCreateGallery)
+	mutate.PATCH("/gallery/:id", s.adminUpdateGallery)
+	mutate.DELETE("/gallery/:id", s.adminDeleteGallery)
+	mutate.POST("/testimonials", s.adminCreateTestimonial)
+	mutate.PATCH("/testimonials/:id", s.adminUpdateTestimonial)
+	mutate.DELETE("/testimonials/:id", s.adminDeleteTestimonial)
+	mutate.PUT("/size-charts/:key", s.adminPutSizeChart)
+	mutate.DELETE("/size-charts/:key", s.adminDeleteSizeChart)
+	mutate.PATCH("/techs/:key", s.adminPatchTech)
+	mutate.PATCH("/collabs/:key", s.adminPatchCollab)
+	mutate.PATCH("/inquiries/:id", s.adminPatchInquiry)
 
 	return r, nil
 }

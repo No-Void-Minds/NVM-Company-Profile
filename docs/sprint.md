@@ -15,7 +15,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 0 | Fondasi repo, tooling, token, font, check.sh | M | selesai |
 | 1 | Database: migrasi, role, seed | M | selesai |
 | 2 | API publik dan inquiry | M | selesai |
-| 3 | Auth admin, API admin, media, ekspor, CLI | M | belum |
+| 3 | Auth admin, API admin, media, ekspor, CLI | M | selesai |
 | 4 | Kerangka frontend dan komponen state | M | belum |
 | 5 | Beranda (Knit Field), Brand, Teknologi | M | belum |
 | 6 | Produk, B2B, Size, Kontak, Privasi, 404 | M | belum |
@@ -141,4 +141,14 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: paket baru `internal/ratelimit`, karena inquiry dan login sama-sama butuh.
 - Keputusan: `org` dan `city` wajib (FR-41 tidak menandainya opsional). Kiriman ulang dengan key sama dan kiriman tidak valid tidak memakai kuota.
 - Keputusan: sumber IP dibaca lewat `TRUSTED_PROXIES`, agar di balik Nginx rate limit tetap per pengunjung.
+- Menunggu user: tidak ada.
+
+### Sprint 3
+
+- Dibuat: auth argon2id, sesi, CSRF, endpoint admin SRS 7.4, media, ekspor CSV dan XLSX, CLI `compro-admin`.
+- Keputusan: WebP memakai `gen2brain/webp` (tanpa CGO). Orientasi EXIF JPEG diterapkan ke piksel sebelum metadata dibuang, agar foto ponsel tidak miring.
+- Keputusan: batas 50 MP untuk gambar. Sumber yang lebih sempit dari varian tidak diperbesar.
+- Keputusan: ekspor tidak memuat `ip_hash` dan `idempotency_key` (SRS 8: hash hanya untuk rate limit). Sel CSV dinetralkan dari injeksi formula. WhatsApp ditulis `="0812..."` agar nol di depan tidak hilang di Excel.
+- Keputusan: CSV memakai koma + BOM. Excel berlocale Indonesia bisa jadi memakai `;`, cek saat AC-09. XLSX tidak terpengaruh.
+- Keputusan: `purge-inquiries` dijalankan lewat cron (Sprint 9). `reset-password` juga mengakhiri sesi aktif.
 - Menunggu user: tidak ada.
