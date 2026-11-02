@@ -22,7 +22,7 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 7 | Galeri, Testimoni, halaman admin | M | selesai |
 | 8 | Fabric Probe, ticker, prerender, audit log, filter testimoni | S | selesai |
 | 9 | Docker Compose dan deploy LAN | M | selesai |
-| 10 | Pengujian menyeluruh dan Delivery Gate | M | belum |
+| 10 | Pengujian menyeluruh dan Delivery Gate | M | selesai |
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
 
 ---
@@ -205,3 +205,28 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 - Keputusan: `client_max_body_size 10m`. Backend memakai `read_only`, `cap_drop: ALL`, media di-chown ke uid 65532.
 - Belum diverifikasi: image Docker, `nginx.conf`, compose, dan `backup.sh` belum pernah dijalankan.
 - Menunggu user: nilai `PG_NETWORK` dan `PG_CONTAINER` dari VM, lalu deploy.
+
+### Sprint 10
+
+- Hasil: build + prerender lolos, `go test` dan Vitest lolos, curl API 155/155, Playwright 65/65 di dev dan di build produksi (Chrome), Lighthouse mobile Beranda 100/100 tiga kali.
+- Diperbaiki: scroll horizontal Produk dan Size, target di bawah 44 px, nama aksesibel, CSV satu kolom di Excel, posisi deep link dan panel Teknologi, tabel Size di 1024, tombol header, `color-scheme`, state kosong Teknologi dan Lab index, location `/brand/` di Nginx.
+- Keputusan: CSV memakai BOM + `;`. Excel berpemisah koma memakai XLSX. `sep=` ditolak karena merusak huruf beraksen (diuji di Excel 16).
+- Keputusan: `check.sh` ikut menjalankan Vitest. `e2e/serve-dist.mjs` meniru `nginx.conf` untuk menguji build produksi tanpa Docker.
+- Belum diverifikasi: image Docker, `nginx.conf` asli, compose, `backup.sh` (dicek saat deploy di VM), Firefox, Safari, perangkat fisik, dan `90-cleanup-test-data.sql`.
+- Menunggu user: jalankan cleanup SQL, lalu deploy.
+
+#### Delivery Gate
+
+| Poin AntiSlop | Hasil | Bukti |
+|---|---|---|
+| Tanpa em dash | PASS | Pindai 41 berkas teks `dist`, 112 berkas sumber, dan pesan commit: 0 temuan |
+| Tanpa emoji | PASS | Pindai rentang Unicode emoji pada `dist` dan sumber: 0 temuan |
+| Target sentuh 44 px | PASS | `smallTargets` di 17 halaman, 5 lebar: 0 temuan. Link di dalam kalimat dikecualikan seperti WCAG 2.5.8 |
+| Tanpa scroll horizontal dari 320 | PASS | `scrollWidth` di 5 lebar, publik dan admin: 0 |
+| Fokus terlihat | PASS | Outline 2px signal dicek per Tab. Satu-satunya `outline: none` untuk kontainer `tabindex="-1"` yang difokuskan kode, bukan kontrol |
+| Keyboard penuh | PASS | Skip link, menu, panel Teknologi, tab Size, formulir B2B, lightbox, dialog, login admin diselesaikan dengan keyboard |
+| State loading, kosong, error | PASS | Semua halaman data memuat ketiganya. Skeleton, kosong, dan Coba lagi diuji di 6 route publik |
+| CTA spesifik | PASS | Grep Get Started, Learn More, Selengkapnya, Submit: 0 temuan |
+| Hover punya padanan tap | PASS | Hover hanya di `@media (hover: hover)` dan tiap aturan punya `:active` (tinjauan kode, bukan uji otomatis) |
+| Komentar kode | PASS | Grep TODO, FIXME, banner, label CAPS: 0 temuan nyata (tinjauan otomatis, kualitas isi tidak diukur) |
+| Satu motif, warna, gerak | PASS | Warna di luar token tidak ada di sumber. Glow, shadow, gradien neon: 0 temuan. Hanya ticker yang berjalan saat diam |
