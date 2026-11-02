@@ -19,5 +19,7 @@ type errorBody struct {
 }
 
 func respondError(c *gin.Context, status int, code, message string, fields map[string]string) {
+	// Errors must not stay in caches set up earlier by publicCache.
+	c.Header("Cache-Control", "no-store")
 	c.AbortWithStatusJSON(status, gin.H{"error": errorBody{Code: code, Message: message, Fields: fields}})
 }
