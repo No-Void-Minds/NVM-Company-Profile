@@ -353,18 +353,18 @@ if (!import.meta.env.SSR) {
   flex: 1;
   min-height: 48px;
   padding: 8px;
-  color: var(--color-muted);
+  color: var(--muted);
   border-bottom: 2px solid transparent;
   cursor: pointer;
 }
 
 .tab-button:active {
-  background: var(--color-raised);
+  background: var(--raised);
 }
 
 .tab-button[aria-selected='true'] {
-  color: var(--color-bone);
-  border-bottom-color: var(--color-bone);
+  color: var(--fg);
+  border-bottom-color: var(--fg);
 }
 
 .size-marker {
@@ -373,8 +373,8 @@ if (!import.meta.env.SSR) {
   left: 0;
   width: 100%;
   min-width: 560px;
-  background: var(--color-raised);
-  border-left: 2px solid var(--color-signal);
+  background: var(--raised);
+  border-left: 2px solid var(--signal);
   transition:
     transform 240ms ease,
     height 240ms ease;

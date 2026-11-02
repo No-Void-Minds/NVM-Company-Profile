@@ -2,7 +2,7 @@
 
 Website company profile No Void Minds (NVM): brand, teknologi material, produk Core vs Graphic, B2B, galeri, testimoni, rekomendasi ukuran, plus panel admin minimal.
 
-Acuan tunggal kebutuhan: `docs/SRS-NVM-CompanyProfile-v1.1.docx`. Kode FR, NFR, BR, AC di sprint dan commit merujuk ke dokumen itu.
+Acuan tunggal kebutuhan: `docs/SRS-NVM-CompanyProfile-v1.2.docx`. Kode FR, NFR, BR, AC di sprint dan commit merujuk ke dokumen itu. Bagian 14 (revisi v1.2) menggantikan 6.1, 6.2, dan 6.4 bila bertentangan.
 Rencana kerja: `docs/sprint.md`. Kerjakan berurutan, satu sprint selesai baru lanjut.
 
 ## Aturan hemat kuota (wajib)
@@ -42,7 +42,7 @@ nvm-company-profile/
     fonts-src/                      sumber OTF, tidak ikut dist
     nginx.conf  Dockerfile  package.json  vite.config.ts
   deploy/docker-compose.yml
-  docs/sprint.md  docs/SRS-NVM-CompanyProfile-v1.1.docx
+  docs/sprint.md  docs/terjemahan.md  docs/SRS-NVM-CompanyProfile-v1.2.docx
   scripts/check.sh  scripts/dev-db-tunnel.sh
   .gitignore  .editorconfig  .gitattributes  README.md  CLAUDE.md
 ```
@@ -66,15 +66,15 @@ Jangan pakai 8080, 8081, 8090, 5173, 5174 (dipakai NVM-Internal dan nvm-doomsday
 - Tag Graphic di Shopify: `Graphic` + nama collab. URL beli: `https://novoidminds.com/collections/all/<tag+tag>` dengan tag di-handleize (contoh `core+aezy+regular`, `graphic+marvel`).
 - Nama tech di UI memakai simbol merek dagang di belakang nama (AEZY™). Di data dan URL tanpa simbol.
 - WhatsApp: `6282111228700`, tampil `+62 821-1122-8700`.
-- UI berbahasa Indonesia. Kutipan brand dan deskripsi tech tetap bahasa Inggris seperti seed.
+- UI publik dua bahasa (SRS 14.4): Indonesia di path tanpa awalan, Inggris di `/en`. Teks UI di kamus `id.ts` dan `en.ts`. Versi Inggris memakai teks asli Shopify, versi Indonesia terjemahan setia tanpa menambah klaim, dicatat di `docs/terjemahan.md`. Admin tetap Indonesia.
 - Data yang belum ada (galeri, testimoni, URL Shopee/TikTok Shop/Instagram, size chart selain aezy-regular) ditangani lewat state kosong, bukan placeholder palsu.
 
-## Desain (SRS bagian 6)
+## Desain (SRS bagian 6 dan 14)
 
-- Token warna di `frontend/src/styles/tokens.css` sebagai `@theme`: void `#08090B`, surface `#0D0F12`, raised `#15181D`, bone `#E8EBEF`, muted `#9AA1AB`, line-strong `#6B7380`, line `#2A2F36`, signal `#FF5A36`. Jangan tambah warna lain.
+- Token warna semantik di `frontend/src/styles/tokens.css`: `--bg`, `--surface`, `--raised`, `--fg`, `--muted`, `--line-strong`, `--line`, `--signal`. Tema terang (default, SRS 14.2): `#F3F2EE`, `#FFFFFF`, `#E8E6E0`, `#111317`, `#4A505A`, `#5A606A`, `#D4D1CA`, `#B83218`. Tema gelap (`data-theme="dark"`, token v1.1): `#08090B`, `#0D0F12`, `#15181D`, `#E8EBEF`, `#9AA1AB`, `#6B7380`, `#2A2F36`, `#FF5A36`. `#FF5A36` dilarang di tema terang. Komponen memakai token, bukan hex. Jangan tambah warna lain.
 - Radius 2px untuk kontrol, 0 untuk panel. Jarak kelipatan 8px. Skala huruf pakai `clamp()`.
-- Satu motif: garis rajut (grid titik tersambung). Dipakai di hero, pemisah section, panel tech, skeleton loading.
-- Animasi: hanya yang ada di SRS 6.4. Semua punya versi `prefers-reduced-motion`. Canvas berhenti lewat IntersectionObserver dan `visibilitychange`. Tanpa glow, glassmorphism, gradien neon, emoji, ikon sparkle atau robot. Ikon pakai SVG inline.
+- Motif: garis rajut (grid titik tersambung) di hero, pemisah section, panel tech, skeleton loading; ditambah swatch per tech dan garis ukur (SRS 14.1).
+- Animasi: hanya yang ada di SRS 6.4 dan 14.5. Semua punya versi `prefers-reduced-motion`. Canvas berhenti lewat IntersectionObserver dan `visibilitychange`. Tanpa glow, glassmorphism, gradien neon, emoji, ikon sparkle atau robot. Ikon pakai SVG inline.
 
 ## Gerbang kualitas (AntiSlop)
 

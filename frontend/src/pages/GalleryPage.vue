@@ -144,7 +144,7 @@ function onPointerUp(event: PointerEvent) {
     role="dialog"
     aria-modal="true"
     :aria-label="`Foto: ${current.alt}`"
-    class="lightbox fixed inset-0 z-50 flex flex-col bg-void"
+    class="lightbox fixed inset-0 z-50 flex flex-col bg-bg"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
   >
@@ -200,7 +200,7 @@ function onPointerUp(event: PointerEvent) {
 }
 
 .tap-icon:active {
-  background: var(--color-raised);
+  background: var(--raised);
 }
 
 @media (min-width: 40rem) {

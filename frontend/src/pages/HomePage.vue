@@ -40,7 +40,7 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
     <div class="wrap pointer-events-none relative py-8 lg:py-12">
       <p class="spec-label">Engineered to perfection</p>
       <h1 class="mt-2 text-h1">Fabric first.</h1>
-      <p class="mt-3 max-w-[44ch] bg-void text-h3">
+      <p class="mt-3 max-w-[44ch] bg-bg text-h3">
         Most brands draw the shirt, then go looking for a fabric. We do it the other way round.
       </p>
       <div class="pointer-events-auto mt-4 flex flex-wrap gap-2">

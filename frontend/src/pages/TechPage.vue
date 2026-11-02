@@ -177,18 +177,18 @@ function choose(key: string) {
 .filter-button {
   min-height: 44px;
   padding: 8px 16px;
-  border: 1px solid var(--color-line-strong);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   cursor: pointer;
 }
 
 .filter-button:active {
-  background: var(--color-raised);
+  background: var(--raised);
 }
 
 .filter-button[aria-pressed='true'] {
-  background: var(--color-bone);
-  color: var(--color-void);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .index-row {
@@ -204,11 +204,11 @@ function choose(key: string) {
 }
 
 .index-row:active {
-  background: var(--color-raised);
+  background: var(--raised);
 }
 
 .index-row-dim {
-  color: var(--color-line-strong);
+  color: var(--line-strong);
 }
 
 .index-number {
@@ -224,8 +224,8 @@ function choose(key: string) {
   /* Taller than the screen it could not stay in view, and FR-20 wants it to */
   max-height: calc(100svh - 112px);
   overflow-y: auto;
-  border: 1px solid var(--color-line);
-  background: var(--color-surface);
+  border: 1px solid var(--line);
+  background: var(--surface);
   padding: 32px;
 }
 
@@ -241,11 +241,11 @@ function choose(key: string) {
 
 @media (hover: hover) {
   .filter-button:hover:not([aria-pressed='true']) {
-    background: var(--color-raised);
+    background: var(--raised);
   }
 
   .index-row:hover {
-    background: var(--color-raised);
+    background: var(--raised);
   }
 }
 </style>

@@ -79,6 +79,6 @@ const sizeLink = computed(() => ({
   font-size: var(--text-h1);
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1px var(--color-bone);
+  -webkit-text-stroke: 1px var(--fg);
 }
 </style>

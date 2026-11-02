@@ -9,8 +9,12 @@ export type IconName =
   | 'pause'
   | 'play'
   | 'chevron-down'
+  | 'sun'
+  | 'moon'
 
 const PATHS: Record<IconName, string> = {
+  sun: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
   menu: 'M3 7h18M3 12h18M3 17h18',
   close: 'M5 5l14 14M19 5L5 19',
   'arrow-right': 'M4 12h16M14 6l6 6-6 6',

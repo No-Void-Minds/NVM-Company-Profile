@@ -1,6 +1,8 @@
 // One small illustration per need. It plays once on request, so nothing loops
 // without a user trigger (NFR-04), and it rests on a frame that reads as a diagram.
 
+import { onThemeChange, token } from './theme'
+
 export type ProbeVariant = 'hot' | 'shape' | 'move' | 'soft' | 'cold' | 'layer'
 
 const DURATION_MS = 2400
@@ -10,10 +12,6 @@ const ROWS = 7
 const REST_PROGRESS = 0.5
 const AIR_PARTICLES = 5
 
-function cssColor(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
-
 interface Point {
   x: number
   y: number
@@ -21,9 +19,10 @@ interface Point {
 
 export class FabricProbe {
   private readonly ctx: CanvasRenderingContext2D
-  private readonly line = cssColor('--color-line-strong')
-  private readonly accent = cssColor('--color-bone')
-  private readonly background = cssColor('--color-surface')
+  private line = ''
+  private accent = ''
+  private background = ''
+  private readonly stopTheme: () => void
   private frameId = 0
   private startedAt = 0
   private width = 0
@@ -37,6 +36,22 @@ export class FabricProbe {
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas 2D tidak tersedia')
     this.ctx = ctx
+    this.readColors()
+    this.stopTheme = onThemeChange(() => {
+      this.readColors()
+      if (!this.frameId) this.draw(REST_PROGRESS)
+    })
+  }
+
+  private readColors() {
+    this.line = token('--line-strong')
+    this.accent = token('--fg')
+    this.background = token('--surface')
+  }
+
+  destroy() {
+    this.stop()
+    this.stopTheme()
   }
 
   resize() {

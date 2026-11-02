@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#08090B" />
+    <meta name="theme-color" content="#f3f2ee" />
+    <!-- Runs before the stylesheet applies, so a stored dark choice never flashes light (FR-102).
+         Its sha256 is in nginx-security-headers.conf, and prerender fails when they differ. -->
+    <script>
+      try {
+        if (localStorage.getItem('nvm-theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark'
+          document.querySelector('meta[name="theme-color"]').content = '#08090b'
+        }
+      } catch (e) {}
+    </script>
     <title>No Void Minds</title>
     <!--head-outlet-->
     <link rel="icon" type="image/png" href="/brand/nvm-logo.png" />

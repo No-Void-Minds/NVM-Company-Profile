@@ -30,7 +30,7 @@ const reduced = useReducedMotion()
     <button
       v-if="!reduced"
       type="button"
-      class="tap flex flex-none items-center justify-center bg-void active:bg-raised"
+      class="tap flex flex-none items-center justify-center bg-bg active:bg-raised"
       :aria-label="paused ? 'Jalankan teks berjalan' : 'Jeda teks berjalan'"
       @click="paused = !paused"
     >

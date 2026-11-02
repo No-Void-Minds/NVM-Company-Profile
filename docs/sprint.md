@@ -1,10 +1,11 @@
 # Sprint nvm-company-profile
 
-Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerja: `CLAUDE.md`.
+Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sampai 11 disusun dari v1.1, Sprint 12 sampai 17 dari revisi v1.2 (SRS 14.7). Aturan kerja: `CLAUDE.md`.
 
 ## Cara kerja
 
 - Semua fitur dibangun dulu (Sprint 0 sampai 9). Pengujian menyeluruh hanya di Sprint 10.
+- Revisi v1.2 mengikuti pola yang sama: Sprint 12 sampai 15 membangun, pengujian hanya di Sprint 16.
 - Akhir tiap sprint: `./scripts/check.sh`, update tabel di bawah, `git commit`.
 - Status: `belum`, `jalan`, `selesai`, `tertahan`.
 
@@ -24,6 +25,12 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 | 9 | Docker Compose dan deploy LAN | M | selesai |
 | 10 | Pengujian menyeluruh dan Delivery Gate | M | selesai |
 | 11 | Rilis publik lewat Cloudflare Tunnel | - | tertahan |
+| 12 | Token semantik dua tema, tombol tema, anti-kedip + hash CSP, logo, kanvas ikut tema | M | selesai |
+| 13 | Kerangka i18n: route /en, kamus, tombol bahasa, error dari kode, hreflang, prerender dua bahasa | M | belum |
+| 14 | Migrasi 0003 (tech_i18n, galeri en, lang testimoni), API ?lang, docs/terjemahan.md | M | belum |
+| 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | belum |
+| 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | belum |
+| 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | belum |
 
 ---
 
@@ -115,6 +122,45 @@ Acuan kebutuhan: SRS v1.1 (`docs/SRS-NVM-CompanyProfile-v1.1.docx`). Aturan kerj
 ## Sprint 11: Rilis publik
 
 Tertahan sampai atasan menyetujui dan domain ditentukan.
+
+## Sprint 12: Dua tema
+
+1. `tokens.css`: token semantik `--bg`, `--surface`, `--raised`, `--fg`, `--muted`, `--line-strong`, `--line`, `--signal`. Nilai terang dari SRS 14.2 di `:root` (default, termasuk prerender), nilai gelap dari token v1.1 di `[data-theme='dark']`. `color-scheme` per tema (FR-105). Semua pemakaian warna lama diganti ke token semantik.
+2. Tombol tema di header publik dan admin (FR-101, FR-106): ikon SVG matahari dan bulan, `aria-pressed`, simpan di localStorage dengan try/catch. Transisi warna 150 ms, tanpa transisi saat reduced motion.
+3. Skrip inline anti-kedip di `index.html` (FR-102), hash sha256 di CSP `nginx-security-headers.conf`. Prerender gagal bila hash tidak cocok. `meta theme-color` ikut tema.
+4. Logo tampil benar di kedua tema (FR-104).
+5. Knit Field dan Fabric Probe membaca warna dari token dan menggambar ulang saat tema berganti (FR-103).
+
+## Sprint 13: Kerangka i18n
+
+1. Route `/en/...` untuk semua route publik (FR-110). Path adalah sumber bahasa, tanpa redirect dari browser.
+2. Kamus `src/i18n/id.ts` (sumber tipe) dan `en.ts` (wajib memenuhi tipe itu, FR-112). Composable kecil tanpa library.
+3. Tombol ID / EN di header, menjaga halaman dan hash (FR-111).
+4. Pesan error API dari kode error lewat kamus (FR-116).
+5. SEO (FR-117): `html lang`, hreflang id, en, x-default, canonical per bahasa, `og:locale`, sitemap dengan alternatif bahasa. Prerender kedua bahasa.
+6. Admin tetap Indonesia (FR-118).
+
+## Sprint 14: Konten dua bahasa
+
+1. Migrasi `0003`: tabel `tech_i18n` (isi `en` dari kolom `techs` yang sudah ada, `id` dari terjemahan), kolom `alt_en` dan `caption_en` di galeri, kolom `lang` di testimoni (default `id`). Aman untuk database produksi yang sudah berisi data.
+2. API `GET /api/techs?lang=id|en` (FR-113), galeri memakai versi Inggris bila diisi (FR-115). Admin galeri dan testimoni bisa mengisi kolom baru.
+3. Elemen transkrip testimoni memakai atribut `lang`.
+4. `docs/terjemahan.md`: kunci, teks EN, teks ID untuk semua terjemahan baru (FR-114).
+
+## Sprint 15: Identitas Lab Notebook
+
+1. Swatch (SRS 14.5): Canvas 2D prosedural dari data tech, di panel Teknologi, baris tech Produk, dan strip 11 swatch Beranda. Diam saat reduced motion, berhenti di luar viewport. Label Ilustrasi, bukan hasil uji.
+2. Re-weave saat tech berganti di Teknologi (400 ms).
+3. Ruler di Size: penggaris cm ke nilai yang diisi, lalu menunjuk baris ukuran.
+4. Grid ukur di hero dan Size.
+
+## Sprint 16: Pengujian revisi
+
+AC-01 sampai AC-23 di kedua tema dan kedua bahasa, axe dan kontras di 17 halaman dan 5 lebar, Lighthouse mobile Beranda ID dan EN, Delivery Gate ulang.
+
+## Sprint 17: Deploy revisi
+
+Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang situs dan admin.
 
 ## Laporan sprint
 
@@ -230,3 +276,12 @@ Tertahan sampai atasan menyetujui dan domain ditentukan.
 | Hover punya padanan tap | PASS | Hover hanya di `@media (hover: hover)` dan tiap aturan punya `:active` (tinjauan kode, bukan uji otomatis) |
 | Komentar kode | PASS | Grep TODO, FIXME, banner, label CAPS: 0 temuan nyata (tinjauan otomatis, kualitas isi tidak diukur) |
 | Satu motif, warna, gerak | PASS | Warna di luar token tidak ada di sumber. Glow, shadow, gradien neon: 0 temuan. Hanya ticker yang berjalan saat diam |
+
+### Sprint 12
+
+- Dibuat: token semantik dua tema (terang default), `useTheme` + `ThemeToggle` di header publik dan admin, skrip anti-kedip dengan hash di CSP, `BrandLogo`, `motion/theme.ts` (Knit Field dan Fabric Probe menggambar ulang saat tema berganti).
+- Keputusan: utilitas Tailwind memakai `@theme inline`, jadi kelas seperti `bg-surface` langsung merujuk `var(--surface)`. `void` dan `bone` berganti nama jadi `bg` dan `fg` (`bg-bg`, `text-fg`).
+- Keputusan: `nvm-logo.png` (bukan webp) ternyata putih murni di atas transparan. Logo dipakai sebagai CSS mask yang diisi `--fg`, jadi bentuknya utuh dan warnanya ikut tema tanpa filter invert atau salinan yang diwarnai ulang.
+- Keputusan: `prerender.mjs` menghitung sha256 setiap skrip inline dan menggagalkan build bila hash tidak ada di `nginx-security-headers.conf`. Build sekali dijalankan untuk memastikan ini, tanpa server atau browser.
+- Catatan: favicon masih logo putih, sehingga hampir tak terlihat di tab browser bertema terang.
+- Menunggu user: file logo resmi versi gelap atau SVG satu warna (untuk favicon dan pengganti mask).

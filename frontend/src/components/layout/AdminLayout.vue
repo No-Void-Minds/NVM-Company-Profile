@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { errorMessage } from '@/api/client'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useSession } from '@/composables/useSession'
 
 const MENU = [
@@ -44,6 +45,7 @@ async function logout() {
       </nav>
       <div class="flex items-center gap-2">
         <span class="text-muted">{{ session.username.value }}</span>
+        <ThemeToggle />
         <button type="button" class="btn btn-secondary min-h-[44px]" @click="logout">Keluar</button>
       </div>
     </div>

@@ -17,7 +17,7 @@ useFocusTrap(panel, toRef(props, 'open'), () => emit('cancel'))
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-void/80 p-2"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-2"
     @click.self="emit('cancel')"
   >
     <div

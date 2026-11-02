@@ -36,8 +36,8 @@
     min-height: 44px;
     display: inline-flex;
     align-items: center;
-    background: var(--color-bone);
-    color: var(--color-void);
+    background: var(--fg);
+    color: var(--bg);
     border-radius: var(--radius-control);
     transform: translateY(-200%);
   }
@@ -51,7 +51,7 @@
     font-size: var(--text-label);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--muted);
     line-height: 1.5;
   }
 
@@ -81,51 +81,51 @@
 
   .btn:disabled {
     cursor: not-allowed;
-    border-color: var(--color-line);
-    background: var(--color-raised);
-    color: var(--color-muted);
+    border-color: var(--line);
+    background: var(--raised);
+    color: var(--muted);
   }
 
   .btn-primary {
-    background: var(--color-bone);
-    color: var(--color-void);
+    background: var(--fg);
+    color: var(--bg);
   }
 
   .btn-primary:not(:disabled):active {
-    background: var(--color-muted);
+    background: var(--muted);
   }
 
   .btn-secondary {
-    border-color: var(--color-line-strong);
-    color: var(--color-bone);
+    border-color: var(--line-strong);
+    color: var(--fg);
   }
 
   .btn-secondary:not(:disabled):active {
-    background: var(--color-line);
+    background: var(--line);
   }
 
   .btn-link {
     padding-inline: 0;
-    color: var(--color-bone);
+    color: var(--fg);
     text-decoration: underline;
     text-underline-offset: 4px;
   }
 
   .btn-link:active {
-    color: var(--color-muted);
+    color: var(--muted);
   }
 
   @media (hover: hover) {
     .btn-primary:not(:disabled):hover {
-      background: var(--color-muted);
+      background: var(--muted);
     }
 
     .btn-secondary:not(:disabled):hover {
-      background: var(--color-raised);
+      background: var(--raised);
     }
 
     .btn-link:hover {
-      color: var(--color-muted);
+      color: var(--muted);
     }
   }
 
@@ -134,21 +134,21 @@
     align-items: center;
     min-height: 44px;
     min-width: 44px;
-    color: var(--color-bone);
+    color: var(--fg);
     text-decoration: underline;
     text-underline-offset: 4px;
   }
 
   .text-link:active {
-    color: var(--color-muted);
+    color: var(--muted);
   }
 
   .knit-bg {
-    background-color: var(--color-surface);
+    background-color: var(--surface);
     background-image:
-      radial-gradient(circle, var(--color-line-strong) 1px, transparent 1.5px),
-      linear-gradient(var(--color-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+      radial-gradient(circle, var(--line-strong) 1px, transparent 1.5px),
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size: 24px 24px;
     background-position:
       -12px -12px,
@@ -160,7 +160,7 @@
     display: block;
     margin-bottom: 8px;
     font-size: 1rem;
-    color: var(--color-bone);
+    color: var(--fg);
   }
 
   .field-input {
@@ -168,26 +168,26 @@
     width: 100%;
     min-height: 48px;
     padding: 8px 16px;
-    background: var(--color-raised);
-    border: 1px solid var(--color-line-strong);
+    background: var(--raised);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-control);
-    color: var(--color-bone);
+    color: var(--fg);
     font-size: 1rem;
   }
 
   .field-input[aria-invalid='true'] {
-    border-color: var(--color-signal);
+    border-color: var(--signal);
   }
 
   .field-error {
     margin-top: 8px;
-    color: var(--color-signal);
+    color: var(--signal);
     font-size: 0.9375rem;
   }
 
   .field-hint {
     margin-top: 8px;
-    color: var(--color-muted);
+    color: var(--muted);
     font-size: 0.9375rem;
   }
 
@@ -204,7 +204,7 @@
     flex: none;
     width: 24px;
     height: 24px;
-    accent-color: var(--color-bone);
+    accent-color: var(--fg);
   }
 
   .spec-table {
@@ -215,7 +215,7 @@
   .spec-table th,
   .spec-table td {
     padding: 16px;
-    border-bottom: 1px solid var(--color-line);
+    border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: middle;
   }
@@ -226,7 +226,7 @@
     font-weight: 400;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--muted);
   }
 
   /* Positioned so sr-only text in a wide table stays clipped here and not on the page */
@@ -245,7 +245,7 @@
     position: absolute;
     inset-inline: 0;
     height: 1px;
-    background: var(--color-bone);
+    background: var(--fg);
     animation: reveal-scan 480ms ease-out both;
   }
 

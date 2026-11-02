@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import BrandLogo from '@/components/BrandLogo.vue'
 import IconSvg from '@/components/IconSvg.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { SHOP_URL } from '@/composables/site'
 
@@ -28,10 +30,10 @@ watch(
 </script>
 
 <template>
-  <header class="fixed inset-x-0 top-0 z-40 border-b border-line bg-void">
+  <header class="fixed inset-x-0 top-0 z-40 border-b border-line bg-bg">
     <div class="wrap flex h-8 items-center justify-between gap-2">
       <RouterLink to="/" class="tap flex items-center" aria-label="No Void Minds, ke Beranda">
-        <img src="/brand/nvm-logo.png" alt="" width="4084" height="1512" class="h-5 w-auto" />
+        <BrandLogo />
       </RouterLink>
 
       <nav aria-label="Menu utama" class="hidden lg:block">
@@ -58,6 +60,7 @@ watch(
         >
           Belanja di Shopify
         </a>
+        <ThemeToggle />
         <button
           type="button"
           class="tap flex items-center justify-center lg:hidden"
@@ -116,24 +119,24 @@ watch(
   align-items: center;
   min-height: 44px;
   padding-inline: 8px;
-  color: var(--color-muted);
+  color: var(--muted);
   transition: color 160ms ease;
 }
 
 .nav-link:active,
 .nav-link-active {
-  color: var(--color-bone);
+  color: var(--fg);
 }
 
 .nav-link-active {
   text-decoration: underline;
-  text-decoration-color: var(--color-signal);
+  text-decoration-color: var(--signal);
   text-underline-offset: 8px;
 }
 
 @media (hover: hover) {
   .nav-link:hover {
-    color: var(--color-bone);
+    color: var(--fg);
   }
 }
 </style>

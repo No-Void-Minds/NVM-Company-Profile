@@ -1,5 +1,7 @@
 // Canvas 2D knit grid: the pointer stretches nearby points, a damped spring brings them back.
 
+import { onThemeChange, token } from './theme'
+
 const SPACING_DESKTOP = 22
 const SPACING_MOBILE = 28
 const LIMIT_DESKTOP = 1800
@@ -12,15 +14,12 @@ const SPRING = 0.06
 const DAMPING = 0.84
 const REST_EPSILON = 0.02
 
-function cssColor(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
-
 export class KnitField {
   private readonly ctx: CanvasRenderingContext2D
-  private readonly lineColor = cssColor('--color-line')
-  private readonly nodeColor = cssColor('--color-line-strong')
-  private readonly nearColor = cssColor('--color-bone')
+  private lineColor = ''
+  private nodeColor = ''
+  private nearColor = ''
+  private stopTheme: (() => void) | null = null
 
   private width = 0
   private height = 0
@@ -53,7 +52,12 @@ export class KnitField {
   }
 
   start() {
+    this.readColors()
     this.resize()
+    this.stopTheme = onThemeChange(() => {
+      this.readColors()
+      this.draw()
+    })
     this.resizeObserver = new ResizeObserver(() => this.resize())
     this.resizeObserver.observe(this.host)
     if (this.reducedMotion) return
@@ -75,6 +79,7 @@ export class KnitField {
 
   destroy() {
     this.sleep()
+    this.stopTheme?.()
     this.resizeObserver?.disconnect()
     this.viewportObserver?.disconnect()
     this.host.removeEventListener('pointerdown', this.onPointerMove)
@@ -83,6 +88,12 @@ export class KnitField {
     this.host.removeEventListener('pointerup', this.onPointerUp)
     this.host.removeEventListener('pointercancel', this.onPointerEnd)
     document.removeEventListener('visibilitychange', this.onVisibility)
+  }
+
+  private readColors() {
+    this.lineColor = token('--line')
+    this.nodeColor = token('--line-strong')
+    this.nearColor = token('--fg')
   }
 
   private readonly onPointerMove = (event: PointerEvent) => {

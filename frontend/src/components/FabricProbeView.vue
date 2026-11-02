@@ -55,7 +55,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  probe?.stop()
+  probe?.destroy()
   resizeObserver?.disconnect()
   document.removeEventListener('visibilitychange', onVisibility)
 })

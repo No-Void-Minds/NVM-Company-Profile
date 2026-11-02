@@ -41,12 +41,12 @@ const TOPICS = [
 }
 
 .contact-row:active {
-  background: var(--color-raised);
+  background: var(--raised);
 }
 
 @media (hover: hover) {
   .contact-row:hover {
-    background: var(--color-raised);
+    background: var(--raised);
   }
 }
 </style>

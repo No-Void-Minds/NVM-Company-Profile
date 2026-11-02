@@ -1,6 +1,6 @@
 # nvm-company-profile
 
-Website company profile No Void Minds (NVM). Kebutuhan ada di `docs/SRS-NVM-CompanyProfile-v1.1.docx`, rencana kerja di `docs/sprint.md`.
+Website company profile No Void Minds (NVM). Kebutuhan ada di `docs/SRS-NVM-CompanyProfile-v1.2.docx`, rencana kerja di `docs/sprint.md`.
 
 ## Jalan di laptop dev
 

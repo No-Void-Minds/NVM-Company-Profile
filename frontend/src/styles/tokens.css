@@ -18,19 +18,49 @@
   font-display: swap;
 }
 
-/* static keeps every token as a CSS variable, app.css and the canvas read them directly */
-@theme static {
+/* Semantic tokens (SRS 14.2). Light is the default, including prerendered HTML. */
+:root {
+  --bg: #f3f2ee;
+  --surface: #ffffff;
+  --raised: #e8e6e0;
+  --fg: #111317;
+  --muted: #4a505a;
+  --line-strong: #5a606a;
+  --line: #d4d1ca;
+  /* #FF5A36 fails contrast on paper (2.77:1), so light uses the darker signal */
+  --signal: #b83218;
+  color-scheme: light;
+}
+
+/* Dark is the v1.1 palette under the same names */
+:root[data-theme='dark'] {
+  --bg: #08090b;
+  --surface: #0d0f12;
+  --raised: #15181d;
+  --fg: #e8ebef;
+  --muted: #9aa1ab;
+  --line-strong: #6b7380;
+  --line: #2a2f36;
+  --signal: #ff5a36;
+  color-scheme: dark;
+}
+
+/* inline makes utilities reference the semantic variable, so a theme switch needs no rebuild */
+@theme inline {
   /* Clearing the defaults makes any color outside the SRS palette fail to compile */
   --color-*: initial;
-  --color-void: #08090b;
-  --color-surface: #0d0f12;
-  --color-raised: #15181d;
-  --color-bone: #e8ebef;
-  --color-muted: #9aa1ab;
-  --color-line-strong: #6b7380;
-  --color-line: #2a2f36;
-  --color-signal: #ff5a36;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line-strong: var(--line-strong);
+  --color-line: var(--line);
+  --color-signal: var(--signal);
+}
 
+/* static keeps every token as a CSS variable, app.css reads them directly */
+@theme static {
   --font-sans: 'D-DIN', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
 
@@ -49,12 +79,10 @@
 
 @layer base {
   html {
-    /* Native select lists, date pickers, and spinners would otherwise stay light */
-    color-scheme: dark;
     /* The fallback fonts only ship weight 400, and a smeared fake bold is worse than none */
     font-synthesis-weight: none;
-    background: var(--color-void);
-    color: var(--color-bone);
+    background: var(--bg);
+    color: var(--fg);
     font-family: var(--font-sans);
     font-size: 100%;
     scroll-behavior: smooth;
@@ -77,8 +105,17 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-signal);
+    outline: 2px solid var(--signal);
     outline-offset: 2px;
+  }
+
+  /* Set for 150 ms by useTheme only, so other transitions keep their own timing */
+  html.theme-switching,
+  html.theme-switching * {
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease !important;
   }
 }
 

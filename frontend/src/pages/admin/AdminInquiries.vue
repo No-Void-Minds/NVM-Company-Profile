@@ -185,7 +185,7 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
   font-size: var(--text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 .detail-list dd {
