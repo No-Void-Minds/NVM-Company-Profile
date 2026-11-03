@@ -32,7 +32,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
 | 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | selesai |
-| 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | berjalan |
+| 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | selesai |
 
 ---
 
@@ -412,6 +412,7 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Keputusan: link beli tampil berdasarkan ada tidaknya link, tidak lagi menunggu status on the rack. Status tetap tampil sebagai label.
 - Keputusan: tautan "Lihat semua Core" dan "Lihat semua Graphic" dihapus karena Shopee tidak punya halaman koleksi untuk keduanya. Toko Shopee ada di hero dan footer.
 - Keputusan: `VITE_SHOPEE_URL` kosong jatuh ke `https://shopee.co.id/novoidminds`, agar tombol hero tidak hilang.
-- Keputusan: angka "11 material system" di teks meta dan CTA menjadi 10. Bila MELTWRAP ditampilkan lagi, teks itu perlu diubah.
-- Hasil: `go test` lolos (validasi URL 26 kasus, link per fit, PATCH collab menolak link asing tanpa database, migrasi 0005). Vitest lolos (26 kasus URL). `check.sh` dan build 22 halaman lolos, `dist` tanpa kata shopify.
-- Menunggu user: migrasi 0005 ke `nvm_compro_test`, lalu Playwright (`e2e/shopee.spec.ts` dan suite penuh).
+- Keputusan: jumlah material system di meta Beranda dan Teknologi serta CTA dihitung dari `/api/lab-stats` (tech yang tampil). HTML prerender memakai kalimat tanpa angka ("Lihat semua material system"), karena build tidak bisa tahu jumlah yang nanti diubah admin. Kalimat "dari AEZY sampai ..." dihapus.
+- Hasil: `go test` lolos (validasi URL 26 kasus, link per fit, PATCH collab menolak link asing tanpa database, migrasi 0005). Vitest lolos (26 kasus URL). `check.sh` dan build 22 halaman lolos, `dist` tanpa kata shopify. Playwright di `nvm_compro_test`: dev 137 lolos, 29 dilewati karena khusus build produksi. Build produksi lewat `serve-dist`: 166/166.
+- Diperbaiki saat pengujian: client membawa setiap 401 ke login admin, termasuk 401 API publik saat situs terkunci, sehingga halaman password berpindah ke `/admin/login`. Kini hanya 401 dari `/api/admin/*`. Test admin memakai selector per baris karena tombol "Simpan link" ikut memuat nama tech.
+- Menunggu user: deploy produksi (backup, migrasi 0005 ke `nvm_compro`, compose up --build), lalu isi link koleksi collab di `/admin/katalog`.
