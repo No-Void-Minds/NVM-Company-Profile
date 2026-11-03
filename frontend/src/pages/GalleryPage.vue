@@ -7,7 +7,7 @@ import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { INSTAGRAM_URL, SHOP_URL } from '@/composables/site'
+import { INSTAGRAM_URL, SHOPEE_URL } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useI18n } from '@/i18n'
@@ -85,7 +85,7 @@ function onPointerUp(event: PointerEvent) {
       <AppButton v-if="INSTAGRAM_URL" variant="secondary" :href="INSTAGRAM_URL">
         {{ t.gallery.instagram }}
       </AppButton>
-      <AppButton v-else variant="secondary" :href="SHOP_URL">{{ t.layout.shop }}</AppButton>
+      <AppButton v-else variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
     </StateEmpty>
 
     <template v-else>

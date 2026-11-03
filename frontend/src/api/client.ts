@@ -1,17 +1,18 @@
 import type {
   AdminGalleryItem,
   AdminSession,
-  GateSetting,
   AdminTestimonial,
   AuditEntry,
   Collab,
   GalleryItem,
+  GateSetting,
   Inquiry,
   InquiryInput,
   InquiryStatus,
   LabStats,
   SizeChart,
   Tech,
+  TechLink,
   Testimonial,
 } from './types'
 
@@ -148,10 +149,12 @@ export const adminApi = {
   // Admin pages read these instead of the public routes, which are cached for 60 seconds.
   techs: () => request<Tech[]>('/api/admin/techs'),
   collabs: () => request<Collab[]>('/api/admin/collabs'),
-  setTechOnRack: (key: string, onRack: boolean) =>
-    request<Tech>(`/api/admin/techs/${key}`, { method: 'PATCH', json: { on_rack: onRack } }),
-  setCollabAvailable: (key: string, available: boolean) =>
-    request<Collab>(`/api/admin/collabs/${key}`, { method: 'PATCH', json: { available } }),
+  // Only the fields sent are changed. links replaces every link of the tech.
+  updateTech: (key: string, patch: { on_rack?: boolean; visible?: boolean; links?: TechLink[] }) =>
+    request<Tech>(`/api/admin/techs/${key}`, { method: 'PATCH', json: patch }),
+  // url "" removes the link
+  updateCollab: (key: string, patch: { available?: boolean; url?: string }) =>
+    request<Collab>(`/api/admin/collabs/${key}`, { method: 'PATCH', json: patch }),
 
   inquiries: (filter: { kind?: string; status?: string }) => {
     const query = new URLSearchParams()

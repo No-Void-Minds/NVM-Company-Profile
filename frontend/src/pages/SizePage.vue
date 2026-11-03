@@ -10,7 +10,7 @@ import SizeRuler from '@/components/SizeRuler.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { collectionUrl, sizeChartKey, techName, whatsappUrl } from '@/composables/site'
+import { sizeChartKey, techLink, techName, whatsappUrl } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useI18n } from '@/i18n'
 import {
@@ -79,11 +79,8 @@ const result = computed(() => {
 
 const selected = computed(() => result.value?.sizes ?? [])
 
-const shopUrl = computed(() =>
-  tech.value
-    ? collectionUrl(...['core', tech.value.key, fit.value].filter(Boolean))
-    : collectionUrl('core'),
-)
+// Only a combination with a Shopee link gets the button (FR-133)
+const shopUrl = computed(() => (tech.value ? techLink(tech.value, fit.value || null) : undefined))
 
 const askWhatsapp = computed(() =>
   whatsappUrl(
@@ -342,7 +339,7 @@ if (!import.meta.env.SSR) {
           </p>
 
           <div class="mt-3 flex flex-wrap gap-2">
-            <AppButton :href="shopUrl">{{ t.size.shopCta }}</AppButton>
+            <AppButton v-if="shopUrl" :href="shopUrl">{{ t.size.shopCta }}</AppButton>
             <AppButton :href="askWhatsapp" :variant="result?.between ? 'primary' : 'secondary'">
               <IconSvg name="chat" />
               {{ t.size.ask }}

@@ -13,7 +13,7 @@ const seedDir = join(root, '..', 'backend', 'internal', 'db', 'seed')
 const { id } = await import(pathToFileURL(join(root, 'src', 'i18n', 'id.ts')).href)
 const { en } = await import(pathToFileURL(join(root, 'src', 'i18n', 'en.ts')).href)
 
-// Keys whose source text is the original English (Shopify or SRS); the Indonesian is the translation.
+// Keys whose source text is the original English (store copy or SRS); the Indonesian is the translation.
 const ENGLISH_SOURCE = [
   /^home\.lead$/,
   /^tech\.lead$/,
@@ -63,7 +63,7 @@ const lines = [
   '',
   'Dibuat otomatis oleh `frontend/scripts/terjemahan.mjs` dari `frontend/src/i18n/id.ts`, `en.ts`, dan seed tech di `backend/internal/db/seed/`. Jangan diedit langsung: ubah sumbernya, lalu jalankan `node scripts/terjemahan.mjs` dari folder `frontend`.',
   '',
-  'Kunci bertanda `*` berasal dari teks Inggris asli (Shopify atau SRS), kolom ID adalah terjemahannya. Kunci lain berasal dari teks Indonesia v1.1, kolom EN adalah terjemahannya. Nama tech, nama fit, slogan brand, dan label seperti On the rack tidak diterjemahkan.',
+  'Kunci bertanda `*` berasal dari teks Inggris asli (teks toko atau SRS), kolom ID adalah terjemahannya. Kunci lain berasal dari teks Indonesia v1.1, kolom EN adalah terjemahannya. Nama tech, nama fit, slogan brand, dan label seperti On the rack tidak diterjemahkan.',
   '',
   'Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).',
 ]

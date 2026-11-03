@@ -93,3 +93,73 @@ func TestMigration0003MatchesSeed(t *testing.T) {
 		}
 	}
 }
+
+// 0005 runs on production data: only adds, keeps on_rack, and its one UPDATE hides MELTWRAP.
+func TestMigration0005(t *testing.T) {
+	up := readFile(t, "../../migrations/0005_shopee_links.up.sql")
+	upper := strings.ToUpper(up)
+	destructive := regexp.MustCompile(`(?m)^s*(DROP|DELETE|TRUNCATE)|DROP COLUMN|ALTER COLUMN`)
+	if found := destructive.FindAllString(upper, -1); len(found) > 0 {
+		t.Errorf("0005 up memuat %q", found)
+	}
+	updates := regexp.MustCompile(`(?m)^s*UPDATE .*$`).FindAllString(up, -1)
+	if len(updates) != 1 || updates[0] != "UPDATE techs SET visible = false WHERE key = 'meltwrap';" {
+		t.Errorf("satu-satunya UPDATE harus menyembunyikan meltwrap, ada %q", updates)
+	}
+	if strings.Contains(strings.ToLower(up), "on_rack") && !strings.Contains(up, "tidak menyentuh on_rack") {
+		t.Error("0005 tidak boleh mengubah on_rack")
+	}
+	if !strings.Contains(up, "ADD COLUMN visible boolean NOT NULL DEFAULT true") {
+		t.Error("techs.visible harus default true agar tech lama tetap tampil")
+	}
+	if !strings.Contains(upper, "ON CONFLICT DO NOTHING") {
+		t.Error("INSERT link harus ON CONFLICT DO NOTHING")
+	}
+
+	var links []struct {
+		TechKey string  `json:"tech_key"`
+		Fit     *string `json:"fit"`
+		URL     string  `json:"url"`
+	}
+	if err := json.Unmarshal([]byte(readFile(t, "seed/tech_links.json")), &links); err != nil {
+		t.Fatal(err)
+	}
+	if len(links) != 21 {
+		t.Fatalf("tech_links.json harus 21 link, ada %d", len(links))
+	}
+	for _, l := range links {
+		fit := "NULL"
+		if l.Fit != nil {
+			fit = "'" + *l.Fit + "'"
+		}
+		if !strings.Contains(up, "('"+l.TechKey+"', "+fit+", '"+l.URL+"', ") {
+			t.Errorf("0005 tidak sama dengan seed untuk %s %s", l.TechKey, fit)
+		}
+		if strings.Contains(l.URL, "?") || !strings.HasPrefix(l.URL, "https://shopee.co.id/") {
+			t.Errorf("link seed harus bersih tanpa query: %s", l.URL)
+		}
+		if l.TechKey == "aezy" && l.Fit != nil && *l.Fit == "Fitted" {
+			t.Error("aezy Fitted belum punya link")
+		}
+	}
+
+	down := readFile(t, "../../migrations/0005_shopee_links.down.sql")
+	for _, want := range []string{"DROP TABLE tech_links", "DROP COLUMN url", "DROP COLUMN visible"} {
+		if !strings.Contains(down, want) {
+			t.Errorf("0005 down tidak memuat %q", want)
+		}
+	}
+}
+
+// The public API and the Lab index skip hidden techs (FR-134). Checked on the SQL that sqlc ran.
+func TestHiddenTechsLeftOutOfPublicQueries(t *testing.T) {
+	queries := readFile(t, "queries/content.sql")
+	for _, want := range []string{
+		"WHERE t.visible OR @include_hidden::boolean",
+		"FROM techs WHERE visible;",
+	} {
+		if !strings.Contains(queries, want) {
+			t.Errorf("content.sql tidak memuat %q", want)
+		}
+	}
+}

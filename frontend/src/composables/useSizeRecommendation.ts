@@ -1,4 +1,4 @@
-// All size math lives here (FR-76). The size chart rows use the Shopify pipe format.
+// All size math lives here (FR-76). The size chart rows use the pipe format.
 
 export interface HeightRange {
   min: number | null

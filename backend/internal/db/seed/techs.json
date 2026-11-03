@@ -23,7 +23,8 @@
     ],
     "technology_label": "Air feel technology",
     "on_rack": false,
-    "sort": 1
+    "sort": 1,
+    "visible": true
   },
   {
     "key": "aezy-cotton",
@@ -48,7 +49,8 @@
     ],
     "technology_label": "",
     "on_rack": false,
-    "sort": 2
+    "sort": 2,
+    "visible": true
   },
   {
     "key": "aezy-2",
@@ -73,7 +75,8 @@
     ],
     "technology_label": "",
     "on_rack": false,
-    "sort": 3
+    "sort": 3,
+    "visible": true
   },
   {
     "key": "formlock",
@@ -99,7 +102,8 @@
     ],
     "technology_label": "Contour conditioning technology",
     "on_rack": false,
-    "sort": 4
+    "sort": 4,
+    "visible": true
   },
   {
     "key": "formlock-2",
@@ -124,7 +128,8 @@
     ],
     "technology_label": "",
     "on_rack": false,
-    "sort": 5
+    "sort": 5,
+    "visible": true
   },
   {
     "key": "curflex",
@@ -149,7 +154,8 @@
     ],
     "technology_label": "Smooth flex technology",
     "on_rack": false,
-    "sort": 6
+    "sort": 6,
+    "visible": true
   },
   {
     "key": "puffmax",
@@ -173,7 +179,8 @@
     ],
     "technology_label": "",
     "on_rack": false,
-    "sort": 7
+    "sort": 7,
+    "visible": true
   },
   {
     "key": "therco",
@@ -194,7 +201,8 @@
     "fits": [],
     "technology_label": "",
     "on_rack": false,
-    "sort": 8
+    "sort": 8,
+    "visible": true
   },
   {
     "key": "antshell",
@@ -215,7 +223,8 @@
     "fits": [],
     "technology_label": "",
     "on_rack": false,
-    "sort": 9
+    "sort": 9,
+    "visible": true
   },
   {
     "key": "flexe",
@@ -236,7 +245,8 @@
     "fits": [],
     "technology_label": "",
     "on_rack": false,
-    "sort": 10
+    "sort": 10,
+    "visible": true
   },
   {
     "key": "meltwrap",
@@ -257,6 +267,7 @@
     "fits": [],
     "technology_label": "",
     "on_rack": false,
-    "sort": 11
+    "sort": 11,
+    "visible": false
   }
 ]

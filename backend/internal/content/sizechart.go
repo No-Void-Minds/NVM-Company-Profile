@@ -12,7 +12,7 @@ func ValidSizeChartKey(key string) bool {
 	return len(key) <= 80 && sizeChartKey.MatchString(key)
 }
 
-// ValidateChartRows checks the Shopify pipe format: one header line and at
+// ValidateChartRows checks the pipe format: one header line and at
 // least one size line, all with the same number of columns.
 func ValidateChartRows(rows string) error {
 	lines := strings.Split(strings.ReplaceAll(strings.TrimSpace(rows), "\r\n", "\n"), "\n")

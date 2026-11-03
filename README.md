@@ -108,7 +108,7 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
    Setiap run backup menulis satu baris ke `/srv/nvm-compro/backup/backup.log`: waktu, `OK` atau `GAGAL`, ukuran file db dan media, dan pesan error bila gagal. `cron.log` menampung output lain, misalnya `.env` yang tidak terbaca. Cek dengan `tail /srv/nvm-compro/backup/backup.log`.
 
-7. Seed awal menandai semua tech `Belum tersedia`. Atur status on the rack di `/admin/katalog`, karena tombol Shopify di halaman Teknologi tersembunyi sampai statusnya on.
+7. Link beli ke Shopee per tech dan fit, link koleksi per collab, saklar tampil di situs, dan status on the rack diatur di `/admin/katalog`. Link hanya boleh ke `https://shopee.co.id`. Kombinasi tanpa link tampil "-" di halaman Produk.
 
 `COOKIE_SECURE` tetap `false` selama akses hanya lewat HTTP LAN. Untuk rilis publik lihat bagian berikut.
 
@@ -157,7 +157,7 @@ Uji yang sama di laptop dev memakai nginx sungguhan: `NGINX_BIN=/path/ke/nginx n
 
 ## Halaman password
 
-Seperti storefront password Shopify: selama aktif, pengunjung hanya melihat `/password` (atau `/en/password`), dan tim masuk dengan akun admin. Nginx menanyakan `/api/gate` sebelum setiap halaman HTML, API publik, dan foto. Aset build, font, logo, `/admin`, `/api/admin/*`, `/api/health`, dan halaman password selalu lewat. Saklarnya ada di `/admin/pengaturan`.
+Seperti halaman password toko online: selama aktif, pengunjung hanya melihat `/password` (atau `/en/password`), dan tim masuk dengan akun admin. Nginx menanyakan `/api/gate` sebelum setiap halaman HTML, API publik, dan foto. Aset build, font, logo, `/admin`, `/api/admin/*`, `/api/health`, dan halaman password selalu lewat. Saklarnya ada di `/admin/pengaturan`.
 
 Migrasi `0004` memasang halaman password dalam keadaan **aktif**. Setelah deploy, situs terkunci sampai dimatikan dari `/admin/pengaturan`.
 

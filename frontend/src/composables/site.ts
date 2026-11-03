@@ -1,11 +1,14 @@
 // Link building and brand constants shared across pages.
+import type { Tech } from '@/api/types'
 
-export const SHOP_URL = 'https://novoidminds.com'
+// The NVM store on Shopee, where every buy link leads (FR-131)
+export const SHOPEE_URL =
+  (import.meta.env.VITE_SHOPEE_URL as string | undefined) || 'https://shopee.co.id/novoidminds'
 export const WHATSAPP_NUMBER = '6282111228700'
 export const WHATSAPP_DISPLAY = '+62 821-1122-8700'
 
 export const MARKETPLACE_LINKS = [
-  { label: 'Shopee', url: import.meta.env.VITE_SHOPEE_URL as string | undefined },
+  { label: 'Shopee', url: SHOPEE_URL },
   { label: 'TikTok Shop', url: import.meta.env.VITE_TIKTOK_SHOP_URL as string | undefined },
 ].filter((link): link is { label: string; url: string } => Boolean(link.url))
 
@@ -26,8 +29,9 @@ export function handleize(value: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-export function collectionUrl(...tags: string[]): string {
-  return `${SHOP_URL}/collections/all/${tags.map(handleize).join('+')}`
+// The Shopee product link of one fit, or of a tech without fits when fit is null
+export function techLink(tech: Tech, fit: string | null): string | undefined {
+  return tech.links.find((link) => link.fit === fit)?.url
 }
 
 export function whatsappUrl(message: string): string {

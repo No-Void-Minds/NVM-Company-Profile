@@ -113,12 +113,7 @@ test.describe('AC-19 dua bahasa', () => {
       await expect(page.getByRole('contentinfo')).toContainText('Privacy policy')
       // No Indonesian UI text from the dictionary leaks into the English page
       const body = await page.locator('body').innerText()
-      for (const word of [
-        'Lewati ke konten',
-        'Belanja di Shopify',
-        'Kebijakan privasi',
-        'Memuat',
-      ]) {
+      for (const word of ['Lewati ke konten', 'Belanja di Shopee', 'Kebijakan privasi', 'Memuat']) {
         expect(body, word).not.toContain(word)
       }
     })
@@ -230,24 +225,24 @@ test.describe('AC-21 prerender dan sitemap', () => {
 })
 
 test.describe('AC-22 swatch', () => {
-  // The Home strip was removed in Sprint 18, the Produk rows carry all 11 swatches
+  // The Home strip was removed in Sprint 18, the Produk rows carry all 10 swatches
   async function rowImages(page: import('@playwright/test').Page) {
     return page
       .locator('tr[data-swatch-host] canvas')
       .evaluateAll((all) => all.map((c) => (c as HTMLCanvasElement).toDataURL()))
   }
 
-  test('11 swatch berbeda di kedua tema', async ({ page }) => {
+  test('10 swatch berbeda di kedua tema', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/produk')
     await settled(page)
     const light = await rowImages(page)
-    expect(light).toHaveLength(11)
-    expect(new Set(light).size).toBe(11)
+    expect(light).toHaveLength(10)
+    expect(new Set(light).size).toBe(10)
     await page.getByRole('button', { name: 'Tema gelap' }).click()
     await page.waitForTimeout(100)
     const dark = await rowImages(page)
-    expect(new Set(dark).size).toBe(11)
+    expect(new Set(dark).size).toBe(10)
     expect(dark[0]).not.toBe(light[0])
   })
 

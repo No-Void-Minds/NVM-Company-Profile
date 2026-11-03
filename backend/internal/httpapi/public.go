@@ -24,17 +24,31 @@ func langQuery(c *gin.Context) (string, bool) {
 	}
 }
 
+// A hidden tech (FR-134) is left out of the public API, so no page can show it.
 func (s *server) listTechs(c *gin.Context) {
+	s.respondTechs(c, false)
+}
+
+func (s *server) adminListTechs(c *gin.Context) {
+	s.respondTechs(c, true)
+}
+
+func (s *server) respondTechs(c *gin.Context, includeHidden bool) {
 	lang, ok := langQuery(c)
 	if !ok {
 		return
 	}
-	techs, err := s.q.ListTechsByLang(c, lang)
+	techs, err := s.q.ListTechsByLang(c, sqlc.ListTechsByLangParams{Lang: lang, IncludeHidden: includeHidden})
 	if err != nil {
 		s.internalError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, techs)
+	links, err := s.q.ListTechLinks(c)
+	if err != nil {
+		s.internalError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, content.NewTechs(techs, links))
 }
 
 func (s *server) listCollabs(c *gin.Context) {

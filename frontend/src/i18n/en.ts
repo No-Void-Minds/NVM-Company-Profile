@@ -1,12 +1,12 @@
 import type { Messages } from './id'
 
-// Brand statement, stages, B2B paths, and Contact use the original Shopify English (FR-114).
+// Brand statement, stages, B2B paths, and Contact use the original English store copy (FR-114).
 export const en: Messages = {
   meta: {
     home: {
       title: 'No Void Minds',
       description:
-        'No Void Minds builds technical everyday wear from the material out. Meet the 11 material systems, the Core and Graphic lines, and ways to work with us B2B.',
+        'No Void Minds builds technical everyday wear from the material out. Meet the 10 material systems, the Core and Graphic lines, and ways to work with us B2B.',
     },
     brand: {
       title: 'Brand',
@@ -16,7 +16,7 @@ export const en: Messages = {
     tech: {
       title: 'Technology',
       description:
-        'The index of 11 NVM material systems, from AEZY to MELTWRAP. Filter by your day, then see the features and fits available.',
+        'The index of 10 NVM material systems, from AEZY to FLEXE. Filter by your day, then see the features and fits available.',
     },
     product: {
       title: 'Products',
@@ -68,7 +68,8 @@ export const en: Messages = {
     mainMenu: 'Main menu',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
-    shop: 'Shop on Shopify',
+    shop: 'Shop on Shopee',
+    newTab: '(opens in a new tab)',
     darkTheme: 'Dark theme',
     switchLang: 'Baca halaman ini dalam Bahasa Indonesia',
     pauseTicker: 'Pause the ticker',
@@ -121,7 +122,7 @@ export const en: Messages = {
   },
 
   cta: {
-    seeSystems: 'See the 11 material systems',
+    seeSystems: 'See the 10 material systems',
   },
 
   home: {
@@ -189,7 +190,9 @@ export const en: Messages = {
     features: 'Features',
     fits: 'Available fits',
     noFit: 'No fit options',
-    shopCta: 'See on Shopify',
+    buyTitle: 'Buy on Shopee',
+    buyAll: 'See on Shopee',
+    buyLabel: (name: string, fit: string) => `${fit} ${name} on Shopee`,
     sizeCta: (name: string, fit: string) => `Find your ${name} ${fit} size`.replace(/\s+/g, ' '),
   },
 
@@ -207,25 +210,23 @@ export const en: Messages = {
   product: {
     number: 'Products',
     title: 'Core and Graphic',
-    lead: 'Core is chosen by tech and fit. Graphic is chosen by collab. Prices and stock always follow the Shopify store.',
-    coreAll: 'See all Core',
+    lead: 'Core is chosen by tech and fit. Graphic is chosen by collab. Prices and stock always follow the Shopee store.',
     coreBody: 'Every product except collabs. Pick a tech, then a fit.',
     matrixLoading: 'Loading the matrix',
     techEmpty: 'The tech list is not available yet',
     matrixRegion: 'Tech and fit matrix, scrolls sideways',
     matrixCaption:
-      'Tech and fit combinations in the Core line, each cell links to the collection on Shopify',
+      'Tech and fit combinations in the Core line, cells marked See link to the product on Shopee',
     tech: 'Tech',
-    noFitLabel: (name: string) => `${name} on Shopify, no fit options`,
+    noFitLabel: (name: string) => `See ${name} on Shopee, no fit options`,
     noFit: 'No fit options',
-    cellLabel: (name: string, fit: string) => `See ${name} ${fit} on Shopify`,
+    cellLabel: (name: string, fit: string) => `See ${name} ${fit} on Shopee`,
     see: 'See',
     unavailable: 'Not available',
-    graphicAll: 'See all Graphic',
+    noLink: 'No link yet',
     graphicBody: 'Licensed character collab products.',
     collabLoading: 'Loading collabs',
     collabEmpty: 'The collab list is not available yet',
-    collabLabel: (name: string) => `See ${name} on Shopify`,
     comingSoon: 'Coming soon',
   },
 
@@ -346,7 +347,7 @@ export const en: Messages = {
     selected: '(selected size)',
     tolerance: 'Tolerance of 1 to 2 cm.',
     heightNote: 'Height is a recommendation only.',
-    shopCta: 'See this size on Shopify',
+    shopCta: 'See this size on Shopee',
     askMessage: (name: string, fit: string, sizes: string[]) =>
       `Hi NVM, I have a question about sizing for ${name} ${fit}${sizes.length > 0 ? `, my result was ${sizes.join(' or ')}` : ''}.`,
   },

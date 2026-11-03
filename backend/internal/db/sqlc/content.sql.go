@@ -62,6 +62,27 @@ func (q *Queries) CreateGalleryItem(ctx context.Context, arg CreateGalleryItemPa
 	return i, err
 }
 
+const createTechLink = `-- name: CreateTechLink :exec
+INSERT INTO tech_links (tech_key, fit, url, sort) VALUES ($1, $2, $3, $4)
+`
+
+type CreateTechLinkParams struct {
+	TechKey string  `json:"tech_key"`
+	Fit     *string `json:"fit"`
+	Url     string  `json:"url"`
+	Sort    int32   `json:"sort"`
+}
+
+func (q *Queries) CreateTechLink(ctx context.Context, arg CreateTechLinkParams) error {
+	_, err := q.db.Exec(ctx, createTechLink,
+		arg.TechKey,
+		arg.Fit,
+		arg.Url,
+		arg.Sort,
+	)
+	return err
+}
+
 const createTestimonial = `-- name: CreateTestimonial :one
 INSERT INTO testimonials (source, review_date, tech_key, rating, transcript, lang, image_key, width, height, blurred_confirmed, published)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -138,6 +159,15 @@ func (q *Queries) DeleteSizeChart(ctx context.Context, key string) (int64, error
 	return result.RowsAffected(), nil
 }
 
+const deleteTechLinks = `-- name: DeleteTechLinks :exec
+DELETE FROM tech_links WHERE tech_key = $1
+`
+
+func (q *Queries) DeleteTechLinks(ctx context.Context, techKey string) error {
+	_, err := q.db.Exec(ctx, deleteTechLinks, techKey)
+	return err
+}
+
 const deleteTestimonial = `-- name: DeleteTestimonial :one
 DELETE FROM testimonials WHERE id = $1 RETURNING image_key
 `
@@ -174,7 +204,7 @@ func (q *Queries) GetGalleryItem(ctx context.Context, id uuid.UUID) (GalleryItem
 }
 
 const getLabStats = `-- name: GetLabStats :one
-SELECT count(*) AS systems, count(*) FILTER (WHERE on_rack) AS on_rack FROM techs
+SELECT count(*) AS systems, count(*) FILTER (WHERE on_rack) AS on_rack FROM techs WHERE visible
 `
 
 type GetLabStatsRow struct {
@@ -203,6 +233,32 @@ func (q *Queries) GetSizeChart(ctx context.Context, key string) (SizeChart, erro
 		&i.Note,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getTech = `-- name: GetTech :one
+SELECT key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort, visible FROM techs WHERE key = $1
+`
+
+func (q *Queries) GetTech(ctx context.Context, key string) (Tech, error) {
+	row := q.db.QueryRow(ctx, getTech, key)
+	var i Tech
+	err := row.Scan(
+		&i.Key,
+		&i.Name,
+		&i.Family,
+		&i.Generation,
+		&i.Needs,
+		&i.Tagline,
+		&i.Sub,
+		&i.Description,
+		&i.Chips,
+		&i.Fits,
+		&i.TechnologyLabel,
+		&i.OnRack,
+		&i.Sort,
+		&i.Visible,
 	)
 	return i, err
 }
@@ -308,7 +364,7 @@ func (q *Queries) ListAllTestimonials(ctx context.Context) ([]Testimonial, error
 }
 
 const listCollabs = `-- name: ListCollabs :many
-SELECT key, name, available, sort FROM collabs ORDER BY sort
+SELECT key, name, available, sort, url FROM collabs ORDER BY sort
 `
 
 func (q *Queries) ListCollabs(ctx context.Context) ([]Collab, error) {
@@ -325,6 +381,7 @@ func (q *Queries) ListCollabs(ctx context.Context) ([]Collab, error) {
 			&i.Name,
 			&i.Available,
 			&i.Sort,
+			&i.Url,
 		); err != nil {
 			return nil, err
 		}
@@ -414,8 +471,37 @@ func (q *Queries) ListSizeCharts(ctx context.Context) ([]SizeChart, error) {
 	return items, nil
 }
 
+const listTechLinks = `-- name: ListTechLinks :many
+SELECT tech_key, fit, url, sort FROM tech_links ORDER BY tech_key, sort
+`
+
+func (q *Queries) ListTechLinks(ctx context.Context) ([]TechLink, error) {
+	rows, err := q.db.Query(ctx, listTechLinks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TechLink{}
+	for rows.Next() {
+		var i TechLink
+		if err := rows.Scan(
+			&i.TechKey,
+			&i.Fit,
+			&i.Url,
+			&i.Sort,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTechs = `-- name: ListTechs :many
-SELECT key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort FROM techs ORDER BY sort
+SELECT key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort, visible FROM techs ORDER BY sort
 `
 
 func (q *Queries) ListTechs(ctx context.Context) ([]Tech, error) {
@@ -441,6 +527,7 @@ func (q *Queries) ListTechs(ctx context.Context) ([]Tech, error) {
 			&i.TechnologyLabel,
 			&i.OnRack,
 			&i.Sort,
+			&i.Visible,
 		); err != nil {
 			return nil, err
 		}
@@ -458,11 +545,17 @@ SELECT t.key, t.name, t.family, t.generation, t.needs,
        COALESCE(i.sub, t.sub)::text AS sub,
        COALESCE(i.description, t.description)::text AS description,
        COALESCE(i.chips, t.chips)::text[] AS chips,
-       t.fits, t.technology_label, t.on_rack, t.sort
+       t.fits, t.technology_label, t.on_rack, t.visible, t.sort
 FROM techs t
 LEFT JOIN tech_i18n i ON i.tech_key = t.key AND i.lang = $1::text
+WHERE t.visible OR $2::boolean
 ORDER BY t.sort
 `
+
+type ListTechsByLangParams struct {
+	Lang          string `json:"lang"`
+	IncludeHidden bool   `json:"include_hidden"`
+}
 
 type ListTechsByLangRow struct {
 	Key             string   `json:"key"`
@@ -477,12 +570,13 @@ type ListTechsByLangRow struct {
 	Fits            []string `json:"fits"`
 	TechnologyLabel string   `json:"technology_label"`
 	OnRack          bool     `json:"on_rack"`
+	Visible         bool     `json:"visible"`
 	Sort            int32    `json:"sort"`
 }
 
 // Falls back to the techs columns, so a tech without a translation still shows (FR-113).
-func (q *Queries) ListTechsByLang(ctx context.Context, lang string) ([]ListTechsByLangRow, error) {
-	rows, err := q.db.Query(ctx, listTechsByLang, lang)
+func (q *Queries) ListTechsByLang(ctx context.Context, arg ListTechsByLangParams) ([]ListTechsByLangRow, error) {
+	rows, err := q.db.Query(ctx, listTechsByLang, arg.Lang, arg.IncludeHidden)
 	if err != nil {
 		return nil, err
 	}
@@ -503,6 +597,7 @@ func (q *Queries) ListTechsByLang(ctx context.Context, lang string) ([]ListTechs
 			&i.Fits,
 			&i.TechnologyLabel,
 			&i.OnRack,
+			&i.Visible,
 			&i.Sort,
 		); err != nil {
 			return nil, err
@@ -554,53 +649,35 @@ func (q *Queries) ListVisibleGallery(ctx context.Context, category *string) ([]G
 	return items, nil
 }
 
-const setCollabAvailable = `-- name: SetCollabAvailable :one
-UPDATE collabs SET available = $1 WHERE key = $2 RETURNING key, name, available, sort
+const updateCollab = `-- name: UpdateCollab :one
+UPDATE collabs
+SET available = COALESCE($1::boolean, available),
+    url = CASE WHEN $2::boolean THEN $3::text ELSE url END
+WHERE key = $4
+RETURNING key, name, available, sort, url
 `
 
-type SetCollabAvailableParams struct {
-	Available bool   `json:"available"`
-	Key       string `json:"key"`
+type UpdateCollabParams struct {
+	Available *bool   `json:"available"`
+	SetUrl    bool    `json:"set_url"`
+	Url       *string `json:"url"`
+	Key       string  `json:"key"`
 }
 
-func (q *Queries) SetCollabAvailable(ctx context.Context, arg SetCollabAvailableParams) (Collab, error) {
-	row := q.db.QueryRow(ctx, setCollabAvailable, arg.Available, arg.Key)
+func (q *Queries) UpdateCollab(ctx context.Context, arg UpdateCollabParams) (Collab, error) {
+	row := q.db.QueryRow(ctx, updateCollab,
+		arg.Available,
+		arg.SetUrl,
+		arg.Url,
+		arg.Key,
+	)
 	var i Collab
 	err := row.Scan(
 		&i.Key,
 		&i.Name,
 		&i.Available,
 		&i.Sort,
-	)
-	return i, err
-}
-
-const setTechOnRack = `-- name: SetTechOnRack :one
-UPDATE techs SET on_rack = $1 WHERE key = $2 RETURNING key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort
-`
-
-type SetTechOnRackParams struct {
-	OnRack bool   `json:"on_rack"`
-	Key    string `json:"key"`
-}
-
-func (q *Queries) SetTechOnRack(ctx context.Context, arg SetTechOnRackParams) (Tech, error) {
-	row := q.db.QueryRow(ctx, setTechOnRack, arg.OnRack, arg.Key)
-	var i Tech
-	err := row.Scan(
-		&i.Key,
-		&i.Name,
-		&i.Family,
-		&i.Generation,
-		&i.Needs,
-		&i.Tagline,
-		&i.Sub,
-		&i.Description,
-		&i.Chips,
-		&i.Fits,
-		&i.TechnologyLabel,
-		&i.OnRack,
-		&i.Sort,
+		&i.Url,
 	)
 	return i, err
 }
@@ -649,6 +726,42 @@ func (q *Queries) UpdateGalleryItem(ctx context.Context, arg UpdateGalleryItemPa
 		&i.CreatedAt,
 		&i.AltEn,
 		&i.CaptionEn,
+	)
+	return i, err
+}
+
+const updateTech = `-- name: UpdateTech :one
+UPDATE techs
+SET on_rack = COALESCE($1::boolean, on_rack),
+    visible = COALESCE($2::boolean, visible)
+WHERE key = $3
+RETURNING key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort, visible
+`
+
+type UpdateTechParams struct {
+	OnRack  *bool  `json:"on_rack"`
+	Visible *bool  `json:"visible"`
+	Key     string `json:"key"`
+}
+
+func (q *Queries) UpdateTech(ctx context.Context, arg UpdateTechParams) (Tech, error) {
+	row := q.db.QueryRow(ctx, updateTech, arg.OnRack, arg.Visible, arg.Key)
+	var i Tech
+	err := row.Scan(
+		&i.Key,
+		&i.Name,
+		&i.Family,
+		&i.Generation,
+		&i.Needs,
+		&i.Tagline,
+		&i.Sub,
+		&i.Description,
+		&i.Chips,
+		&i.Fits,
+		&i.TechnologyLabel,
+		&i.OnRack,
+		&i.Sort,
+		&i.Visible,
 	)
 	return i, err
 }

@@ -11,7 +11,15 @@ export interface Tech {
   fits: string[]
   technology_label: string
   on_rack: boolean
+  visible: boolean
   sort: number
+  // Shopee product links in fit order. fit null is the one link of a tech without fits.
+  links: TechLink[]
+}
+
+export interface TechLink {
+  fit: string | null
+  url: string
 }
 
 export interface Collab {
@@ -19,6 +27,7 @@ export interface Collab {
   name: string
   available: boolean
   sort: number
+  url: string | null
 }
 
 export interface LabStats {

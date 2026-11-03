@@ -6,7 +6,7 @@ export const id = {
     home: {
       title: 'No Void Minds',
       description:
-        'No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 11 material system, lini Core dan Graphic, serta peluang kerja sama B2B.',
+        'No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 10 material system, lini Core dan Graphic, serta peluang kerja sama B2B.',
     },
     brand: {
       title: 'Brand',
@@ -16,7 +16,7 @@ export const id = {
     tech: {
       title: 'Teknologi',
       description:
-        'Index 11 material system NVM, dari AEZY sampai MELTWRAP. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia.',
+        'Index 10 material system NVM, dari AEZY sampai FLEXE. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia.',
     },
     product: {
       title: 'Produk',
@@ -68,7 +68,8 @@ export const id = {
     mainMenu: 'Menu utama',
     openMenu: 'Buka menu',
     closeMenu: 'Tutup menu',
-    shop: 'Belanja di Shopify',
+    shop: 'Belanja di Shopee',
+    newTab: '(buka di tab baru)',
     darkTheme: 'Tema gelap',
     // Written in the target language, the link carries lang="en"
     switchLang: 'Read this page in English',
@@ -123,7 +124,7 @@ export const id = {
   },
 
   cta: {
-    seeSystems: 'Lihat 11 material system',
+    seeSystems: 'Lihat 10 material system',
   },
 
   home: {
@@ -191,7 +192,9 @@ export const id = {
     features: 'Fitur',
     fits: 'Fit tersedia',
     noFit: 'Tanpa pilihan fit',
-    shopCta: 'Lihat di Shopify',
+    buyTitle: 'Beli di Shopee',
+    buyAll: 'Lihat di Shopee',
+    buyLabel: (name: string, fit: string) => `${fit} ${name} di Shopee`,
     sizeCta: (name: string, fit: string) => `Cari ukuran ${name} ${fit}`.trim(),
   },
 
@@ -209,24 +212,22 @@ export const id = {
   product: {
     number: 'Produk',
     title: 'Core dan Graphic',
-    lead: 'Core dipilih dari tech dan fit. Graphic dipilih dari collab. Harga dan stok selalu mengikuti toko Shopify.',
-    coreAll: 'Lihat semua Core',
+    lead: 'Core dipilih dari tech dan fit. Graphic dipilih dari collab. Harga dan stok selalu mengikuti toko Shopee.',
     coreBody: 'Semua produk selain collab. Pilih tech, lalu fit.',
     matrixLoading: 'Memuat matriks',
     techEmpty: 'Daftar tech belum tersedia',
     matrixRegion: 'Matriks tech dan fit, bisa digeser ke samping',
-    matrixCaption: 'Kombinasi tech dan fit lini Core, setiap sel menuju koleksi di Shopify',
+    matrixCaption: 'Kombinasi tech dan fit lini Core, sel bertanda Lihat menuju produk di Shopee',
     tech: 'Tech',
-    noFitLabel: (name: string) => `${name} di Shopify, tanpa pilihan fit`,
+    noFitLabel: (name: string) => `Lihat ${name} di Shopee, tanpa pilihan fit`,
     noFit: 'Tanpa pilihan fit',
-    cellLabel: (name: string, fit: string) => `Lihat ${name} ${fit} di Shopify`,
+    cellLabel: (name: string, fit: string) => `Lihat ${name} ${fit} di Shopee`,
     see: 'Lihat',
     unavailable: 'Tidak tersedia',
-    graphicAll: 'Lihat semua Graphic',
+    noLink: 'Belum ada link',
     graphicBody: 'Produk collab karakter berlisensi.',
     collabLoading: 'Memuat daftar collab',
     collabEmpty: 'Daftar collab belum tersedia',
-    collabLabel: (name: string) => `Lihat ${name} di Shopify`,
     comingSoon: 'Coming soon',
   },
 
@@ -347,7 +348,7 @@ export const id = {
     selected: '(ukuran terpilih)',
     tolerance: 'Toleransi 1 sampai 2 cm.',
     heightNote: 'Tinggi badan hanya rekomendasi.',
-    shopCta: 'Lihat ukuran ini di Shopify',
+    shopCta: 'Lihat ukuran ini di Shopee',
     askMessage: (name: string, fit: string, sizes: string[]) =>
       `Halo NVM, saya ingin bertanya ukuran ${name} ${fit}${sizes.length > 0 ? `, hasilnya ${sizes.join(' atau ')}` : ''}.`,
   },

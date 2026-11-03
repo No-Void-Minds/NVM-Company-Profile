@@ -6,7 +6,6 @@ import IconSvg from '@/components/IconSvg.vue'
 import LangToggle from '@/components/LangToggle.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
-import { SHOP_URL } from '@/composables/site'
 import { useI18n } from '@/i18n'
 
 const { t, to } = useI18n()
@@ -60,14 +59,6 @@ watch(
       </nav>
 
       <div class="flex items-center">
-        <a
-          :href="SHOP_URL"
-          target="_blank"
-          rel="noopener"
-          class="btn btn-secondary mr-1 hidden min-h-[44px] whitespace-nowrap sm:inline-flex"
-        >
-          {{ t.layout.shop }}
-        </a>
         <LangToggle />
         <ThemeToggle />
         <button
@@ -112,11 +103,6 @@ watch(
             </RouterLink>
           </li>
         </ul>
-        <div class="p-2">
-          <a :href="SHOP_URL" target="_blank" rel="noopener" class="btn btn-primary w-full">
-            {{ t.layout.shop }}
-          </a>
-        </div>
       </div>
     </div>
   </header>

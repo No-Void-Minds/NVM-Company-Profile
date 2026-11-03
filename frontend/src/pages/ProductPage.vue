@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { api } from '@/api/client'
-import AppButton from '@/components/AppButton.vue'
+import ExternalLink from '@/components/ExternalLink.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import SwatchView from '@/components/SwatchView.vue'
-import { collectionUrl, techName } from '@/composables/site'
+import { techLink, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useI18n } from '@/i18n'
 
@@ -33,12 +33,7 @@ const fits = computed(() =>
 
     <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,5fr)_minmax(0,2fr)] xl:gap-6">
       <section aria-labelledby="core-title">
-        <div class="flex flex-wrap items-end justify-between gap-2">
-          <h2 id="core-title" class="text-h2">Core</h2>
-          <AppButton variant="link" :href="collectionUrl('core')">{{
-            t.product.coreAll
-          }}</AppButton>
-        </div>
+        <h2 id="core-title" class="text-h2">Core</h2>
         <p class="mt-1 max-w-[56ch] text-muted">{{ t.product.coreBody }}</p>
         <p class="spec-label mt-1">{{ t.probe.label }}</p>
 
@@ -91,31 +86,38 @@ const fits = computed(() =>
                   </span>
                 </th>
                 <td v-if="tech.fits.length === 0" :colspan="fits.length">
-                  <a
-                    :href="collectionUrl('core', tech.key)"
-                    target="_blank"
-                    rel="noopener"
-                    class="text-link"
-                    :aria-label="t.product.noFitLabel(tech.name)"
-                  >
-                    {{ t.product.noFit }}
-                  </a>
-                </td>
-                <template v-else>
-                  <td v-for="fit in fits" :key="fit">
-                    <a
-                      v-if="tech.fits.includes(fit)"
-                      :href="collectionUrl('core', tech.key, fit)"
-                      target="_blank"
-                      rel="noopener"
+                  <span class="flex flex-wrap items-center gap-x-2">
+                    <ExternalLink
+                      v-if="techLink(tech, null)"
+                      :href="techLink(tech, null)!"
+                      :label="t.product.noFitLabel(techName(tech.name))"
                       class="text-link"
-                      :aria-label="t.product.cellLabel(tech.name, fit)"
                     >
                       {{ t.product.see }}
-                    </a>
+                    </ExternalLink>
                     <span v-else class="text-line-strong">
                       <span aria-hidden="true">-</span>
-                      <span class="sr-only">{{ t.product.unavailable }}</span>
+                      <span class="sr-only">{{ t.product.noLink }}</span>
+                    </span>
+                    <span class="text-muted">{{ t.product.noFit }}</span>
+                  </span>
+                </td>
+                <template v-else>
+                  <!-- See only where a Shopee link exists. A fit without one shows "-" (FR-133). -->
+                  <td v-for="fit in fits" :key="fit">
+                    <ExternalLink
+                      v-if="techLink(tech, fit)"
+                      :href="techLink(tech, fit)!"
+                      :label="t.product.cellLabel(techName(tech.name), fit)"
+                      class="text-link"
+                    >
+                      {{ t.product.see }}
+                    </ExternalLink>
+                    <span v-else class="text-line-strong">
+                      <span aria-hidden="true">-</span>
+                      <span class="sr-only">{{
+                        tech.fits.includes(fit) ? t.product.noLink : t.product.unavailable
+                      }}</span>
                     </span>
                   </td>
                 </template>
@@ -126,12 +128,7 @@ const fits = computed(() =>
       </section>
 
       <section aria-labelledby="graphic-title">
-        <div class="flex flex-wrap items-end justify-between gap-2">
-          <h2 id="graphic-title" class="text-h2">Graphic</h2>
-          <AppButton variant="link" :href="collectionUrl('graphic')">
-            {{ t.product.graphicAll }}
-          </AppButton>
-        </div>
+        <h2 id="graphic-title" class="text-h2">Graphic</h2>
         <p class="mt-1 text-muted">{{ t.product.graphicBody }}</p>
 
         <StateLoading
@@ -157,18 +154,12 @@ const fits = computed(() =>
             :key="collab.key"
             class="flex min-h-[56px] items-center justify-between gap-2 border-b border-line"
           >
-            <span>{{ collab.name }}</span>
-            <a
-              v-if="collab.available"
-              :href="collectionUrl('graphic', collab.key)"
-              target="_blank"
-              rel="noopener"
-              class="text-link"
-              :aria-label="t.product.collabLabel(collab.name)"
-            >
-              {{ t.product.see }}
-            </a>
-            <span v-else class="spec-label">{{ t.product.comingSoon }}</span>
+            <!-- A collab links to its Shopee collection once the admin fills in the link -->
+            <ExternalLink v-if="collab.url" :href="collab.url" class="text-link">{{
+              collab.name
+            }}</ExternalLink>
+            <span v-else>{{ collab.name }}</span>
+            <span v-if="!collab.available" class="spec-label">{{ t.product.comingSoon }}</span>
           </li>
         </ul>
       </section>

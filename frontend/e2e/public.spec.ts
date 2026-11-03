@@ -52,31 +52,32 @@ test.describe('AC-01 navigasi', () => {
   test('404 punya tombol ke Beranda dan Teknologi', async ({ page }) => {
     await page.goto('/halaman-yang-tidak-ada')
     await expect(page.getByRole('heading', { name: 'Halaman ini tidak ada' })).toBeVisible()
-    await page.getByRole('main').getByRole('link', { name: 'Lihat 11 material system' }).click()
+    await page.getByRole('main').getByRole('link', { name: 'Lihat 10 material system' }).click()
     await expect(page).toHaveURL(/\/teknologi$/)
   })
 
-  test('link marketplace tanpa URL tidak tampil, footer lengkap', async ({ page }) => {
+  test('FR-131 footer ke toko Shopee, link marketplace tanpa URL tidak tampil', async ({
+    page,
+  }) => {
     await page.goto('/')
     const footer = page.getByRole('contentinfo')
     await expect(footer.getByText('Bandung')).toBeVisible()
-    await expect(footer.getByRole('link', { name: 'Shopify' })).toHaveAttribute(
-      'href',
-      'https://novoidminds.com',
-    )
+    const shopee = footer.getByRole('link', { name: 'Shopee (buka di tab baru)' })
+    await expect(shopee).toHaveAttribute('href', 'https://shopee.co.id/novoidminds')
+    await expect(shopee).toHaveAttribute('rel', 'noopener noreferrer')
     await expect(footer.getByRole('link', { name: 'Kebijakan privasi' })).toBeVisible()
-    await expect(footer.getByRole('link', { name: 'Shopee' })).toHaveCount(0)
+    await expect(footer.getByRole('link', { name: /TikTok/ })).toHaveCount(0)
   })
 })
 
 test.describe('AC-02, AC-03 Teknologi', () => {
-  test('AC-02 11 tech dan filter Mudah gerah', async ({ page }) => {
+  test('AC-02 10 tech dan filter Mudah gerah', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/teknologi')
     await settled(page)
     const rows = page.locator('.index-row')
-    await expect(rows).toHaveCount(11)
-    await expect(page.getByText('11 cocok')).toBeVisible()
+    await expect(rows).toHaveCount(10)
+    await expect(page.getByText('10 cocok')).toBeVisible()
 
     await page.getByRole('button', { name: 'Mudah gerah' }).click()
     await expect(page.getByRole('button', { name: 'Mudah gerah' })).toHaveAttribute(
@@ -110,14 +111,13 @@ test.describe('AC-02, AC-03 Teknologi', () => {
     })
   }
 
-  test('FR-24 tech not yet menyembunyikan tombol Shopify', async ({ page }) => {
+  test('FR-24 status tech tetap tampil', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/teknologi#lab-aezy')
     await settled(page)
     await expect(
       page.getByLabel('Status').or(page.getByText('Belum tersedia')).first(),
     ).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Lihat di Shopify' })).toHaveCount(0)
   })
 
   test('FR-20 accordion mobile hanya satu terbuka', async ({ page }) => {
@@ -143,11 +143,10 @@ test.describe('AC-04, AC-05 Size', () => {
       .evaluate((el) => el.scrollWidth - el.clientWidth)
     expect(clipped).toBeLessThanOrEqual(0)
     await expect(page.locator('html')).toHaveCSS('color-scheme', 'light')
-    const shop = await page
-      .getByRole('banner')
-      .getByRole('link', { name: 'Belanja di Shopify' })
-      .boundingBox()
-    expect(shop?.height ?? 99).toBeLessThanOrEqual(48)
+    // FR-130: the header has no shop button any more
+    await expect(page.getByRole('banner').getByRole('link', { name: /Belanja|Shop/ })).toHaveCount(
+      0,
+    )
   })
 
   test('AC-04 tinggi 172 menandai L, kaos 51 x 69 menandai M', async ({ page }) => {
@@ -165,9 +164,9 @@ test.describe('AC-04, AC-05 Size', () => {
     await expect(page.locator('tr[aria-current="true"]')).toHaveCount(1)
     await expect(page.locator('tr[aria-current="true"] td').first()).toContainText('M')
     await expect(page.getByRole('columnheader', { name: 'Selisih (cm)' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Lihat ukuran ini di Shopify' })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: 'Lihat ukuran ini di Shopee' })).toHaveAttribute(
       'href',
-      'https://novoidminds.com/collections/all/core+aezy+regular',
+      'https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155',
     )
   })
 
@@ -203,16 +202,15 @@ test.describe('Produk', () => {
   test('FR-31 sel matriks dan BR-04 Coming soon', async ({ page }) => {
     await page.goto('/produk')
     await settled(page)
-    await expect(page.getByRole('link', { name: 'AEZY Regular di Shopify' })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: 'Lihat AEZY™ Regular di Shopee' })).toHaveAttribute(
       'href',
-      'https://novoidminds.com/collections/all/core+aezy+regular',
+      'https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155',
     )
     await expect(
-      page.getByRole('link', { name: 'CURFLEX Mini Fitted di Shopify' }),
-    ).toHaveAttribute('href', 'https://novoidminds.com/collections/all/core+curflex+mini-fitted')
-    await expect(page.getByRole('link', { name: 'Marvel di Shopify' })).toHaveAttribute(
+      page.getByRole('link', { name: 'Lihat CURFLEX™ Mini Fitted di Shopee' }),
+    ).toHaveAttribute(
       'href',
-      'https://novoidminds.com/collections/all/graphic+marvel',
+      'https://shopee.co.id/No-Void-Minds-Curflex-Mini-Fitted-Crop-Women-T-Shirt-Core-i.462123491.51761294268',
     )
     const moana = page.getByRole('listitem').filter({ hasText: 'Moana' })
     await expect(moana.getByText('Coming soon')).toBeVisible()

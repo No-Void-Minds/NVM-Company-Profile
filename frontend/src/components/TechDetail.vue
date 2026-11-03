@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import type { Tech } from '@/api/types'
 import AppButton from '@/components/AppButton.vue'
+import ExternalLink from '@/components/ExternalLink.vue'
 import FabricProbeView from '@/components/FabricProbeView.vue'
 import SpecLabel from '@/components/SpecLabel.vue'
 import SwatchView from '@/components/SwatchView.vue'
-import { collectionUrl, isNeedKey, pad2, techName } from '@/composables/site'
+import { isNeedKey, pad2, techName } from '@/composables/site'
 import { useI18n } from '@/i18n'
 
 const props = defineProps<{ tech: Tech; number: number }>()
@@ -76,10 +77,23 @@ const sizeLink = computed(() => ({
 
     <FabricProbeView :needs="tech.needs" />
 
+    <!-- One link per fit, or one for a tech without fits. No links, no list (FR-133). -->
+    <div v-if="tech.links.length > 0" class="mt-4">
+      <p class="spec-label">{{ t.tech.buyTitle }}</p>
+      <ul class="mt-1 flex flex-wrap gap-x-3">
+        <li v-for="link in tech.links" :key="link.fit ?? ''">
+          <ExternalLink
+            :href="link.url"
+            :label="link.fit ? t.tech.buyLabel(techName(tech.name), link.fit) : undefined"
+            class="text-link"
+          >
+            {{ link.fit ?? t.tech.buyAll }}
+          </ExternalLink>
+        </li>
+      </ul>
+    </div>
+
     <div class="mt-4 flex flex-wrap gap-2">
-      <AppButton v-if="tech.on_rack" :href="collectionUrl(tech.key)">{{
-        t.tech.shopCta
-      }}</AppButton>
       <AppButton :to="sizeLink" variant="secondary">
         {{ t.tech.sizeCta(tech.name, firstFit) }}
       </AppButton>

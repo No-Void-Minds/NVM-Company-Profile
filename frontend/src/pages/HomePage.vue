@@ -7,7 +7,7 @@ import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
-import { pad2, SHOP_URL } from '@/composables/site'
+import { pad2, SHOPEE_URL } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { formatDate, useI18n } from '@/i18n'
 import { KnitField } from '@/motion/KnitField'
@@ -45,7 +45,7 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
       <p class="mt-3 max-w-[44ch] bg-bg text-h3">{{ t.home.lead }}</p>
       <div class="pointer-events-auto mt-4 flex flex-wrap gap-2">
         <AppButton :to="to('/teknologi')">{{ t.cta.seeSystems }}</AppButton>
-        <AppButton variant="secondary" :href="SHOP_URL">{{ t.layout.shop }}</AppButton>
+        <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
       </div>
     </div>
   </section>

@@ -32,6 +32,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
 | 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | selesai |
+| 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | berjalan |
 
 ---
 
@@ -178,6 +179,20 @@ Permintaan user setelah v1.2, dengan kode FR-120 dan seterusnya (di luar SRS v1.
 - FR-126 Beranda tanpa strip swatch 11 tech. Swatch di Teknologi dan Produk tetap.
 - FR-127 Swatch ANTSHELL: cangkang tampil sebagai lapisan luar bergaris di atas rajutan, bukan kotak polos.
 - Pengujian di sprint ini: unit test Go, Vitest validasi tujuan, Playwright di `nvm_compro_test`, perintah curl di VM untuk Nginx.
+
+## Sprint 19: Tujuan beli ke Shopee
+
+Toko Shopify belum dibuka, jadi semua tujuan beli pindah ke Shopee. Kode FR-130 dan seterusnya (di luar SRS v1.2).
+
+- FR-130 Tanpa Shopify: tombol belanja di header (desktop dan menu HP) dihapus. Tidak ada link, teks, atau konstanta Shopify di frontend, kamus id/en, footer, README, dan komentar kode.
+- FR-131 Toko Shopee: tombol kedua hero Beranda "Belanja di Shopee" / "Shop on Shopee" ke `https://shopee.co.id/novoidminds`. Alamat yang sama di `VITE_SHOPEE_URL` (`deploy/.env.example`) dan di footer.
+- FR-132 Matriks Produk: "Lihat" hanya bila ada link untuk tech dan fit itu. Fit yang ada tanpa link tampil "-". Collab dengan `url` tampil sebagai link ke koleksi Shopee, tanpa `url` sebagai teks biasa. Status Coming soon tetap.
+- FR-133 Detail tech di Teknologi: daftar link per fit, atau satu link untuk tech tanpa fit. Tech tanpa link tidak menampilkan apa pun. Tombol Size tetap.
+- FR-134 Tech tersembunyi (`techs.visible = false`, awalnya MELTWRAP) tidak tampil di Teknologi, Produk, filter Your day, Size, B2B, API publik, dan Lab index (10 material system, nomor 01 sampai 10). `#lab-meltwrap` tidak membuka apa pun.
+- FR-135 Link ke Shopee buka tab baru dengan `rel="noopener noreferrer"` dan teks tersembunyi "(buka di tab baru)" / "(opens in a new tab)".
+- FR-136 Validasi link di backend dan frontend: kosong, atau `https://` dengan host persis `shopee.co.id`. Tolak skema lain, userinfo (`@`), port, host mirip, spasi, dan backslash. Disimpan apa adanya, query tidak dibuang.
+- FR-137 Admin "Tech dan collab": per tech saklar "Tampil di situs", status On the rack, link per fit (atau satu link untuk tech tanpa fit). Per collab status dan link koleksi. Semua perubahan masuk audit log, respons admin no-store.
+- FR-138 Data: migrasi `0005` menambah `tech_links` (tech_key, fit nullable, url, sort), `collabs.url`, `techs.visible` default true, MELTWRAP false, dan 21 link awal. Aman untuk produksi: tidak menghapus data, tidak menyentuh on_rack.
 
 ## Pekerjaan berikutnya
 
@@ -389,3 +404,14 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Catatan: run produksi pertama gagal karena timeout, saat ping database lewat tunnel mencapai batas 3 detik. Setelah tunnel direstart (health 8 sampai 149 ms) semua lolos. `scripts/dev-db-tunnel.sh` kini memakai ServerAliveInterval, ServerAliveCountMax, dan ExitOnForwardFailure, agar tunnel yang putus langsung berhenti.
 - Belum diverifikasi: Nginx asli (binary tidak bisa dipakai di PC ini). Perintah curl untuk VM ada di README bagian Halaman password, termasuk POST inquiry saat gate aktif dan mati.
 - Menunggu user: deploy produksi sesuai README bagian Halaman password, lalu curl di VM. Setelah migrasi 0004 situs langsung terkunci sampai dimatikan di `/admin/pengaturan`.
+
+### Sprint 19
+
+- Dibuat: migrasi `0005_shopee_links` (`tech_links`, `collabs.url`, `techs.visible`, MELTWRAP tersembunyi, 21 link awal dari `seed/tech_links.json`), validasi `ValidateShopeeURL` di backend dan `shopeeUrlError` di frontend, `PATCH /api/admin/techs/:key` menerima `on_rack`, `visible`, `links` dalam satu transaksi, `PATCH /api/admin/collabs/:key` menerima `available` dan `url`, `ExternalLink`, matriks Produk dan link per fit di Teknologi, halaman admin Tech dan collab yang baru.
+- Keputusan: link tanpa fit hanya untuk tech yang memang tidak punya fit. Tech dengan fit mendapat satu kolom per fit.
+- Keputusan: link beli tampil berdasarkan ada tidaknya link, tidak lagi menunggu status on the rack. Status tetap tampil sebagai label.
+- Keputusan: tautan "Lihat semua Core" dan "Lihat semua Graphic" dihapus karena Shopee tidak punya halaman koleksi untuk keduanya. Toko Shopee ada di hero dan footer.
+- Keputusan: `VITE_SHOPEE_URL` kosong jatuh ke `https://shopee.co.id/novoidminds`, agar tombol hero tidak hilang.
+- Keputusan: angka "11 material system" di teks meta dan CTA menjadi 10. Bila MELTWRAP ditampilkan lagi, teks itu perlu diubah.
+- Hasil: `go test` lolos (validasi URL 26 kasus, link per fit, PATCH collab menolak link asing tanpa database, migrasi 0005). Vitest lolos (26 kasus URL). `check.sh` dan build 22 halaman lolos, `dist` tanpa kata shopify.
+- Menunggu user: migrasi 0005 ke `nvm_compro_test`, lalu Playwright (`e2e/shopee.spec.ts` dan suite penuh).

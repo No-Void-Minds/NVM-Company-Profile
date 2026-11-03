@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { MARKETPLACE_LINKS, SHOP_URL, WHATSAPP_DISPLAY, whatsappUrl } from '@/composables/site'
+import ExternalLink from '@/components/ExternalLink.vue'
+import { MARKETPLACE_LINKS, WHATSAPP_DISPLAY, whatsappUrl } from '@/composables/site'
 import { useI18n } from '@/i18n'
 
 const { t, to } = useI18n()
@@ -28,13 +29,8 @@ const { t, to } = useI18n()
       <div>
         <p class="spec-label mb-1">{{ t.footer.store }}</p>
         <ul>
-          <li>
-            <a :href="SHOP_URL" target="_blank" rel="noopener" class="text-link">Shopify</a>
-          </li>
           <li v-for="link in MARKETPLACE_LINKS" :key="link.label">
-            <a :href="link.url" target="_blank" rel="noopener" class="text-link">{{
-              link.label
-            }}</a>
+            <ExternalLink :href="link.url" class="text-link">{{ link.label }}</ExternalLink>
           </li>
           <li>
             <RouterLink :to="to('/privasi')" class="text-link">{{ t.footer.privacy }}</RouterLink>

@@ -8,22 +8,43 @@ SELECT t.key, t.name, t.family, t.generation, t.needs,
        COALESCE(i.sub, t.sub)::text AS sub,
        COALESCE(i.description, t.description)::text AS description,
        COALESCE(i.chips, t.chips)::text[] AS chips,
-       t.fits, t.technology_label, t.on_rack, t.sort
+       t.fits, t.technology_label, t.on_rack, t.visible, t.sort
 FROM techs t
 LEFT JOIN tech_i18n i ON i.tech_key = t.key AND i.lang = @lang::text
+WHERE t.visible OR @include_hidden::boolean
 ORDER BY t.sort;
 
--- name: SetTechOnRack :one
-UPDATE techs SET on_rack = @on_rack WHERE key = @key RETURNING *;
+-- name: GetTech :one
+SELECT * FROM techs WHERE key = @key;
+
+-- name: UpdateTech :one
+UPDATE techs
+SET on_rack = COALESCE(sqlc.narg('on_rack')::boolean, on_rack),
+    visible = COALESCE(sqlc.narg('visible')::boolean, visible)
+WHERE key = @key
+RETURNING *;
+
+-- name: ListTechLinks :many
+SELECT * FROM tech_links ORDER BY tech_key, sort;
+
+-- name: DeleteTechLinks :exec
+DELETE FROM tech_links WHERE tech_key = @tech_key;
+
+-- name: CreateTechLink :exec
+INSERT INTO tech_links (tech_key, fit, url, sort) VALUES (@tech_key, sqlc.narg('fit'), @url, @sort);
 
 -- name: ListCollabs :many
 SELECT * FROM collabs ORDER BY sort;
 
--- name: SetCollabAvailable :one
-UPDATE collabs SET available = @available WHERE key = @key RETURNING *;
+-- name: UpdateCollab :one
+UPDATE collabs
+SET available = COALESCE(sqlc.narg('available')::boolean, available),
+    url = CASE WHEN @set_url::boolean THEN sqlc.narg('url')::text ELSE url END
+WHERE key = @key
+RETURNING *;
 
 -- name: GetLabStats :one
-SELECT count(*) AS systems, count(*) FILTER (WHERE on_rack) AS on_rack FROM techs;
+SELECT count(*) AS systems, count(*) FILTER (WHERE on_rack) AS on_rack FROM techs WHERE visible;
 
 -- name: ListSizeCharts :many
 SELECT * FROM size_charts ORDER BY key;

@@ -94,7 +94,7 @@ func (s *server) routes() (*gin.Engine, error) {
 	admin := adminRoot.Group("", s.requireSession)
 	admin.GET("/me", s.me)
 	// Same data as the public routes, but uncached, so the admin sees a toggle right after reload.
-	admin.GET("/techs", s.listTechs)
+	admin.GET("/techs", s.adminListTechs)
 	admin.GET("/collabs", s.listCollabs)
 	admin.GET("/gallery", s.adminListGallery)
 	admin.GET("/testimonials", s.adminListTestimonials)

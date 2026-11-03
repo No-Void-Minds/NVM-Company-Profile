@@ -1,20 +1,25 @@
 import { describe, expect, it } from 'vitest'
-import { collectionUrl, handleize, newUuid, sizeChartKey, techName, whatsappUrl } from './site'
+import type { Tech } from '@/api/types'
+import { handleize, newUuid, sizeChartKey, techLink, techName, whatsappUrl } from './site'
 
-describe('Shopify links', () => {
-  it('handleizes tags the way the store does', () => {
+describe('handleize', () => {
+  it('turns names into lowercase keys', () => {
     expect(handleize('Mini Fitted')).toBe('mini-fitted')
     expect(handleize('Toy Story')).toBe('toy-story')
   })
+})
 
-  it('builds the documented collection URLs', () => {
-    expect(collectionUrl('core', 'aezy', 'Regular')).toBe(
-      'https://novoidminds.com/collections/all/core+aezy+regular',
-    )
-    expect(collectionUrl('graphic', 'marvel')).toBe(
-      'https://novoidminds.com/collections/all/graphic+marvel',
-    )
-    expect(collectionUrl('aezy')).toBe('https://novoidminds.com/collections/all/aezy')
+describe('tech links', () => {
+  const tech = {
+    links: [
+      { fit: 'Regular', url: 'https://shopee.co.id/a' },
+      { fit: null, url: 'https://shopee.co.id/b' },
+    ],
+  } as Tech
+  it('finds the link of a fit, or the fit-less link', () => {
+    expect(techLink(tech, 'Regular')).toBe('https://shopee.co.id/a')
+    expect(techLink(tech, 'Fitted')).toBeUndefined()
+    expect(techLink(tech, null)).toBe('https://shopee.co.id/b')
   })
 })
 

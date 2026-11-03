@@ -2,7 +2,7 @@
 
 Dibuat otomatis oleh `frontend/scripts/terjemahan.mjs` dari `frontend/src/i18n/id.ts`, `en.ts`, dan seed tech di `backend/internal/db/seed/`. Jangan diedit langsung: ubah sumbernya, lalu jalankan `node scripts/terjemahan.mjs` dari folder `frontend`.
 
-Kunci bertanda `*` berasal dari teks Inggris asli (Shopify atau SRS), kolom ID adalah terjemahannya. Kunci lain berasal dari teks Indonesia v1.1, kolom EN adalah terjemahannya. Nama tech, nama fit, slogan brand, dan label seperti On the rack tidak diterjemahkan.
+Kunci bertanda `*` berasal dari teks Inggris asli (teks toko atau SRS), kolom ID adalah terjemahannya. Kunci lain berasal dari teks Indonesia v1.1, kolom EN adalah terjemahannya. Nama tech, nama fit, slogan brand, dan label seperti On the rack tidak diterjemahkan.
 
 Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 
@@ -11,11 +11,11 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | Kunci | Teks EN | Teks ID |
 |---|---|---|
 | `meta.home.title` | No Void Minds | No Void Minds |
-| `meta.home.description` | No Void Minds builds technical everyday wear from the material out. Meet the 11 material systems, the Core and Graphic lines, and ways to work with us B2B. | No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 11 material system, lini Core dan Graphic, serta peluang kerja sama B2B. |
+| `meta.home.description` | No Void Minds builds technical everyday wear from the material out. Meet the 10 material systems, the Core and Graphic lines, and ways to work with us B2B. | No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 10 material system, lini Core dan Graphic, serta peluang kerja sama B2B. |
 | `meta.brand.title` | Brand | Brand |
 | `meta.brand.description` | How No Void Minds works: engineered to perfection, fabric first, and the three stages of making a material system. Founded in 2021 in Bandung. | Cara No Void Minds bekerja: engineered to perfection, fabric first, dan tiga tahap membuat sebuah material system. Berdiri 2021 di Bandung. |
 | `meta.tech.title` | Technology | Teknologi |
-| `meta.tech.description` | The index of 11 NVM material systems, from AEZY to MELTWRAP. Filter by your day, then see the features and fits available. | Index 11 material system NVM, dari AEZY sampai MELTWRAP. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia. |
+| `meta.tech.description` | The index of 10 NVM material systems, from AEZY to FLEXE. Filter by your day, then see the features and fits available. | Index 10 material system NVM, dari AEZY sampai FLEXE. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia. |
 | `meta.product.title` | Products | Produk |
 | `meta.product.description` | The difference between the Core and Graphic lines. Core is chosen by tech and fit, Graphic from the list of licensed character collabs. | Beda lini Core dan Graphic. Core dipilih dari tech dan fit, Graphic dari daftar collab karakter berlisensi. |
 | `meta.b2b.title` | B2B | B2B |
@@ -44,7 +44,8 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `layout.mainMenu` | Main menu | Menu utama |
 | `layout.openMenu` | Open menu | Buka menu |
 | `layout.closeMenu` | Close menu | Tutup menu |
-| `layout.shop` | Shop on Shopify | Belanja di Shopify |
+| `layout.shop` | Shop on Shopee | Belanja di Shopee |
+| `layout.newTab` | (opens in a new tab) | (buka di tab baru) |
 | `layout.darkTheme` | Dark theme | Tema gelap |
 | `layout.switchLang` | Baca halaman ini dalam Bahasa Indonesia | Read this page in English |
 | `layout.pauseTicker` | Pause the ticker | Jeda teks berjalan |
@@ -109,7 +110,7 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 
 | Kunci | Teks EN | Teks ID |
 |---|---|---|
-| `cta.seeSystems` | See the 11 material systems | Lihat 11 material system |
+| `cta.seeSystems` | See the 10 material systems | Lihat 10 material system |
 
 ## home
 
@@ -171,7 +172,9 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `tech.features` | Features | Fitur |
 | `tech.fits` | Available fits | Fit tersedia |
 | `tech.noFit` | No fit options | Tanpa pilihan fit |
-| `tech.shopCta` | See on Shopify | Lihat di Shopify |
+| `tech.buyTitle` | Buy on Shopee | Beli di Shopee |
+| `tech.buyAll` | See on Shopee | Lihat di Shopee |
+| `tech.buyLabel` | {fit} {name} on Shopee | {fit} {name} di Shopee |
 | `tech.sizeCta` | Find your {name} {fit} size | Cari ukuran {name} {fit} |
 
 ## probe
@@ -193,24 +196,22 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 |---|---|---|
 | `product.number` | Products | Produk |
 | `product.title` | Core and Graphic | Core dan Graphic |
-| `product.lead` | Core is chosen by tech and fit. Graphic is chosen by collab. Prices and stock always follow the Shopify store. | Core dipilih dari tech dan fit. Graphic dipilih dari collab. Harga dan stok selalu mengikuti toko Shopify. |
-| `product.coreAll` | See all Core | Lihat semua Core |
+| `product.lead` | Core is chosen by tech and fit. Graphic is chosen by collab. Prices and stock always follow the Shopee store. | Core dipilih dari tech dan fit. Graphic dipilih dari collab. Harga dan stok selalu mengikuti toko Shopee. |
 | `product.coreBody` | Every product except collabs. Pick a tech, then a fit. | Semua produk selain collab. Pilih tech, lalu fit. |
 | `product.matrixLoading` | Loading the matrix | Memuat matriks |
 | `product.techEmpty` | The tech list is not available yet | Daftar tech belum tersedia |
 | `product.matrixRegion` | Tech and fit matrix, scrolls sideways | Matriks tech dan fit, bisa digeser ke samping |
-| `product.matrixCaption` | Tech and fit combinations in the Core line, each cell links to the collection on Shopify | Kombinasi tech dan fit lini Core, setiap sel menuju koleksi di Shopify |
+| `product.matrixCaption` | Tech and fit combinations in the Core line, cells marked See link to the product on Shopee | Kombinasi tech dan fit lini Core, sel bertanda Lihat menuju produk di Shopee |
 | `product.tech` | Tech | Tech |
-| `product.noFitLabel` | {name} on Shopify, no fit options | {name} di Shopify, tanpa pilihan fit |
+| `product.noFitLabel` | See {name} on Shopee, no fit options | Lihat {name} di Shopee, tanpa pilihan fit |
 | `product.noFit` | No fit options | Tanpa pilihan fit |
-| `product.cellLabel` | See {name} {fit} on Shopify | Lihat {name} {fit} di Shopify |
+| `product.cellLabel` | See {name} {fit} on Shopee | Lihat {name} {fit} di Shopee |
 | `product.see` | See | Lihat |
 | `product.unavailable` | Not available | Tidak tersedia |
-| `product.graphicAll` | See all Graphic | Lihat semua Graphic |
+| `product.noLink` | No link yet | Belum ada link |
 | `product.graphicBody` | Licensed character collab products. | Produk collab karakter berlisensi. |
 | `product.collabLoading` | Loading collabs | Memuat daftar collab |
 | `product.collabEmpty` | The collab list is not available yet | Daftar collab belum tersedia |
-| `product.collabLabel` | See {name} on Shopify | Lihat {name} di Shopify |
 | `product.comingSoon` | Coming soon | Coming soon |
 
 ## b2b
@@ -335,7 +336,7 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `size.selected` | (selected size) | (ukuran terpilih) |
 | `size.tolerance` | Tolerance of 1 to 2 cm. | Toleransi 1 sampai 2 cm. |
 | `size.heightNote` | Height is a recommendation only. | Tinggi badan hanya rekomendasi. |
-| `size.shopCta` | See this size on Shopify | Lihat ukuran ini di Shopify |
+| `size.shopCta` | See this size on Shopee | Lihat ukuran ini di Shopee |
 | `size.askMessage` | Hi NVM, I have a question about sizing for {name} {fit}, my result was {sizes}. | Halo NVM, saya ingin bertanya ukuran {name} {fit}, hasilnya {sizes}. |
 
 ## contact

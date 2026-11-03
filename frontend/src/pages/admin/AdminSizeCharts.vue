@@ -130,7 +130,7 @@ async function confirmDelete() {
       id="chart-rows"
       v-slot="f"
       label="Baris tabel"
-      hint="Baris pertama judul kolom, kolom dipisah tanda |. Sama dengan format metaobject Shopify."
+      hint="Baris pertama judul kolom, kolom dipisah tanda |."
       :error="fields.rows"
     >
       <textarea

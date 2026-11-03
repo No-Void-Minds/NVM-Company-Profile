@@ -1,7 +1,9 @@
 package httpapi
 
 import (
+	"errors"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -97,31 +99,147 @@ func (s *server) adminDeleteSizeChart(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (s *server) adminPatchTech(c *gin.Context) {
-	var in struct {
-		OnRack *bool `json:"on_rack"`
+type techPatch struct {
+	OnRack  *bool               `json:"on_rack"`
+	Visible *bool               `json:"visible"`
+	Links   *[]content.TechLink `json:"links"`
+}
+
+// linkField names the form field of a link in error responses: links.<fit>, or links for no fit.
+func linkField(fit *string) string {
+	if fit == nil {
+		return "links"
 	}
-	if err := c.ShouldBindJSON(&in); err != nil || in.OnRack == nil {
-		respondError(c, http.StatusBadRequest, codeValidation, "Kirim nilai on_rack.", nil)
+	return "links." + *fit
+}
+
+// validateTechLinks keeps one link per fit of the tech, or one fit-less link for a tech
+// without fits (FR-133). Empty links mean "no link" and are dropped.
+func validateTechLinks(fits []string, links []content.TechLink) ([]content.TechLink, map[string]string) {
+	fields := map[string]string{}
+	seen := map[string]bool{}
+	var kept []content.TechLink
+	for _, l := range links {
+		field := linkField(l.Fit)
+		switch {
+		case l.Fit == nil && len(fits) > 0:
+			fields[field] = "Tech ini punya fit, isi link per fit."
+		case l.Fit != nil && !slices.Contains(fits, *l.Fit):
+			fields[field] = "Fit tidak dikenal untuk tech ini."
+		case seen[field]:
+			fields[field] = "Fit ini dikirim dua kali."
+		default:
+			if err := content.ValidateShopeeURL(l.URL); err != nil {
+				fields[field] = err.Error()
+			}
+		}
+		seen[field] = true
+		if l.URL != "" {
+			kept = append(kept, l)
+		}
+	}
+	return kept, fields
+}
+
+func fitSort(fits []string, fit *string) int32 {
+	if fit == nil {
+		return 0
+	}
+	return int32(slices.Index(fits, *fit) + 1)
+}
+
+func (s *server) adminPatchTech(c *gin.Context) {
+	var in techPatch
+	if err := c.ShouldBindJSON(&in); err != nil || (in.OnRack == nil && in.Visible == nil && in.Links == nil) {
+		respondError(c, http.StatusBadRequest, codeValidation, "Kirim on_rack, visible, atau links.", nil)
 		return
 	}
-	tech, err := s.q.SetTechOnRack(c, sqlc.SetTechOnRackParams{Key: c.Param("key"), OnRack: *in.OnRack})
+	tech, err := s.q.GetTech(c, c.Param("key"))
 	if err != nil {
 		s.lookupError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, tech)
+	var links []content.TechLink
+	if in.Links != nil {
+		var fields map[string]string
+		links, fields = validateTechLinks(tech.Fits, *in.Links)
+		if len(fields) > 0 {
+			respondError(c, http.StatusBadRequest, codeValidation, "Periksa link Shopee.", fields)
+			return
+		}
+	}
+
+	tx, err := s.pool.Begin(c)
+	if err != nil {
+		s.internalError(c, err)
+		return
+	}
+	defer func() { _ = tx.Rollback(c) }()
+	q := s.q.WithTx(tx)
+	tech, err = q.UpdateTech(c, sqlc.UpdateTechParams{Key: tech.Key, OnRack: in.OnRack, Visible: in.Visible})
+	if err != nil {
+		s.internalError(c, err)
+		return
+	}
+	if in.Links != nil {
+		if err := q.DeleteTechLinks(c, tech.Key); err != nil {
+			s.internalError(c, err)
+			return
+		}
+		for _, l := range links {
+			if err := q.CreateTechLink(c, sqlc.CreateTechLinkParams{
+				TechKey: tech.Key, Fit: l.Fit, Url: l.URL, Sort: fitSort(tech.Fits, l.Fit),
+			}); err != nil {
+				s.internalError(c, err)
+				return
+			}
+		}
+	}
+	if err := tx.Commit(c); err != nil {
+		s.internalError(c, err)
+		return
+	}
+	// Same shape as GET /api/admin/techs, so the admin page can swap the row in place
+	rows, err := s.q.ListTechsByLang(c, sqlc.ListTechsByLangParams{Lang: content.LangID, IncludeHidden: true})
+	if err != nil {
+		s.internalError(c, err)
+		return
+	}
+	stored, err := s.q.ListTechLinks(c)
+	if err != nil {
+		s.internalError(c, err)
+		return
+	}
+	for _, t := range content.NewTechs(rows, stored) {
+		if t.Key == tech.Key {
+			c.JSON(http.StatusOK, t)
+			return
+		}
+	}
+	s.internalError(c, errors.New("tech hilang setelah disimpan"))
 }
 
 func (s *server) adminPatchCollab(c *gin.Context) {
 	var in struct {
-		Available *bool `json:"available"`
+		Available *bool   `json:"available"`
+		URL       *string `json:"url"`
 	}
-	if err := c.ShouldBindJSON(&in); err != nil || in.Available == nil {
-		respondError(c, http.StatusBadRequest, codeValidation, "Kirim nilai available.", nil)
+	if err := c.ShouldBindJSON(&in); err != nil || (in.Available == nil && in.URL == nil) {
+		respondError(c, http.StatusBadRequest, codeValidation, "Kirim available atau url.", nil)
 		return
 	}
-	collab, err := s.q.SetCollabAvailable(c, sqlc.SetCollabAvailableParams{Key: c.Param("key"), Available: *in.Available})
+	params := sqlc.UpdateCollabParams{Key: c.Param("key"), Available: in.Available, SetUrl: in.URL != nil}
+	if in.URL != nil {
+		if err := content.ValidateShopeeURL(*in.URL); err != nil {
+			respondError(c, http.StatusBadRequest, codeValidation, "Periksa link Shopee.", map[string]string{"url": err.Error()})
+			return
+		}
+		// Empty clears the link, the collab then shows as plain text
+		if *in.URL != "" {
+			params.Url = in.URL
+		}
+	}
+	collab, err := s.q.UpdateCollab(c, params)
 	if err != nil {
 		s.lookupError(c, err)
 		return

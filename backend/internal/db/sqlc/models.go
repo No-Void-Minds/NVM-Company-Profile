@@ -28,10 +28,11 @@ type AuditLog struct {
 }
 
 type Collab struct {
-	Key       string `json:"key"`
-	Name      string `json:"name"`
-	Available bool   `json:"available"`
-	Sort      int32  `json:"sort"`
+	Key       string  `json:"key"`
+	Name      string  `json:"name"`
+	Available bool    `json:"available"`
+	Sort      int32   `json:"sort"`
+	Url       *string `json:"url"`
 }
 
 type GalleryItem struct {
@@ -107,6 +108,7 @@ type Tech struct {
 	TechnologyLabel string   `json:"technology_label"`
 	OnRack          bool     `json:"on_rack"`
 	Sort            int32    `json:"sort"`
+	Visible         bool     `json:"visible"`
 }
 
 type TechI18n struct {
@@ -116,6 +118,13 @@ type TechI18n struct {
 	Sub         string   `json:"sub"`
 	Description string   `json:"description"`
 	Chips       []string `json:"chips"`
+}
+
+type TechLink struct {
+	TechKey string  `json:"tech_key"`
+	Fit     *string `json:"fit"`
+	Url     string  `json:"url"`
+	Sort    int32   `json:"sort"`
 }
 
 type Testimonial struct {
