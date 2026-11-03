@@ -56,6 +56,10 @@ export const en: Messages = {
       title: 'Page not found',
       description: 'The address you opened does not exist on the No Void Minds site.',
     },
+    password: {
+      title: 'Coming soon',
+      description: 'The No Void Minds site is being prepared.',
+    },
   },
 
   layout: {
@@ -140,8 +144,6 @@ export const en: Messages = {
     buyersCta: 'Read all testimonials',
     galleryTitle: 'Gallery',
     galleryCta: 'Open the full gallery',
-    swatchTitle: 'Fabric swatches per system',
-    swatchLoading: 'Loading swatches',
   },
 
   brand: {
@@ -390,5 +392,17 @@ export const en: Messages = {
     title: 'This page does not exist',
     lead: 'The address may be mistyped, or the page has moved.',
     home: 'Back to the home page',
+  },
+
+  password: {
+    title: 'The site is being prepared',
+    lead: 'No Void Minds is preparing this site, and for now only the team can open it.',
+    username: 'Username',
+    password: 'Password',
+    submit: 'Enter the site',
+    submitting: 'Checking the account',
+    required: 'Fill in the username and password.',
+    wrong: 'The username or password is wrong. Check them, then try once more.',
+    rateLimited: 'Too many sign-in attempts. Wait 15 minutes, then try again.',
   },
 }

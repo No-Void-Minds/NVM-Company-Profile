@@ -12,6 +12,7 @@ const MENU = [
   { to: '/admin/size-chart', label: 'Size chart' },
   { to: '/admin/katalog', label: 'Tech dan collab' },
   { to: '/admin/audit', label: 'Log audit' },
+  { to: '/admin/pengaturan', label: 'Pengaturan' },
 ]
 
 const session = useSession()

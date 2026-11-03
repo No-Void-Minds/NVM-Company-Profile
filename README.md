@@ -155,6 +155,73 @@ Kalau uji LAN mencatat alamat gateway, Docker meneruskan port lewat userland pro
 
 Uji yang sama di laptop dev memakai nginx sungguhan: `NGINX_BIN=/path/ke/nginx node scripts/test-real-ip.mjs` dari folder `frontend`. Tanpa `NGINX_BIN`, `check.sh` hanya menjalankan pemeriksaan statis (satu `set_real_ip_from`, gateway sama di compose dan `.env.example`, berada di dalam subnet).
 
+## Halaman password
+
+Seperti storefront password Shopify: selama aktif, pengunjung hanya melihat `/password` (atau `/en/password`), dan tim masuk dengan akun admin. Nginx menanyakan `/api/gate` sebelum setiap halaman HTML, API publik, dan foto. Aset build, font, logo, `/admin`, `/api/admin/*`, `/api/health`, dan halaman password selalu lewat. Saklarnya ada di `/admin/pengaturan`.
+
+Migrasi `0004` memasang halaman password dalam keadaan **aktif**. Setelah deploy, situs terkunci sampai dimatikan dari `/admin/pengaturan`.
+
+Deploy di VM:
+
+```bash
+cd /srv/nvm-company-profile
+./deploy/backup.sh && tail -1 /srv/nvm-compro/backup/backup.log   # harus OK
+git pull
+set -a; source deploy/.env; set +a
+docker run --rm --network "$PG_NETWORK" -v "$PWD/backend/migrations:/migrations:ro" \
+  migrate/migrate -path=/migrations \
+  -database "postgres://compro_migrator:PASSWORD@$PG_CONTAINER:5432/nvm_compro?sslmode=disable" up
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
+```
+
+Cek di VM saat halaman password aktif. Angka di komentar adalah hasil yang benar:
+
+```bash
+B=http://localhost:8092
+code() { curl -s -o /dev/null -w '%{http_code}\n' "$@"; }
+
+# HTML terkunci: 401, halaman password, tidak disimpan cache, tidak diindeks
+code $B/teknologi                                           # 401
+curl -s $B/teknologi | grep -c 'name="nvm-gate"'            # 1
+curl -s $B/en/teknologi | grep -o '<html lang="en">'        # <html lang="en">
+curl -sI $B/teknologi | grep -iE '^(cache-control|x-robots-tag):'
+#   Cache-Control: private, no-store
+#   X-Robots-Tag: noindex
+
+# API publik terkunci, termasuk POST inquiry
+code "$B/api/techs?lang=id"                                 # 401
+code -X POST $B/api/inquiries -H 'Content-Type: application/json' -d '{}'   # 401
+curl -sI "$B/api/techs?lang=id" | grep -iE '^(cache-control|x-robots-tag):'
+
+# Tetap lewat
+asset=$(curl -s $B/password | grep -o '/assets/[^"]*\.js' | head -1)
+code "$B$asset"                                             # 200
+code $B/fonts/D-DIN.woff2                                   # 200
+code $B/brand/nvm-logo.png                                  # 200
+code $B/admin/login                                         # 200
+code $B/api/health                                          # 200
+code $B/password                                            # 200
+code $B/en/password                                         # 200
+
+# Robots dan sitemap
+curl -s $B/robots.txt                                       # User-agent: * / Disallow: /
+code $B/sitemap.xml                                         # 404
+
+# Dengan sesi admin, halaman terbuka tapi tetap private dan noindex.
+# Password dibaca tanpa tampil dan tidak masuk riwayat shell.
+read -rs -p 'Password admin: ' PW; echo
+printf '{"username":"%s","password":"%s"}' "<username>" "$PW" > /tmp/login.json; unset PW
+curl -s -c /tmp/jar -H 'Content-Type: application/json' -d @/tmp/login.json $B/api/admin/login >/dev/null
+rm /tmp/login.json
+code -b /tmp/jar $B/teknologi                               # 200
+curl -sI -b /tmp/jar $B/teknologi | grep -iE '^(cache-control|x-robots-tag):'   # private, no-store / noindex
+rm /tmp/jar
+```
+
+Setelah halaman password dimatikan di `/admin/pengaturan`: `code $B/teknologi` menjadi 200, `Cache-Control` kembali `no-cache` tanpa `X-Robots-Tag`, dan sitemap kembali 200.
+
+Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.id/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
+
 ## Pulihkan dari backup
 
 Cara ini sudah terbukti di `nvm-server`. Pemulihan diuji ke database terpisah, jadi `nvm_compro` tidak tersentuh. Ganti `<superuser>` (di `nvm-server`: `nvm_internal`, lihat langkah 2 Deploy LAN) dan `<stamp>` dengan nama file di `/srv/nvm-compro/backup`. Dump dikirim lewat stdin dengan `docker exec -i`, jadi file tidak perlu disalin ke container:

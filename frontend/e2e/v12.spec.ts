@@ -230,33 +230,32 @@ test.describe('AC-21 prerender dan sitemap', () => {
 })
 
 test.describe('AC-22 swatch', () => {
-  async function stripImages(page: import('@playwright/test').Page) {
+  // The Home strip was removed in Sprint 18, the Produk rows carry all 11 swatches
+  async function rowImages(page: import('@playwright/test').Page) {
     return page
-      .locator('.swatch-strip canvas')
+      .locator('tr[data-swatch-host] canvas')
       .evaluateAll((all) => all.map((c) => (c as HTMLCanvasElement).toDataURL()))
   }
 
   test('11 swatch berbeda di kedua tema', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/')
+    await page.goto('/produk')
     await settled(page)
-    await page.locator('.swatch-strip').scrollIntoViewIfNeeded()
-    const light = await stripImages(page)
+    const light = await rowImages(page)
     expect(light).toHaveLength(11)
     expect(new Set(light).size).toBe(11)
     await page.getByRole('button', { name: 'Tema gelap' }).click()
     await page.waitForTimeout(100)
-    const dark = await stripImages(page)
+    const dark = await rowImages(page)
     expect(new Set(dark).size).toBe(11)
     expect(dark[0]).not.toBe(light[0])
   })
 
   test('hover memperagakan sekali lalu kembali diam', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/')
+    await page.goto('/produk')
     await settled(page)
-    const link = page.locator('.swatch-link').first()
-    await link.scrollIntoViewIfNeeded()
+    const link = page.locator('tr[data-swatch-host]').first()
     const rest = await link.evaluate(canvasImage, 'canvas')
     await link.hover()
     await page.waitForTimeout(500)
@@ -264,6 +263,32 @@ test.describe('AC-22 swatch', () => {
     await page.waitForTimeout(1200)
     expect(await link.evaluate(canvasImage, 'canvas')).toBe(rest)
   })
+
+  // Sprint 18: the ANTSHELL shell is striped fabric, not a blank box over the knit
+  for (const theme of ['light', 'dark'] as const) {
+    test(`ANTSHELL menampilkan pola cangkang, tema ${theme}`, async ({ page }) => {
+      await useTheme(page, theme)
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await page.goto('/teknologi#lab-antshell')
+      await settled(page)
+      const colors = await page.locator('.tech-panel figure canvas').evaluate((el) => {
+        const canvas = el as HTMLCanvasElement
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+        // The middle of the shell band, 10 to 40 percent of the height
+        const { data } = ctx.getImageData(
+          Math.round(canvas.width * 0.2),
+          Math.round(canvas.height * 0.15),
+          Math.round(canvas.width * 0.6),
+          Math.round(canvas.height * 0.2),
+        )
+        const seen = new Set<string>()
+        for (let i = 0; i < data.length; i += 4)
+          seen.add(`${data[i]},${data[i + 1]},${data[i + 2]}`)
+        return seen.size
+      })
+      expect(colors).toBeGreaterThan(2)
+    })
+  }
 
   test('Re-weave saat tech berganti di Teknologi', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
@@ -295,10 +320,9 @@ test.describe('AC-22 swatch', () => {
       page,
     }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
-      await page.goto('/')
+      await page.goto('/produk')
       await settled(page)
-      const link = page.locator('.swatch-link').first()
-      await link.scrollIntoViewIfNeeded()
+      const link = page.locator('tr[data-swatch-host]').first()
       const rest = await link.evaluate(canvasImage, 'canvas')
       await link.hover()
       await page.waitForTimeout(300)

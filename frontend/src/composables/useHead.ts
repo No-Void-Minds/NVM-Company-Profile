@@ -8,6 +8,8 @@ export interface HeadMeta {
   lang: Lang
   // Absent for admin and 404, which have no language twin to point at
   alternates: Record<Lang, string> | null
+  // Set on the password page only: its own path, read by main.ts, and noindex (FR-123)
+  gatePath?: string
 }
 
 const SITE_NAME = 'No Void Minds'
@@ -34,6 +36,14 @@ export function routeHead(route: RouteLocationNormalizedLoaded): HeadMeta {
     }
   }
   const base = basePath(route.path)
+  if (page === 'password') {
+    return {
+      ...messages(lang).meta[page],
+      lang,
+      alternates: null,
+      gatePath: localePath('/password', lang),
+    }
+  }
   return {
     ...messages(lang).meta[page],
     lang,
@@ -74,6 +84,12 @@ function headTags(meta: HeadMeta): Tag[] {
         name: 'link',
         attrs: { rel: 'alternate', hreflang: 'x-default', href: SITE_URL + meta.alternates.id },
       },
+    )
+  }
+  if (meta.gatePath) {
+    tags.push(
+      { name: 'meta', attrs: { name: 'robots', content: 'noindex' } },
+      { name: 'meta', attrs: { name: 'nvm-gate', content: meta.gatePath } },
     )
   }
   return tags

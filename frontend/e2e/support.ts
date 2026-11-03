@@ -63,6 +63,7 @@ export const ADMIN_ROUTES = [
   '/admin/size-chart',
   '/admin/katalog',
   '/admin/audit',
+  '/admin/pengaturan',
 ]
 
 // The API answers these on purpose (SRS 7.4), and Chrome logs every 4xx response

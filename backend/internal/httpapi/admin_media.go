@@ -37,7 +37,10 @@ func (s *server) serveMedia(c *gin.Context) {
 		respondError(c, http.StatusNotFound, codeNotFound, "Gambar tidak ditemukan.", nil)
 		return
 	}
-	c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	// Uploaded photos are site content, so a locked site keeps them out of shared caches too.
+	if !s.markPrivateWhileLocked(c) {
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	}
 	c.Header("Content-Type", "image/webp")
 	c.File(path)
 }

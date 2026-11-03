@@ -1,6 +1,7 @@
 import type {
   AdminGalleryItem,
   AdminSession,
+  GateSetting,
   AdminTestimonial,
   AuditEntry,
   Collab,
@@ -158,6 +159,10 @@ export const adminApi = {
     if (filter.status) query.set('status', filter.status)
     return request<Inquiry[]>(`/api/admin/inquiries?${query}`)
   },
+  settings: () => request<{ password_gate: GateSetting }>('/api/admin/settings'),
+  setPasswordGate: (enabled: boolean) =>
+    request<GateSetting>('/api/admin/settings/password-gate', { method: 'PUT', json: { enabled } }),
+
   setInquiryStatus: (id: string, status: InquiryStatus) =>
     request<Inquiry>(`/api/admin/inquiries/${id}`, { method: 'PATCH', json: { status } }),
 }

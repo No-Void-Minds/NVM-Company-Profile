@@ -268,11 +268,26 @@ export class Swatch {
     const inset = 8
     const top = inset - lift * 6
     const bottom = this.height * 0.45 - lift * 6
-    ctx.fillStyle = this.colors.surface
-    ctx.fillRect(inset, top, this.width - inset * 2, bottom - top)
+    const width = this.width - inset * 2
+    const height = bottom - top
+    // The shell is a laminated outer face: tight diagonal lines over the knit, so it still
+    // reads as fabric. A solid fill hid the pattern and looked like an empty box.
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(inset, top, width, height)
+    ctx.clip()
+    ctx.strokeStyle = this.colors.accent
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    for (let x = inset - height; x < inset + width; x += 5) {
+      ctx.moveTo(x, bottom)
+      ctx.lineTo(x + height, top)
+    }
+    ctx.stroke()
+    ctx.restore()
     ctx.strokeStyle = this.colors.accent
     ctx.lineWidth = 1.5
-    ctx.strokeRect(inset, top, this.width - inset * 2, bottom - top)
+    ctx.strokeRect(inset, top, width, height)
   }
 
   private draw(frame: Frame) {

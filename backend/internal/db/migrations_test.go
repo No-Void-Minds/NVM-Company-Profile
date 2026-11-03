@@ -44,6 +44,24 @@ func TestMigration0003DownUndoesUp(t *testing.T) {
 	}
 }
 
+// 0004 also runs on production data: it only adds, and the gate starts enabled.
+func TestMigration0004(t *testing.T) {
+	up := strings.ToUpper(readFile(t, "../../migrations/0004_site_settings.up.sql"))
+	destructive := regexp.MustCompile(`(?m)^\s*(DROP|DELETE|TRUNCATE|UPDATE|ALTER)\b`)
+	if found := destructive.FindAllString(up, -1); len(found) > 0 {
+		t.Errorf("0004 up memuat %q", found)
+	}
+	if !strings.Contains(up, `('PASSWORD_GATE', '{"ENABLED": TRUE}')`) {
+		t.Error("baris awal password_gate harus enabled true")
+	}
+	if !strings.Contains(up, "ON CONFLICT DO NOTHING") {
+		t.Error("INSERT 0004 harus ON CONFLICT DO NOTHING")
+	}
+	if down := readFile(t, "../../migrations/0004_site_settings.down.sql"); !strings.Contains(down, "DROP TABLE site_settings") {
+		t.Error("0004 down harus menghapus site_settings")
+	}
+}
+
 // Same promise as 0002: the migration holds exactly what the seed JSON says.
 func TestMigration0003MatchesSeed(t *testing.T) {
 	up := readFile(t, "../../migrations/0003_i18n.up.sql")

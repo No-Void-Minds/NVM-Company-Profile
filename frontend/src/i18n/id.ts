@@ -56,6 +56,10 @@ export const id = {
       title: 'Halaman tidak ditemukan',
       description: 'Alamat yang kamu buka tidak ada di situs No Void Minds.',
     },
+    password: {
+      title: 'Segera hadir',
+      description: 'Situs No Void Minds sedang disiapkan.',
+    },
   },
 
   layout: {
@@ -142,8 +146,6 @@ export const id = {
     buyersCta: 'Baca semua testimoni',
     galleryTitle: 'Galeri',
     galleryCta: 'Buka galeri lengkap',
-    swatchTitle: 'Contoh kain per system',
-    swatchLoading: 'Memuat contoh kain',
   },
 
   brand: {
@@ -391,6 +393,19 @@ export const id = {
     title: 'Halaman ini tidak ada',
     lead: 'Alamatnya mungkin salah ketik, atau halamannya sudah pindah.',
     home: 'Kembali ke Beranda',
+  },
+
+  // FR-123: the site gate, signed in with the same admin accounts
+  password: {
+    title: 'Situs sedang disiapkan',
+    lead: 'No Void Minds sedang menyiapkan situs ini, dan untuk sementara hanya tim yang bisa membukanya.',
+    username: 'Username',
+    password: 'Password',
+    submit: 'Masuk ke situs',
+    submitting: 'Memeriksa akun',
+    required: 'Isi username dan password.',
+    wrong: 'Username atau password salah. Periksa lagi, lalu coba sekali lagi.',
+    rateLimited: 'Terlalu banyak percobaan masuk. Tunggu 15 menit, lalu coba lagi.',
   },
 }
 

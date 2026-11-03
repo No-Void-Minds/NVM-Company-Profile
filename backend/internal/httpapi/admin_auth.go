@@ -122,7 +122,7 @@ func (s *server) requireSession(c *gin.Context) {
 		respondError(c, http.StatusUnauthorized, codeUnauthorized, "Silakan masuk dulu.", nil)
 		return
 	}
-	session, err := s.q.GetActiveSession(c, auth.HashToken(token))
+	session, err := s.findSession(c, auth.HashToken(token))
 	if errors.Is(err, pgx.ErrNoRows) {
 		respondError(c, http.StatusUnauthorized, codeUnauthorized, "Sesi sudah berakhir. Silakan masuk lagi.", nil)
 		return

@@ -100,7 +100,23 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/admin/AdminAudit.vue'),
         meta: adminMeta('Log audit'),
       },
+      {
+        path: 'pengaturan',
+        component: () => import('@/pages/admin/AdminSettings.vue'),
+        meta: adminMeta('Pengaturan'),
+      },
     ],
+  },
+  // The site gate stands alone, without the public header and its links (FR-123).
+  {
+    path: '/password',
+    component: () => import('@/pages/PasswordPage.vue'),
+    meta: { page: 'password' },
+  },
+  {
+    path: '/en/password',
+    component: () => import('@/pages/PasswordPage.vue'),
+    meta: { page: 'password' },
   },
   // Indonesian lives at the root and English under /en (FR-110), from one page list.
   { path: '/en', component: PublicLayout, children: publicPages() },

@@ -124,6 +124,13 @@ export interface AuditEntry {
   username: string | null
 }
 
+// FR-125: the password gate, as the admin settings page shows it
+export interface GateSetting {
+  enabled: boolean
+  updated_at: string
+  updated_by: string | null
+}
+
 export interface AdminSession {
   username: string
   csrf_token: string

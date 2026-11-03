@@ -18,6 +18,8 @@ const ROUTES = [
   '/size',
   '/kontak',
   '/privasi',
+  // The site gate (FR-123). Not in the sitemap, Nginx serves it for locked addresses.
+  '/password',
 ]
 
 const HTML_LANG = '<html lang="id">'

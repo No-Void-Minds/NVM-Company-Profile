@@ -47,6 +47,31 @@ function resolve(pathname) {
   return candidates.find(isFile) ?? join(dist, 'spa.html')
 }
 
+// Mirrors the auth_request locations in nginx.conf (FR-121)
+const OPEN =
+  /^\/(assets|fonts)\/|^\/brand\/nvm-logo\.png$|^\/admin|^\/api\/(health|gate)$|^\/api\/admin\/|^\/(sitemap\.xml|robots\.txt)$|^\/(en\/)?password(\/|\/index\.html)?$/
+const GATED_API = /^\/(api|media)\//
+const PASSWORD_PAGE = /^\/(en\/)?password(\/|\/index\.html)?$/
+
+function checkGate(req) {
+  return new Promise((resolve) => {
+    const ask = request(
+      {
+        ...backend,
+        path: '/api/gate',
+        method: 'GET',
+        headers: { cookie: req.headers.cookie ?? '' },
+      },
+      (answer) => {
+        answer.resume()
+        resolve({ status: answer.statusCode, state: answer.headers['x-gate'] })
+      },
+    )
+    ask.on('error', () => resolve({ status: 500, state: 'on' }))
+    ask.end()
+  })
+}
+
 function cacheControl(pathname) {
   if (pathname.startsWith('/assets/')) return 'public, max-age=31536000, immutable'
   if (pathname.startsWith('/fonts/') || pathname === '/brand/nvm-logo.png') {
@@ -55,8 +80,24 @@ function cacheControl(pathname) {
   return 'no-cache'
 }
 
-createServer((req, res) => {
+createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost')
+  const locked = { 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex' }
+  let gate = { status: 204, state: 'off' }
+  if (!OPEN.test(pathname)) {
+    gate = await checkGate(req)
+    if (gate.status === 401 && GATED_API.test(pathname)) {
+      res.writeHead(401, { ...locked, 'Content-Type': 'application/json' })
+      res.end('{"error":{"code":"UNAUTHORIZED","message":"Situs sedang dikunci."}}')
+      return
+    }
+    if (gate.status === 401) {
+      const page = /^\/en(\/|$)/.test(pathname) ? 'en/password/index.html' : 'password/index.html'
+      res.writeHead(401, { ...securityHeaders, ...locked, 'Content-Type': TYPES['.html'] })
+      createReadStream(join(dist, page)).pipe(res)
+      return
+    }
+  }
 
   if (PROXIED.test(pathname)) {
     const upstream = request(
@@ -80,6 +121,13 @@ createServer((req, res) => {
     ...securityHeaders,
     'Cache-Control': cacheControl(pathname),
     'Content-Type': TYPES[ext] ?? 'application/octet-stream',
+    // The password page and every page of a locked site stay out of caches and indexes
+    ...(PASSWORD_PAGE.test(pathname) || gate.state === 'on' ? locked : {}),
+  }
+  if (pathname.startsWith('/admin')) {
+    res.writeHead(200, { ...headers, 'Content-Type': TYPES['.html'] })
+    createReadStream(join(dist, 'spa.html')).pipe(res)
+    return
   }
   if (COMPRESSIBLE.has(ext) && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
     res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip' })

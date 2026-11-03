@@ -32,6 +32,8 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `meta.privacy.description` | What data NVM keeps from the B2B form, why, how long it is kept, and how to request deletion. | Data apa yang NVM simpan dari formulir B2B, tujuannya, lama penyimpanan, dan cara meminta penghapusan. |
 | `meta.notFound.title` | Page not found | Halaman tidak ditemukan |
 | `meta.notFound.description` | The address you opened does not exist on the No Void Minds site. | Alamat yang kamu buka tidak ada di situs No Void Minds. |
+| `meta.password.title` | Coming soon | Segera hadir |
+| `meta.password.description` | The No Void Minds site is being prepared. | Situs No Void Minds sedang disiapkan. |
 
 ## layout
 
@@ -130,8 +132,6 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `home.buyersCta` | Read all testimonials | Baca semua testimoni |
 | `home.galleryTitle` | Gallery | Galeri |
 | `home.galleryCta` | Open the full gallery | Buka galeri lengkap |
-| `home.swatchTitle` | Fabric swatches per system | Contoh kain per system |
-| `home.swatchLoading` | Loading swatches | Memuat contoh kain |
 
 ## brand
 
@@ -380,6 +380,20 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `notFound.title` | This page does not exist | Halaman ini tidak ada |
 | `notFound.lead` | The address may be mistyped, or the page has moved. | Alamatnya mungkin salah ketik, atau halamannya sudah pindah. |
 | `notFound.home` | Back to the home page | Kembali ke Beranda |
+
+## password
+
+| Kunci | Teks EN | Teks ID |
+|---|---|---|
+| `password.title` | The site is being prepared | Situs sedang disiapkan |
+| `password.lead` | No Void Minds is preparing this site, and for now only the team can open it. | No Void Minds sedang menyiapkan situs ini, dan untuk sementara hanya tim yang bisa membukanya. |
+| `password.username` | Username | Username |
+| `password.password` | Password | Password |
+| `password.submit` | Enter the site | Masuk ke situs |
+| `password.submitting` | Checking the account | Memeriksa akun |
+| `password.required` | Fill in the username and password. | Isi username dan password. |
+| `password.wrong` | The username or password is wrong. Check them, then try once more. | Username atau password salah. Periksa lagi, lalu coba sekali lagi. |
+| `password.rateLimited` | Too many sign-in attempts. Wait 15 minutes, then try again. | Terlalu banyak percobaan masuk. Tunggu 15 menit, lalu coba lagi. |
 
 ## tech (seed)
 

@@ -31,6 +31,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | selesai |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
+| 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | jalan |
 
 ---
 
@@ -163,6 +164,20 @@ AC-01 sampai AC-23 di kedua tema dan kedua bahasa, axe dan kontras di 17 halaman
 ## Sprint 17: Deploy revisi
 
 Di VM: `git pull`, migrasi `0003`, `docker compose up -d --build`, cek ulang situs dan admin.
+
+## Sprint 18: Halaman password
+
+Permintaan user setelah v1.2, dengan kode FR-120 dan seterusnya (di luar SRS v1.2).
+
+- FR-120 Data: migrasi `0004` menambah `site_settings` (key, value jsonb, updated_at, updated_by) dengan `password_gate` = `{"enabled": true}`. Default aktif. Aman untuk database berisi data.
+- FR-121 Gate: `GET /api/gate` menjawab 204 bila gate mati atau ada sesi admin valid, 401 bila terkunci. Status di-cache di memori dan langsung diganti saat admin mengubahnya. Nginx `auth_request` untuk semua halaman HTML, semua `/api/*` publik (termasuk POST inquiry), dan `/media/`. Selalu lewat: aset build, font, logo, `/admin`, `/api/admin/*`, `/api/health`, `/api/gate`, halaman password.
+- FR-122 Saat gate aktif: HTML dan API publik `Cache-Control: private, no-store` + `X-Robots-Tag: noindex`, robots `Disallow: /`, sitemap 404.
+- FR-123 Halaman password `/password` dan `/en/password`: desain v1.2, dua tema, dua bahasa, logo, satu kalimat, form login admin, error dengan bahasa manusia, aria-live.
+- FR-124 Tujuan setelah login hanya path relatif di situs ini (tolak URL absolut, `//`, backslash, skema lain).
+- FR-125 Admin "Pengaturan": saklar halaman password, status, kapan dan oleh siapa terakhir diubah, dialog konfirmasi dua arah, tercatat di audit log.
+- FR-126 Beranda tanpa strip swatch 11 tech. Swatch di Teknologi dan Produk tetap.
+- FR-127 Swatch ANTSHELL: cangkang tampil sebagai lapisan luar bergaris di atas rajutan, bukan kotak polos.
+- Pengujian di sprint ini: unit test Go, Vitest validasi tujuan, Playwright di `nvm_compro_test`, perintah curl di VM untuk Nginx.
 
 ## Pekerjaan berikutnya
 
@@ -361,3 +376,14 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Migrasi `0003` ke `nvm_compro` lewat container `migrate/migrate`: `3/u i18n`, versi 3, dirty false. `tech_i18n` en 11, id 11. Status on_rack yang diatur tim (aezy, aezy-cotton) tidak berubah.
 - `docker compose up -d --build`: pengaman binary statis lolos, health ok, `/teknologi` dan `/en/teknologi` 200, canonical dan hreflang memakai URL penuh, `/api/techs?lang=id` mengembalikan teks Indonesia, CSP memuat hash skrip anti-kedip.
 - Cek browser: belum dilaporkan.
+
+### Sprint 18
+
+- Dibuat: migrasi `0004_site_settings`, `gate.go` (cache memori, fail closed bila setting tidak terbaca), `GET /api/gate`, `GET /api/admin/settings`, `PUT /api/admin/settings/password-gate`, robots dan sitemap mengikuti gate, `nginx.conf` dengan `auth_request`, `PasswordPage`, `safeNext`, `AdminSettings`, gate di `serve-dist.mjs`. Strip swatch Beranda dihapus, cangkang ANTSHELL kini bergaris.
+- Keputusan: Nginx menyajikan halaman password langsung di alamat yang terkunci (status 401, bahasa dari awalan `/en`). `main.ts` mengganti alamat menjadi `/password?next=...` sebelum router jalan, agar hydration cocok, lalu login memuat ulang halaman tujuan.
+- Keputusan: API publik yang terkunci menjawab JSON 401 `UNAUTHORIZED`, bukan HTML. Header no-store dan noindex untuk API dipasang backend, untuk HTML oleh Nginx lewat header `X-Gate` dari `/api/gate`, jadi pengunjung yang sudah login pun tidak membuat versi terbuka masuk cache.
+- Keputusan: subrequest gate memakai `proxy_method GET`, karena tanpa itu POST inquiry akan mengirim POST ke `/api/gate`.
+- Keputusan: `newServer` dan `routes` dipisah dari `NewRouter`, dan pencarian sesi bisa diganti, agar gate diuji tanpa database.
+- Hasil: `go test` lolos (gate 5 kombinasi, fail closed, perubahan seketika, PUT butuh sesi dan CSRF, robots dan sitemap, header, migrasi 0004). Vitest 68 lolos (termasuk 18 kasus `safeNext`). `check.sh` dan build 22 halaman lolos.
+- Belum diverifikasi: Playwright (`gate.spec.ts`, AC-22 yang dipindah ke Produk, cek ANTSHELL) belum jalan, karena tunnel database mati dan migrasi 0004 belum ada di `nvm_compro_test`. Nginx asli belum diuji, perintah curl ada di README.
+- Menunggu user: tunnel database, migrasi 0004 ke `nvm_compro_test`, lalu Playwright. Deploy produksi sesuai README bagian Halaman password.

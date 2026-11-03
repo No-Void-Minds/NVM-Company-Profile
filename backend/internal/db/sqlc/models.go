@@ -77,6 +77,13 @@ type Session struct {
 	LastSeenAt time.Time `json:"last_seen_at"`
 }
 
+type SiteSetting struct {
+	Key       string    `json:"key"`
+	Value     []byte    `json:"value"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy *string   `json:"updated_by"`
+}
+
 type SizeChart struct {
 	Key       string    `json:"key"`
 	Title     string    `json:"title"`

@@ -156,6 +156,11 @@ func (s *server) sitemapSet() sitemapSet {
 }
 
 func (s *server) sitemap(c *gin.Context) {
+	// A locked site lists nothing (FR-122). no-store, so the 404 is not remembered after unlocking.
+	if s.gateState.Enabled(c) {
+		respondError(c, http.StatusNotFound, codeNotFound, "Alamat tidak ditemukan.", nil)
+		return
+	}
 	body, err := xml.Marshal(s.sitemapSet())
 	if err != nil {
 		s.internalError(c, err)
@@ -166,6 +171,11 @@ func (s *server) sitemap(c *gin.Context) {
 }
 
 func (s *server) robots(c *gin.Context) {
+	if s.gateState.Enabled(c) {
+		c.Header("Cache-Control", "no-store")
+		c.String(http.StatusOK, "User-agent: *\nDisallow: /\n")
+		return
+	}
 	c.Header("Cache-Control", "public, max-age=3600")
 	c.String(http.StatusOK, "User-agent: *\nDisallow: /admin\n\nSitemap: %s/sitemap.xml\n", s.cfg.PublicBaseURL)
 }

@@ -23,24 +23,24 @@ type server struct {
 	media        *media.Store
 	inquiryLimit *ratelimit.Limiter
 	loginLimit   *ratelimit.Limiter
+	gateState    *gateState
+	// Swappable so tests can check sessions and the gate without a database
+	sessionFinder func(ctx context.Context, tokenHash string) (sqlc.GetActiveSessionRow, error)
 }
 
 func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
-	gin.SetMode(cfg.GinMode)
-	r := gin.New()
-	if err := r.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+	s, err := newServer(cfg, pool)
+	if err != nil {
 		return nil, err
 	}
-	r.Use(requestID(), accessLog(), recoverJSON(), securityHeaders())
-	r.NoRoute(func(c *gin.Context) {
-		respondError(c, http.StatusNotFound, codeNotFound, "Alamat tidak ditemukan.", nil)
-	})
+	return s.routes()
+}
 
+func newServer(cfg config.Config, pool *pgxpool.Pool) (*server, error) {
 	store, err := media.NewStore(cfg.MediaDir)
 	if err != nil {
 		return nil, err
 	}
-
 	s := &server{
 		cfg:          cfg,
 		pool:         pool,
@@ -49,15 +49,36 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 		inquiryLimit: ratelimit.New(5, time.Hour),
 		loginLimit:   ratelimit.New(10, 15*time.Minute),
 	}
+	s.gateState = newGateState(s.loadGate)
+	s.sessionFinder = s.q.GetActiveSession
+	return s, nil
+}
+
+func (s *server) findSession(ctx context.Context, tokenHash string) (sqlc.GetActiveSessionRow, error) {
+	return s.sessionFinder(ctx, tokenHash)
+}
+
+func (s *server) routes() (*gin.Engine, error) {
+	gin.SetMode(s.cfg.GinMode)
+	r := gin.New()
+	if err := r.SetTrustedProxies(s.cfg.TrustedProxies); err != nil {
+		return nil, err
+	}
+	r.Use(requestID(), accessLog(), recoverJSON(), securityHeaders())
+	r.NoRoute(func(c *gin.Context) {
+		respondError(c, http.StatusNotFound, codeNotFound, "Alamat tidak ditemukan.", nil)
+	})
 
 	r.GET("/sitemap.xml", s.sitemap)
 	r.GET("/robots.txt", s.robots)
 
 	api := r.Group("/api")
 	api.GET("/health", s.health)
-	api.POST("/inquiries", s.createInquiry)
+	// Nginx auth_request, before every locked page and public API call (FR-121)
+	api.GET("/gate", s.checkGate)
+	api.POST("/inquiries", s.gateHeaders(), s.createInquiry)
 
-	public := api.Group("", publicCache())
+	public := api.Group("", publicCache(), s.gateHeaders())
 	public.GET("/techs", s.listTechs)
 	public.GET("/collabs", s.listCollabs)
 	public.GET("/lab-stats", s.labStats)
@@ -84,6 +105,7 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 	admin.GET("/inquiries/:id", s.adminGetInquiry)
 
 	admin.GET("/audit-log", s.adminListAudit)
+	admin.GET("/settings", s.adminGetSettings)
 
 	mutate := admin.Group("", requireCSRF, s.auditMutations)
 	mutate.POST("/logout", s.logout)
@@ -98,6 +120,7 @@ func NewRouter(cfg config.Config, pool *pgxpool.Pool) (*gin.Engine, error) {
 	mutate.PATCH("/techs/:key", s.adminPatchTech)
 	mutate.PATCH("/collabs/:key", s.adminPatchCollab)
 	mutate.PATCH("/inquiries/:id", s.adminPatchInquiry)
+	mutate.PUT("/settings/password-gate", s.adminPutPasswordGate)
 
 	return r, nil
 }
