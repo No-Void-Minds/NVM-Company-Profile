@@ -2,6 +2,8 @@ module github.com/No-Void-Minds/nvm-company-profile/backend
 
 go 1.27.0
 
+toolchain go1.27.3
+
 require (
 	github.com/gen2brain/webp v0.6.4
 	github.com/gin-gonic/gin v1.12.0
@@ -37,7 +39,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/quic-go/quic-go v0.59.0 // indirect
+	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/richardlehane/mscfb v1.0.9 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
