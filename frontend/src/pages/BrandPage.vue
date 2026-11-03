@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSystemCount } from '@/composables/useSystemCount'
 import AppButton from '@/components/AppButton.vue'
 import KnitDivider from '@/components/KnitDivider.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
@@ -6,6 +7,7 @@ import { pad2 } from '@/composables/site'
 import { useI18n } from '@/i18n'
 
 const { lang, t, to } = useI18n()
+const systemCount = useSystemCount()
 </script>
 
 <template>
@@ -46,6 +48,8 @@ const { lang, t, to } = useI18n()
       <h2 class="spec-label">{{ t.brand.timeline }}</h2>
       <p class="mt-2 text-h2">2021, Bandung</p>
     </div>
-    <AppButton :to="to('/teknologi')" variant="secondary">{{ t.cta.seeSystems }}</AppButton>
+    <AppButton :to="to('/teknologi')" variant="secondary">{{
+      t.cta.seeSystems(systemCount)
+    }}</AppButton>
   </section>
 </template>

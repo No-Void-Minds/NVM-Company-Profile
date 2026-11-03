@@ -5,8 +5,8 @@ export const en: Messages = {
   meta: {
     home: {
       title: 'No Void Minds',
-      description:
-        'No Void Minds builds technical everyday wear from the material out. Meet the 10 material systems, the Core and Graphic lines, and ways to work with us B2B.',
+      description: (count: number | null) =>
+        `No Void Minds builds technical everyday wear from the material out. Meet the ${count ? `${count} ` : ''}material systems, the Core and Graphic lines, and ways to work with us B2B.`,
     },
     brand: {
       title: 'Brand',
@@ -15,8 +15,8 @@ export const en: Messages = {
     },
     tech: {
       title: 'Technology',
-      description:
-        'The index of 10 NVM material systems, from AEZY to FLEXE. Filter by your day, then see the features and fits available.',
+      description: (count: number | null) =>
+        `The index of ${count ? `${count} ` : ''}NVM material systems. Filter by your day, then see the features and fits available.`,
     },
     product: {
       title: 'Products',
@@ -122,7 +122,8 @@ export const en: Messages = {
   },
 
   cta: {
-    seeSystems: 'See the 10 material systems',
+    seeSystems: (count: number | null) =>
+      count ? `See the ${count} material systems` : 'See all material systems',
   },
 
   home: {

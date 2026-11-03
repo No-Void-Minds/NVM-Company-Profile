@@ -261,3 +261,83 @@ test.describe('FR-132 Produk dan Teknologi di dua tema dan dua bahasa', () => {
     }
   }
 })
+
+test.describe('FR-134 jumlah material system dari data', () => {
+  const metaDescription = (page: import('@playwright/test').Page) =>
+    page.locator('meta[name="description"]')
+
+  test('menyembunyikan FLEXE lewat admin mengubah angka di Beranda, Teknologi, dan meta', async ({
+    browser,
+  }) => {
+    const { context, page } = await adminPage(browser)
+    await page.goto('/admin/katalog')
+    await settled(page)
+    const flexe = page.locator('li[data-tech="flexe"]').getByLabel('Tampil di situs')
+    await expect(flexe).toBeChecked()
+    try {
+      await flexe.click()
+      await expect(flexe).not.toBeChecked()
+      await expect(page.locator('li[data-tech="flexe"]').getByText('Tersembunyi')).toBeVisible()
+
+      const visitor = await browser.newContext({
+        baseURL: process.env.E2E_BASE_URL ?? 'http://127.0.0.1:5175',
+      })
+      const pub = await visitor.newPage()
+      await pub.goto('/')
+      await settled(pub)
+      await expect(pub.locator('dd').first()).toHaveText('09')
+      await expect(pub.getByRole('link', { name: 'Lihat 9 material system' })).toBeVisible()
+      await expect(metaDescription(pub)).toHaveAttribute('content', /Kenali 9 material system,/)
+
+      await pub.goto('/teknologi')
+      await settled(pub)
+      await expect(pub.locator('.index-row')).toHaveCount(9)
+      await expect(pub.getByText('09 cocok')).toBeVisible()
+      await expect(metaDescription(pub)).toHaveAttribute(
+        'content',
+        /^Index 9 material system NVM\./,
+      )
+
+      await pub.goto('/en/teknologi')
+      await settled(pub)
+      await expect(metaDescription(pub)).toHaveAttribute(
+        'content',
+        /^The index of 9 NVM material systems\./,
+      )
+      await pub.goto('/en')
+      await settled(pub)
+      await expect(pub.getByRole('link', { name: 'See the 9 material systems' })).toBeVisible()
+      await visitor.close()
+    } finally {
+      await page.goto('/admin/katalog')
+      await settled(page)
+      if (!(await flexe.isChecked())) await flexe.click()
+      await expect(flexe).toBeChecked()
+      await context.close()
+    }
+  })
+
+  test('angka kembali 10 setelah FLEXE tampil lagi', async ({ page }) => {
+    await page.goto('/')
+    await settled(page)
+    await expect(page.locator('dd').first()).toHaveText('10')
+    await expect(page.getByRole('link', { name: 'Lihat 10 material system' })).toBeVisible()
+    await expect(metaDescription(page)).toHaveAttribute('content', /Kenali 10 material system,/)
+  })
+
+  // The static HTML cannot know a count the admin may change later, so it has none
+  test('HTML prerender tanpa angka tetap', async ({ request }) => {
+    test.skip(!process.env.E2E_BASE_URL, 'Prerender hanya ada di build produksi')
+    for (const [path, texts] of [
+      ['/', ['Kenali material system NVM,', 'Lihat semua material system']],
+      ['/teknologi', ['Index material system NVM.']],
+      ['/en', ['Meet the material systems,', 'See all material systems']],
+      ['/en/teknologi', ['The index of NVM material systems.']],
+    ] as const) {
+      const html = await (await request.get(path)).text()
+      for (const text of texts) expect(html, `${path}: ${text}`).toContain(text)
+      expect(html, path).not.toMatch(/\d+ (NVM )?material systems?/)
+      expect(html, path).not.toMatch(/AEZY (sampai|to) /)
+    }
+  })
+})

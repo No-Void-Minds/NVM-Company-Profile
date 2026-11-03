@@ -24,7 +24,11 @@ export function fullTitle(title: string): string {
   return title === SITE_NAME ? title : `${title} | ${SITE_NAME}`
 }
 
-export function routeHead(route: RouteLocationNormalizedLoaded): HeadMeta {
+// systemCount fills the count into descriptions that mention it, null keeps them count-free.
+export function routeHead(
+  route: RouteLocationNormalizedLoaded,
+  systemCount: number | null = null,
+): HeadMeta {
   const lang = langFromPath(route.path)
   const page = route.meta.page
   if (!page) {
@@ -44,8 +48,11 @@ export function routeHead(route: RouteLocationNormalizedLoaded): HeadMeta {
       gatePath: localePath('/password', lang),
     }
   }
+  const meta = messages(lang).meta[page]
   return {
-    ...messages(lang).meta[page],
+    title: meta.title,
+    description:
+      typeof meta.description === 'function' ? meta.description(systemCount) : meta.description,
     lang,
     alternates:
       page === 'notFound' ? null : { id: localePath(base, 'id'), en: localePath(base, 'en') },

@@ -5,8 +5,9 @@ export const id = {
   meta: {
     home: {
       title: 'No Void Minds',
-      description:
-        'No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 10 material system, lini Core dan Graphic, serta peluang kerja sama B2B.',
+      // count is null in prerendered HTML, see useSystemCount
+      description: (count: number | null) =>
+        `No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali ${count ? `${count} material system` : 'material system NVM'}, lini Core dan Graphic, serta peluang kerja sama B2B.`,
     },
     brand: {
       title: 'Brand',
@@ -15,8 +16,8 @@ export const id = {
     },
     tech: {
       title: 'Teknologi',
-      description:
-        'Index 10 material system NVM, dari AEZY sampai FLEXE. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia.',
+      description: (count: number | null) =>
+        `Index ${count ? `${count} ` : ''}material system NVM. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia.`,
     },
     product: {
       title: 'Produk',
@@ -124,7 +125,8 @@ export const id = {
   },
 
   cta: {
-    seeSystems: 'Lihat 10 material system',
+    seeSystems: (count: number | null) =>
+      count ? `Lihat ${count} material system` : 'Lihat semua material system',
   },
 
   home: {

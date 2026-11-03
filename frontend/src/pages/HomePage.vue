@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSystemCount } from '@/composables/useSystemCount'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import AppButton from '@/components/AppButton.vue'
@@ -34,6 +35,7 @@ const galleryPreview = computed(() => (gallery.data.value ?? []).slice(0, 4))
 const testimonialPreview = computed(() => (testimonials.data.value ?? []).slice(0, 3))
 
 const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
+const systemCount = useSystemCount()
 </script>
 
 <template>
@@ -44,7 +46,7 @@ const SOURCE_LABEL = { shopee: 'Shopee', tiktok_shop: 'TikTok Shop' }
       <h1 class="mt-2 text-h1">Fabric first.</h1>
       <p class="mt-3 max-w-[44ch] bg-bg text-h3">{{ t.home.lead }}</p>
       <div class="pointer-events-auto mt-4 flex flex-wrap gap-2">
-        <AppButton :to="to('/teknologi')">{{ t.cta.seeSystems }}</AppButton>
+        <AppButton :to="to('/teknologi')">{{ t.cta.seeSystems(systemCount) }}</AppButton>
         <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
       </div>
     </div>

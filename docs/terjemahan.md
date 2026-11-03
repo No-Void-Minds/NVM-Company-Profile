@@ -11,11 +11,11 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | Kunci | Teks EN | Teks ID |
 |---|---|---|
 | `meta.home.title` | No Void Minds | No Void Minds |
-| `meta.home.description` | No Void Minds builds technical everyday wear from the material out. Meet the 10 material systems, the Core and Graphic lines, and ways to work with us B2B. | No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali 10 material system, lini Core dan Graphic, serta peluang kerja sama B2B. |
+| `meta.home.description` | No Void Minds builds technical everyday wear from the material out. Meet the {count} material systems, the Core and Graphic lines, and ways to work with us B2B. | No Void Minds membangun technical everyday wear dari materialnya dulu. Kenali {count} material system, lini Core dan Graphic, serta peluang kerja sama B2B. |
 | `meta.brand.title` | Brand | Brand |
 | `meta.brand.description` | How No Void Minds works: engineered to perfection, fabric first, and the three stages of making a material system. Founded in 2021 in Bandung. | Cara No Void Minds bekerja: engineered to perfection, fabric first, dan tiga tahap membuat sebuah material system. Berdiri 2021 di Bandung. |
 | `meta.tech.title` | Technology | Teknologi |
-| `meta.tech.description` | The index of 10 NVM material systems, from AEZY to FLEXE. Filter by your day, then see the features and fits available. | Index 10 material system NVM, dari AEZY sampai FLEXE. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia. |
+| `meta.tech.description` | The index of {count} NVM material systems. Filter by your day, then see the features and fits available. | Index {count} material system NVM. Saring berdasarkan kebutuhan harianmu, lalu lihat fitur dan fit yang tersedia. |
 | `meta.product.title` | Products | Produk |
 | `meta.product.description` | The difference between the Core and Graphic lines. Core is chosen by tech and fit, Graphic from the list of licensed character collabs. | Beda lini Core dan Graphic. Core dipilih dari tech dan fit, Graphic dari daftar collab karakter berlisensi. |
 | `meta.b2b.title` | B2B | B2B |
@@ -110,7 +110,7 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 
 | Kunci | Teks EN | Teks ID |
 |---|---|---|
-| `cta.seeSystems` | See the 10 material systems | Lihat 10 material system |
+| `cta.seeSystems` | See the {count} material systems | Lihat {count} material system |
 
 ## home
 
