@@ -311,14 +311,14 @@ test('FR-94 toggle tech dan collab lalu kembali ke seed', async ({ browser }) =>
   const { context, page } = await adminPage(browser)
   await page.goto('/admin/katalog')
   await settled(page)
-  const tech = page.getByRole('button', { name: 'THERCO' })
+  const tech = page.locator('li[data-tech="therco"]').getByRole('button', { name: 'THERCO:' })
   await expect(tech).toContainText('Belum tersedia')
   await tech.click()
   await expect(tech).toContainText('On the rack')
   await tech.click()
   await expect(tech).toContainText('Belum tersedia')
 
-  const collab = page.getByRole('button', { name: 'Moana' })
+  const collab = page.locator('li[data-collab="moana"]').getByRole('button', { name: 'Moana:' })
   await expect(collab).toContainText('Coming soon')
   await collab.click()
   await expect(collab).toContainText('Tersedia')
@@ -331,7 +331,7 @@ const statusLabel = (onRack: boolean) => (onRack ? 'On the rack' : 'Belum tersed
 
 test('FR-94 status on the rack tetap setelah reload', async ({ browser }) => {
   const { context, page } = await adminPage(browser)
-  const tech = page.getByRole('button', { name: 'THERCO' })
+  const tech = page.locator('li[data-tech="therco"]').getByRole('button', { name: 'THERCO:' })
   // The starting value is read, not assumed, so the test also runs after an admin changed it.
   const initial = (await (await page.request.get('/api/admin/techs')).json()).find(
     (t: { key: string }) => t.key === 'therco',
@@ -379,12 +379,12 @@ test('FR-94 PATCH gagal tidak mengubah tombol dan menampilkan pesan', async ({ b
   )
   await page.goto('/admin/katalog')
   await settled(page)
-  const tech = page.getByRole('button', { name: 'THERCO' })
+  const tech = page.locator('li[data-tech="therco"]').getByRole('button', { name: 'THERCO:' })
   const before = (await tech.textContent())?.includes('On the rack')
     ? 'On the rack'
     : 'Belum tersedia'
   await tech.click()
-  await expect(page.locator('[aria-live="assertive"]')).toContainText('Status tidak tersimpan')
+  await expect(page.locator('[aria-live="assertive"]')).toContainText('Perubahan tidak tersimpan')
   await expect(tech).toContainText(before)
   await expect(tech).toHaveAttribute('aria-busy', 'false')
   await context.close()

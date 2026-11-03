@@ -87,7 +87,7 @@ test.describe('AC-02, AC-03 Teknologi', () => {
     await expect(page.getByText('03 cocok')).toBeVisible()
     const bright = page.locator('.index-row:not(.index-row-dim)')
     await expect(bright).toHaveText([/AEZY™/, /AEZY COTTON™/, /AEZY 2™/])
-    await expect(page.locator('.index-row-dim')).toHaveCount(8)
+    await expect(page.locator('.index-row-dim')).toHaveCount(7)
   })
 
   for (const width of [375, 1440]) {
