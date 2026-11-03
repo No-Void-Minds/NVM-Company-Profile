@@ -108,6 +108,11 @@ createServer(async (req, res) => {
       },
     )
     upstream.on('error', () => {
+      // The backend can drop mid-response (a restart between suites), headers are then gone
+      if (res.headersSent) {
+        res.destroy()
+        return
+      }
       res.writeHead(502, { 'Content-Type': 'text/html' })
       res.end('<h1>502 Bad Gateway</h1>')
     })

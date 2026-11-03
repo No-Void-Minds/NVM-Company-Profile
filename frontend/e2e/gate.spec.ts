@@ -1,5 +1,17 @@
+import AxeBuilder from '@axe-core/playwright'
 import type { APIRequestContext, Page } from '@playwright/test'
-import { adminPage, adminPassword, expect, settled, test } from './support'
+import {
+  adminPage,
+  adminPassword,
+  brightSignalUses,
+  expect,
+  horizontalOverflow,
+  settled,
+  smallTargets,
+  test,
+  THEMES,
+  useTheme,
+} from './support'
 
 // The real lock needs Nginx, or serve-dist which copies it. The dev server only has the page.
 const PROD = Boolean(process.env.E2E_BASE_URL)
@@ -85,6 +97,56 @@ test.describe('FR-123 halaman password', () => {
     await settled(page)
     await fillLogin(page, adminPassword())
     await expect(page).toHaveURL(/\/en\/teknologi#lab-curflex$/)
+  })
+})
+
+test.describe('FR-123 halaman password di dua tema dan dua bahasa', () => {
+  for (const theme of THEMES) {
+    for (const path of ['/password', '/en/password']) {
+      test(`${path} tema ${theme}: axe, 320 px, target 44 px`, async ({ page }) => {
+        await useTheme(page, theme)
+        const problems: string[] = []
+        for (const width of [320, 1440]) {
+          await page.setViewportSize({ width, height: 800 })
+          await page.goto(path)
+          await settled(page)
+          // Light is the default and sets no attribute, so the dataset is read directly
+          expect(await page.evaluate(() => document.documentElement.dataset.theme ?? 'light')).toBe(
+            theme,
+          )
+          const overflow = await horizontalOverflow(page)
+          if (overflow > 0) problems.push(`${width}: overflow ${overflow}px`)
+          for (const small of await smallTargets(page)) problems.push(`${width}: kecil ${small}`)
+          if (theme === 'light') {
+            for (const use of await brightSignalUses(page))
+              problems.push(`${width}: #FF5A36 ${use}`)
+          }
+          const axe = await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+            .analyze()
+          for (const v of axe.violations)
+            problems.push(`${width}: axe ${v.id} ${v.nodes[0]?.target.join(' ')}`)
+        }
+        expect(problems).toEqual([])
+      })
+    }
+  }
+
+  test('keyboard: Tab ke username, password, tombol, Enter mengirim', async ({ page }) => {
+    await page.route('**/api/admin/login', (route) =>
+      route.fulfill({ status: 401, json: { error: { code: 'UNAUTHORIZED', message: 'x' } } }),
+    )
+    await page.goto('/password')
+    await settled(page)
+    await page.getByLabel('Username').focus()
+    await page.keyboard.type('uji-admin')
+    await page.keyboard.press('Tab')
+    await expect(page.getByLabel('Password')).toBeFocused()
+    await page.keyboard.type('salah-sekali')
+    await page.keyboard.press('Enter')
+    await expect(page.locator('[aria-live="assertive"]')).toContainText(
+      'Username atau password salah',
+    )
   })
 })
 

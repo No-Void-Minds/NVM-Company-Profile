@@ -271,21 +271,23 @@ test.describe('AC-22 swatch', () => {
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto('/teknologi#lab-antshell')
       await settled(page)
-      const colors = await page.locator('.tech-panel figure canvas').evaluate((el) => {
-        const canvas = el as HTMLCanvasElement
-        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-        // The middle of the shell band, 10 to 40 percent of the height
-        const { data } = ctx.getImageData(
-          Math.round(canvas.width * 0.2),
-          Math.round(canvas.height * 0.15),
-          Math.round(canvas.width * 0.6),
-          Math.round(canvas.height * 0.2),
-        )
-        const seen = new Set<string>()
-        for (let i = 0; i < data.length; i += 4)
-          seen.add(`${data[i]},${data[i + 1]},${data[i + 2]}`)
-        return seen.size
-      })
+      const colors = await page
+        .locator('.tech-panel figure[data-swatch-host] canvas')
+        .evaluate((el) => {
+          const canvas = el as HTMLCanvasElement
+          const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+          // The middle of the shell band, 10 to 40 percent of the height
+          const { data } = ctx.getImageData(
+            Math.round(canvas.width * 0.2),
+            Math.round(canvas.height * 0.15),
+            Math.round(canvas.width * 0.6),
+            Math.round(canvas.height * 0.2),
+          )
+          const seen = new Set<string>()
+          for (let i = 0; i < data.length; i += 4)
+            seen.add(`${data[i]},${data[i + 1]},${data[i + 2]}`)
+          return seen.size
+        })
       expect(colors).toBeGreaterThan(2)
     })
   }

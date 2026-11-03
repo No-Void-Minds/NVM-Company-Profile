@@ -72,6 +72,8 @@ const EXPECTED_RESOURCE_ERRORS: Array<[RegExp, number]> = [
   [/\/api\/size-charts\//, 404],
   [/\/api\/admin\/me$/, 401],
   [/\/api\/admin\/login$/, 401],
+  // The password page turns the login rate limit into a message (FR-123)
+  [/\/api\/admin\/login$/, 429],
   [/\/api\/inquiries$/, 429],
 ]
 
