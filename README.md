@@ -116,18 +116,22 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
 Situs dibuka lewat Cloudflare Tunnel yang sudah berjalan sebagai service sistem di `nvm-server` (bukan service di compose). Tunnel meneruskan ke `http://localhost:8092`.
 
-DNS `novoidminds.id` dikelola di Cloudflare sejak 2 November 2026. Record di GoDaddy hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
+Domain compro adalah `novoidminds.com` sejak 3 November 2026. `novoidminds.id` sekarang dipakai toko Shopify dan bukan alamat compro.
+
+DNS `novoidminds.com` dan `novoidminds.id` sama-sama dikelola di Cloudflare. Record lama di GoDaddy hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
+
+Zona `novoidminds.com` juga memuat record email Microsoft 365: MX, SPF, DMARC (`p=reject`), autodiscover, dan record pendukung lainnya. Record itu tidak boleh dihapus dan tidak boleh di-proxy (harus DNS only, awan abu-abu). Saat menambah route tunnel atau redirect, ubah hanya record `novoidminds.com` (apex) dan `www`.
 
 1. Isi `deploy/.env` (lihat `deploy/.env.example`):
 
    ```bash
-   PUBLIC_BASE_URL=https://novoidminds.id
+   PUBLIC_BASE_URL=https://novoidminds.com
    COOKIE_SECURE=true
    COMPRO_SUBNET=172.30.92.0/24
    COMPRO_GATEWAY_IP=172.30.92.1
    ```
 
-   Dengan `COOKIE_SECURE=true`, login admin hanya bisa lewat `https://novoidminds.id/admin`. Login lewat `http://<IP VM>:8092` tidak bisa lagi, karena browser tidak mengirim cookie Secure lewat HTTP.
+   Dengan `COOKIE_SECURE=true`, login admin hanya bisa lewat `https://novoidminds.com/admin`. Login lewat `http://<IP VM>:8092` tidak bisa lagi, karena browser tidak mengirim cookie Secure lewat HTTP.
 
 2. Nyalakan ulang. Gateway jaringan `compro` kini ditetapkan di compose, jadi jaringan lama perlu dibuat ulang sekali dengan `down` lalu `up`:
 
@@ -136,9 +140,9 @@ DNS `novoidminds.id` dikelola di Cloudflare sejak 2 November 2026. Record di GoD
    docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
    ```
 
-3. Di dashboard Cloudflare (Zero Trust, Networks, Tunnels), buka tunnel `nvm-server` (dulu `NVM-ERP-Tunnel`), lalu tambahkan published application route: hostname `novoidminds.id`, service `http://localhost:8092`.
+3. Di dashboard Cloudflare (Zero Trust, Networks, Tunnels), buka tunnel `nvm-server` (dulu `NVM-ERP-Tunnel`), lalu tambahkan published application route: hostname `novoidminds.com`, service `http://localhost:8092`.
 
-4. Arahkan `www.novoidminds.id` ke `https://novoidminds.id` lewat Redirect Rules di Cloudflare (301, path dan query ikut).
+4. Arahkan `www.novoidminds.com` ke `https://novoidminds.com` lewat Redirect Rules di Cloudflare (301, path dan query ikut).
 
 IP pengunjung: request dari tunnel masuk ke container frontend dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`). Nginx hanya memercayai header `CF-Connecting-IP` dari alamat itu, lalu meneruskannya ke backend sebagai `X-Real-IP` dan `X-Forwarded-For`. Request LAN langsung ke port 8092 tetap memakai alamat aslinya. Cek di VM setelah deploy:
 
@@ -238,7 +242,7 @@ post    # gate mati: 201, sampai ke backend
 # Nyalakan lagi bila situs memang masih harus terkunci.
 ```
 
-Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.id/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
+Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.com/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
 
 ## Pulihkan dari backup
 
