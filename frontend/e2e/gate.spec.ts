@@ -236,7 +236,12 @@ test.describe('FR-121, FR-122 situs terkunci (build produksi)', () => {
     expect((await request.get('/sitemap.xml')).status()).toBe(404)
   })
 
-  test('alamat terkunci menampilkan password, login membuka halaman itu', async ({ page }) => {
+  test('alamat terkunci menampilkan password, login membuka halaman itu', async ({
+    page,
+    allowFailedRequests,
+  }) => {
+    // The locked page itself answers 401 by design (FR-121), and Chrome logs every 401
+    allowFailedRequests.value = true
     const response = await page.goto('/teknologi#lab-formlock')
     expect(response?.status()).toBe(401)
     await settled(page)
@@ -259,7 +264,9 @@ test.describe('FR-121, FR-122 situs terkunci (build produksi)', () => {
     expect(api.headers()['cache-control']).toBe('private, no-store')
   })
 
-  test('alamat Inggris memakai halaman password Inggris', async ({ page }) => {
+  test('alamat Inggris memakai halaman password Inggris', async ({ page, allowFailedRequests }) => {
+    // The locked page itself answers 401 by design (FR-121), and Chrome logs every 401
+    allowFailedRequests.value = true
     await page.goto('/en/teknologi')
     await settled(page)
     await expect(page).toHaveURL(/\/en\/password\?next=%2Fen%2Fteknologi$/)

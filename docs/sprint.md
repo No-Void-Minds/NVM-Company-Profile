@@ -31,7 +31,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 15 | Identitas: Swatch, Re-weave, Ruler, strip swatch Beranda, grid ukur | M | selesai |
 | 16 | Pengujian kedua tema dan kedua bahasa, AC-01 sampai AC-23, Delivery Gate | M | selesai |
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
-| 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | jalan |
+| 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | selesai |
 
 ---
 
@@ -384,6 +384,8 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Keputusan: API publik yang terkunci menjawab JSON 401 `UNAUTHORIZED`, bukan HTML. Header no-store dan noindex untuk API dipasang backend, untuk HTML oleh Nginx lewat header `X-Gate` dari `/api/gate`, jadi pengunjung yang sudah login pun tidak membuat versi terbuka masuk cache.
 - Keputusan: subrequest gate memakai `proxy_method GET`, karena tanpa itu POST inquiry akan mengirim POST ke `/api/gate`.
 - Keputusan: `newServer` dan `routes` dipisah dari `NewRouter`, dan pencarian sesi bisa diganti, agar gate diuji tanpa database.
-- Hasil: `go test` lolos (gate 5 kombinasi, fail closed, perubahan seketika, PUT butuh sesi dan CSRF, robots dan sitemap, header, migrasi 0004). Vitest 68 lolos (termasuk 18 kasus `safeNext`). `check.sh` dan build 22 halaman lolos.
-- Belum diverifikasi: Playwright (`gate.spec.ts`, AC-22 yang dipindah ke Produk, cek ANTSHELL) belum jalan, karena tunnel database mati dan migrasi 0004 belum ada di `nvm_compro_test`. Nginx asli belum diuji, perintah curl ada di README.
-- Menunggu user: tunnel database, migrasi 0004 ke `nvm_compro_test`, lalu Playwright. Deploy produksi sesuai README bagian Halaman password.
+- Hasil: `go test` lolos (gate 5 kombinasi, fail closed, perubahan seketika, PUT butuh sesi dan CSRF, robots dan sitemap, header, migrasi 0004). Vitest lolos, termasuk 30 kasus `safeNext`. `check.sh` dan build 22 halaman lolos. Playwright di dev: 117 lolos, 27 dilewati karena khusus build produksi. Di build produksi lewat `serve-dist` yang meniru gate Nginx: 144/144.
+- Diperbaiki saat pengujian: `safeNext` meloloskan bentuk ter-encode (`/%5Cevil.com`, `/%2F%2Fevil.com`, encode ganda, tab dan null ter-encode); kini setiap lapis decoding diperiksa. `check.sh` memastikan subrequest gate tanpa body. `serve-dist` tidak lagi mati saat backend putus di tengah respons.
+- Catatan: run produksi pertama gagal karena timeout, saat ping database lewat tunnel mencapai batas 3 detik. Setelah tunnel direstart (health 8 sampai 149 ms) semua lolos. `scripts/dev-db-tunnel.sh` kini memakai ServerAliveInterval, ServerAliveCountMax, dan ExitOnForwardFailure, agar tunnel yang putus langsung berhenti.
+- Belum diverifikasi: Nginx asli (binary tidak bisa dipakai di PC ini). Perintah curl untuk VM ada di README bagian Halaman password, termasuk POST inquiry saat gate aktif dan mati.
+- Menunggu user: deploy produksi sesuai README bagian Halaman password, lalu curl di VM. Setelah migrasi 0004 situs langsung terkunci sampai dimatikan di `/admin/pengaturan`.
