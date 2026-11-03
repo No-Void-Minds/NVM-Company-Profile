@@ -275,7 +275,11 @@ test.describe('FR-134 jumlah material system dari data', () => {
     const flexe = page.locator('li[data-tech="flexe"]').getByLabel('Tampil di situs')
     await expect(flexe).toBeChecked()
     try {
+      const saved = page.waitForResponse(
+        (r) => r.url().endsWith('/api/admin/techs/flexe') && r.request().method() === 'PATCH',
+      )
       await flexe.click()
+      expect((await saved).ok()).toBe(true)
       await expect(flexe).not.toBeChecked()
       await expect(page.locator('li[data-tech="flexe"]').getByText('Tersembunyi')).toBeVisible()
 
@@ -309,10 +313,13 @@ test.describe('FR-134 jumlah material system dari data', () => {
       await expect(pub.getByRole('link', { name: 'See the 9 material systems' })).toBeVisible()
       await visitor.close()
     } finally {
-      await page.goto('/admin/katalog')
-      await settled(page)
-      if (!(await flexe.isChecked())) await flexe.click()
-      await expect(flexe).toBeChecked()
+      // Through the API and awaited: a click is not saved yet when the context closes
+      const csrf = (await (await page.request.get('/api/admin/me')).json()).csrf_token
+      const res = await page.request.patch('/api/admin/techs/flexe', {
+        headers: { 'X-CSRF-Token': csrf },
+        data: { visible: true },
+      })
+      expect(res.ok()).toBe(true)
       await context.close()
     }
   })

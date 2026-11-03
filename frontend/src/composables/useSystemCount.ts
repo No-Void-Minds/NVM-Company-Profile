@@ -8,7 +8,9 @@ const count = ref<number | null>(null)
 let loading: Promise<void> | null = null
 
 export function useSystemCount() {
-  if (!import.meta.env.SSR && !loading) {
+  // The password page shows no count, and while locked the public API would only answer 401
+  const passwordPage = !import.meta.env.SSR && document.querySelector('meta[name="nvm-gate"]')
+  if (!import.meta.env.SSR && !loading && !passwordPage) {
     loading = api
       .labStats()
       .then((stats) => {

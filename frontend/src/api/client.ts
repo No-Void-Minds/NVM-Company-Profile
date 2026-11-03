@@ -75,8 +75,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (response.ok) return (await response.json()) as T
 
   const failure = await parseFailure(response)
-  // Login reports wrong passwords as 401 too, and that must stay on the form.
-  if (response.status === 401 && path !== '/api/admin/login' && path !== '/api/admin/me') {
+  // Only an expired admin session goes to the admin login. Login reports wrong passwords as
+  // 401 and must stay on the form, and a public API answers 401 while the site is locked.
+  if (
+    response.status === 401 &&
+    path.startsWith('/api/admin/') &&
+    path !== '/api/admin/login' &&
+    path !== '/api/admin/me'
+  ) {
     onUnauthorized?.()
   }
   throw failure
