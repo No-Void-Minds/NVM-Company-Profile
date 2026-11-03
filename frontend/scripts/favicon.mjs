@@ -9,10 +9,18 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SHARP = 'sharp@0.34.4'
-// Tokens --fg and --bg of the light theme. A light logo sits on the dark one and the
-// other way round, so the mark stays visible on both light and dark browser tabs.
+// Tokens --fg and --bg of the light theme. On the app icons a light logo sits on the
+// dark one and the other way round. iOS fills transparency with black, so those keep a box.
 const DARK = '#111317'
 const LIGHT = '#F3F2EE'
+// Tab icons stay transparent. A thin contour in the opposite tone (--surface or --fg)
+// keeps the mark visible on light and dark tab strips alike.
+const OUTLINE_LIGHT = '#FFFFFF'
+// Contour width as a share of the icon size: 1 px at 32
+const OUTLINE = 1 / 32
+// Tab icons are drawn this many times larger, then scaled down, so the contour of
+// half a pixel at 16 comes out as a soft edge instead of rounding to 0 or 1
+const SUPERSAMPLE = 8
 // Share of the square the logo may fill, the rest is breathing room
 const FILL = 0.8
 
@@ -39,27 +47,63 @@ try {
 async function build(sharp) {
   const logo = sharp(source).ensureAlpha().trim({ threshold: 0 })
   const { data, info } = await logo.clone().raw().toBuffer({ resolveWithObject: true })
-  const background = luminance(data) > 0.5 ? DARK : LIGHT
-  console.log(`sumber ${info.width}x${info.height} setelah trim, latar ${background}`)
+  const light = luminance(data) > 0.5
+  const background = light ? DARK : LIGHT
+  const outline = light ? DARK : OUTLINE_LIGHT
+  console.log(
+    `sumber ${info.width}x${info.height} setelah trim, latar ${background}, garis ${outline}`,
+  )
   const trimmed = await logo.png().toBuffer()
 
-  async function square(size) {
+  function mark(size) {
     const inner = Math.round(size * FILL)
-    const mark = await sharp(trimmed)
+    return sharp(trimmed)
       .resize(inner, inner, {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 0 },
         kernel: 'lanczos3',
       })
       .toBuffer()
+  }
+
+  async function square(size) {
     return sharp({ create: { width: size, height: size, channels: 4, background } })
-      .composite([{ input: mark, gravity: 'center' }])
+      .composite([{ input: await mark(size), gravity: 'center' }])
       .png({ compressionLevel: 9 })
       .toBuffer()
   }
 
+  // Transparent, with a contour that follows the shape of the logo
+  async function tab(size) {
+    const big = size * SUPERSAMPLE
+    const clear = { r: 0, g: 0, b: 0, alpha: 0 }
+    const placed = await sharp({
+      create: { width: big, height: big, channels: 4, background: clear },
+    })
+      .composite([{ input: await mark(big), gravity: 'center' }])
+      .raw()
+      .toBuffer()
+    const alpha = Buffer.alloc(big * big)
+    for (let i = 0; i < alpha.length; i++) alpha[i] = placed[i * 4 + 3]
+    const grown = dilate(alpha, big, size * OUTLINE * SUPERSAMPLE)
+    const contour = await sharp({
+      create: { width: big, height: big, channels: 3, background: outline },
+    })
+      .joinChannel(grown, { raw: { width: big, height: big, channels: 1 } })
+      .png()
+      .toBuffer()
+    const drawn = await sharp(contour)
+      .composite([{ input: placed, raw: { width: big, height: big, channels: 4 } }])
+      .png()
+      .toBuffer()
+    return sharp(drawn)
+      .resize(size, size, { kernel: 'lanczos3' })
+      .png({ compressionLevel: 9 })
+      .toBuffer()
+  }
+
+  writeFileSync(join(out, 'favicon-32.png'), await tab(32))
   const files = {
-    'favicon-32.png': 32,
     'apple-touch-icon.png': 180,
     'icon-192.png': 192,
     'icon-512.png': 512,
@@ -69,9 +113,37 @@ async function build(sharp) {
   }
   writeFileSync(
     join(out, 'favicon.ico'),
-    ico(await Promise.all([16, 32, 48].map(square)), [16, 32, 48]),
+    ico(await Promise.all([16, 32, 48].map(tab)), [16, 32, 48]),
   )
-  console.log(`favicon.ico, ${Object.keys(files).join(', ')} ditulis ke public/`)
+  console.log(`favicon.ico, favicon-32.png, ${Object.keys(files).join(', ')} ditulis ke public/`)
+}
+
+// Grows the opaque area by radius pixels in every direction (a round brush), so the
+// contour keeps the curves of the logo instead of turning into a box
+function dilate(alpha, width, radius) {
+  const offsets = []
+  const r = Math.ceil(radius)
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy <= radius * radius) offsets.push([dx, dy])
+    }
+  }
+  const out = Buffer.alloc(alpha.length)
+  for (let y = 0; y < width; y++) {
+    for (let x = 0; x < width; x++) {
+      let max = 0
+      for (const [dx, dy] of offsets) {
+        const sx = x + dx
+        const sy = y + dy
+        if (sx < 0 || sy < 0 || sx >= width || sy >= width) continue
+        const a = alpha[sy * width + sx]
+        if (a > max) max = a
+        if (max === 255) break
+      }
+      out[y * width + x] = max
+    }
+  }
+  return out
 }
 
 // Mean brightness of the visible pixels, weighted by their opacity
