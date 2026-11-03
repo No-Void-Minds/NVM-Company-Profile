@@ -269,6 +269,24 @@ test.describe('FR-121, FR-122 situs terkunci (build produksi)', () => {
     expect(api.headers()['cache-control']).toBe('private, no-store')
   })
 
+  test('dari admin, Lihat situs membuka Beranda tanpa diminta password lagi', async ({
+    browser,
+  }) => {
+    const { context, page } = await adminPage(browser)
+    await page.goto('/admin')
+    await settled(page)
+    const [response] = await Promise.all([
+      page.waitForResponse((res) => new URL(res.url()).pathname === '/'),
+      page.getByRole('link', { name: 'Lihat situs' }).click(),
+    ])
+    expect(response.status()).toBe(200)
+    await settled(page)
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.locator('meta[name="nvm-gate"]')).toHaveCount(0)
+    await expect(page.getByRole('heading', { level: 1 })).not.toHaveText('Situs sedang disiapkan')
+    await context.close()
+  })
+
   test('alamat Inggris memakai halaman password Inggris', async ({ page, allowFailedRequests }) => {
     // The locked page itself answers 401 by design (FR-121), and Chrome logs every 401
     allowFailedRequests.value = true

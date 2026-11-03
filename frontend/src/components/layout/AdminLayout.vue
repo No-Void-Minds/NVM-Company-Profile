@@ -34,7 +34,18 @@ async function logout() {
   <a href="#admin-main" class="skip-link">Lewati ke konten</a>
   <header class="border-b border-line bg-surface">
     <div class="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-1">
-      <p class="spec-label">Admin NVM</p>
+      <div class="flex items-center gap-x-2">
+        <RouterLink
+          to="/admin"
+          active-class=""
+          exact-active-class=""
+          class="spec-label inline-flex min-h-[44px] items-center active:text-fg"
+        >
+          Admin NVM
+        </RouterLink>
+        <!-- A plain link, not RouterLink: a full load lets Nginx check the gate for "/" -->
+        <a href="/" class="text-link border-l border-line pl-2">Lihat situs</a>
+      </div>
       <nav aria-label="Menu admin">
         <ul class="flex flex-wrap gap-x-2">
           <li v-for="item in MENU" :key="item.to">
