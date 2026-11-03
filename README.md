@@ -203,6 +203,12 @@ code $B/api/health                                          # 200
 code $B/password                                            # 200
 code $B/en/password                                         # 200
 
+# Favicon, dengan cache 30 hari
+for f in favicon.ico favicon-32.png apple-touch-icon.png icon-192.png icon-512.png; do
+  echo "$f $(code $B/$f)"                                   # 200
+done
+curl -sI $B/favicon-32.png | grep -i '^cache-control:'      # public, max-age=2592000
+
 # Robots dan sitemap
 curl -s $B/robots.txt                                       # User-agent: * / Disallow: /
 code $B/sitemap.xml                                         # 404

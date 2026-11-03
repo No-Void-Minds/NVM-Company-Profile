@@ -225,6 +225,11 @@ test.describe('FR-121, FR-122 situs terkunci (build produksi)', () => {
     for (const path of [
       '/fonts/D-DIN.woff2',
       '/brand/nvm-logo.png',
+      '/favicon.ico',
+      '/favicon-32.png',
+      '/apple-touch-icon.png',
+      '/icon-192.png',
+      '/icon-512.png',
       '/api/health',
       '/admin/login',
     ]) {

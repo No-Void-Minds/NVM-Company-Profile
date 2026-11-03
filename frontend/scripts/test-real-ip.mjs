@@ -65,6 +65,12 @@ check(
 )
 check('gate: ke /api/gate', /proxy_pass http:\/\/compro_backend\/api\/gate;/.test(gateBlock), true)
 
+// The password page needs its tab icon while everything else is locked
+const faviconBlock = conf.match(/location ~ \^\/\(favicon[^{]*\{([^}]*)\}/)?.[1] ?? ''
+check('favicon: lokasi sendiri', faviconBlock !== '', true)
+check('favicon: tanpa auth_request', /auth_request/.test(faviconBlock), false)
+check('favicon: cache panjang', /Cache-Control "public, max-age=2592000"/.test(faviconBlock), true)
+
 const nginx = process.env.NGINX_BIN
 if (!nginx) {
   console.log('NGINX_BIN tidak diisi, uji perilaku dilewati')

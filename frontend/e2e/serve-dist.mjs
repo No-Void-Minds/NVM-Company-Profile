@@ -25,6 +25,7 @@ const TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.png': 'image/png',
+  '.ico': 'image/x-icon',
   '.ttf': 'font/ttf',
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',
@@ -48,6 +49,7 @@ function resolve(pathname) {
 }
 
 // Mirrors the auth_request locations in nginx.conf (FR-121)
+const FAVICON = /^\/(favicon\.ico|favicon-32\.png|apple-touch-icon\.png|icon-(192|512)\.png)$/
 const OPEN =
   /^\/(assets|fonts)\/|^\/brand\/nvm-logo\.png$|^\/admin|^\/api\/(health|gate)$|^\/api\/admin\/|^\/(sitemap\.xml|robots\.txt)$|^\/(en\/)?password(\/|\/index\.html)?$/
 const GATED_API = /^\/(api|media)\//
@@ -74,7 +76,11 @@ function checkGate(req) {
 
 function cacheControl(pathname) {
   if (pathname.startsWith('/assets/')) return 'public, max-age=31536000, immutable'
-  if (pathname.startsWith('/fonts/') || pathname === '/brand/nvm-logo.png') {
+  if (
+    pathname.startsWith('/fonts/') ||
+    pathname === '/brand/nvm-logo.png' ||
+    FAVICON.test(pathname)
+  ) {
     return 'public, max-age=2592000'
   }
   return 'no-cache'
@@ -84,7 +90,7 @@ createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost')
   const locked = { 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex' }
   let gate = { status: 204, state: 'off' }
-  if (!OPEN.test(pathname)) {
+  if (!OPEN.test(pathname) && !FAVICON.test(pathname)) {
     gate = await checkGate(req)
     if (gate.status === 401 && GATED_API.test(pathname)) {
       res.writeHead(401, { ...locked, 'Content-Type': 'application/json' })
