@@ -220,6 +220,18 @@ rm /tmp/jar
 
 Setelah halaman password dimatikan di `/admin/pengaturan`: `code $B/teknologi` menjadi 200, `Cache-Control` kembali `no-cache` tanpa `X-Robots-Tag`, dan sitemap kembali 200.
 
+POST inquiry di kedua keadaan gate. Payload mengisi field honeypot `website`, yang dijawab backend dengan 201 palsu tanpa menyimpan apa pun, jadi uji ini tidak menambah inquiry di produksi. Subrequest gate tidak membawa body (`proxy_pass_request_body off`), jadi isi formulir hanya sampai ke backend kalau gate mengizinkan:
+
+```bash
+probe='{"website":"http://uji","name":"Uji gate"}'
+post() { curl -s -o /dev/null -w '%{http_code}\n' -X POST $B/api/inquiries -H 'Content-Type: application/json' -d "$probe"; }
+
+post    # gate aktif: 401, berhenti di Nginx dan tidak sampai ke backend
+# Matikan halaman password di /admin/pengaturan, lalu:
+post    # gate mati: 201, sampai ke backend
+# Nyalakan lagi bila situs memang masih harus terkunci.
+```
+
 Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.id/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
 
 ## Pulihkan dari backup

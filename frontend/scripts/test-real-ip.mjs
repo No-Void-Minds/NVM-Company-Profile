@@ -53,6 +53,18 @@ check(
   true,
 )
 
+// The gate subrequest must carry cookies only, never the request body (an inquiry form)
+const gateBlock = conf.match(/location = \/_gate \{([^}]*)\}/)?.[1] ?? ''
+check('gate: internal', /^\s*internal;/m.test(gateBlock), true)
+check('gate: GET', /^\s*proxy_method GET;/m.test(gateBlock), true)
+check('gate: body tidak diteruskan', /^\s*proxy_pass_request_body off;/m.test(gateBlock), true)
+check(
+  'gate: Content-Length kosong',
+  /^\s*proxy_set_header Content-Length "";/m.test(gateBlock),
+  true,
+)
+check('gate: ke /api/gate', /proxy_pass http:\/\/compro_backend\/api\/gate;/.test(gateBlock), true)
+
 const nginx = process.env.NGINX_BIN
 if (!nginx) {
   console.log('NGINX_BIN tidak diisi, uji perilaku dilewati')
