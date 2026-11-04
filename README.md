@@ -116,22 +116,39 @@ Jalankan dari folder repo di VM. Situs terbuka di `http://<IP VM>:8092`.
 
 Situs dibuka lewat Cloudflare Tunnel yang sudah berjalan sebagai service sistem di `nvm-server` (bukan service di compose). Tunnel meneruskan ke `http://localhost:8092`.
 
-Domain compro adalah `novoidminds.com` sejak 3 November 2026. `novoidminds.id` sekarang dipakai toko Shopify dan bukan alamat compro.
+Domain compro: `https://novoidminds.id`. Toko Shopify: `https://novoidminds.com` (Primary di Shopify). Login pelanggan Shopify tetap di `account.novoidminds.id`. Keputusan atasan 4 November 2026, riwayatnya di bagian Riwayat domain.
 
-DNS `novoidminds.com` dan `novoidminds.id` sama-sama dikelola di Cloudflare. Record lama di GoDaddy hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
+DNS kedua domain dikelola di Cloudflare. Record lama di GoDaddy untuk kedua domain hanya cadangan dan tidak aktif, jadi perubahan DNS dilakukan di Cloudflare.
 
-Zona `novoidminds.com` juga memuat record email Microsoft 365: MX, SPF, DMARC (`p=reject`), autodiscover, dan record pendukung lainnya. Record itu tidak boleh dihapus dan tidak boleh di-proxy (harus DNS only, awan abu-abu). Saat menambah route tunnel atau redirect, ubah hanya record `novoidminds.com` (apex) dan `www`.
+Zona `novoidminds.id`:
+
+| Record | Isi | Proxy |
+|---|---|---|
+| Tunnel `novoidminds.id` | tunnel `nvm-server`, service `http://localhost:8092` | Proxied |
+| CNAME `www` | Redirect Rule `www` ke root (301) | Proxied |
+| CNAME `account` | `shops.myshopify.com`, login pelanggan Shopify | DNS only |
+| TXT `_dmarc` | kebijakan DMARC domain | |
+
+Zona `novoidminds.com`:
+
+| Record | Isi | Proxy |
+|---|---|---|
+| A `@`, CNAME `www` | Shopify | DNS only |
+| CNAME verifikasi Shopify | Shopify | DNS only |
+| Email Microsoft 365: MX, SPF, DMARC (`p=reject`), SRV, `autodiscover`, `msoid`, `email`, `lyncdiscover`, `sip` | Microsoft 365 | DNS only |
+
+Record email Microsoft 365 di zona `novoidminds.com` tidak boleh dihapus dan tidak boleh di-proxy.
 
 1. Isi `deploy/.env` (lihat `deploy/.env.example`):
 
    ```bash
-   PUBLIC_BASE_URL=https://novoidminds.com
+   PUBLIC_BASE_URL=https://novoidminds.id
    COOKIE_SECURE=true
    COMPRO_SUBNET=172.30.92.0/24
    COMPRO_GATEWAY_IP=172.30.92.1
    ```
 
-   Dengan `COOKIE_SECURE=true`, login admin hanya bisa lewat `https://novoidminds.com/admin`. Login lewat `http://<IP VM>:8092` tidak bisa lagi, karena browser tidak mengirim cookie Secure lewat HTTP.
+   Dengan `COOKIE_SECURE=true`, login admin hanya bisa lewat `https://novoidminds.id/admin`. Login lewat `http://<IP VM>:8092` tidak bisa lagi, karena browser tidak mengirim cookie Secure lewat HTTP.
 
 2. Nyalakan ulang. Gateway jaringan `compro` kini ditetapkan di compose, jadi jaringan lama perlu dibuat ulang sekali dengan `down` lalu `up`:
 
@@ -140,9 +157,9 @@ Zona `novoidminds.com` juga memuat record email Microsoft 365: MX, SPF, DMARC (`
    docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
    ```
 
-3. Di dashboard Cloudflare (Zero Trust, Networks, Tunnels), buka tunnel `nvm-server` (dulu `NVM-ERP-Tunnel`), lalu tambahkan published application route: hostname `novoidminds.com`, service `http://localhost:8092`.
+3. Di dashboard Cloudflare (Zero Trust, Networks, Tunnels), buka tunnel `nvm-server` (dulu `NVM-ERP-Tunnel`), lalu tambahkan published application route: hostname `novoidminds.id`, service `http://localhost:8092`.
 
-4. Arahkan `www.novoidminds.com` ke `https://novoidminds.com` lewat Redirect Rules di Cloudflare (301, path dan query ikut).
+4. Arahkan `www.novoidminds.id` ke `https://novoidminds.id` lewat Redirect Rules di Cloudflare (301, path dan query ikut).
 
 IP pengunjung: request dari tunnel masuk ke container frontend dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`). Nginx hanya memercayai header `CF-Connecting-IP` dari alamat itu, lalu meneruskannya ke backend sebagai `X-Real-IP` dan `X-Forwarded-For`. Request LAN langsung ke port 8092 tetap memakai alamat aslinya. Cek di VM setelah deploy:
 
@@ -158,6 +175,19 @@ curl -s -o /dev/null -H 'CF-Connecting-IP: 203.0.113.7' http://<IP VM>:8092/api/
 Kalau uji LAN mencatat alamat gateway, Docker meneruskan port lewat userland proxy, dan header dari LAN ikut dipercaya. Periksa pengaturan `userland-proxy` dan iptables Docker di VM sebelum rilis.
 
 Uji yang sama di laptop dev memakai nginx sungguhan: `NGINX_BIN=/path/ke/nginx node scripts/test-real-ip.mjs` dari folder `frontend`. Tanpa `NGINX_BIN`, `check.sh` hanya menjalankan pemeriksaan statis (satu `set_real_ip_from`, gateway sama di compose dan `.env.example`, berada di dalam subnet).
+
+## Riwayat domain
+
+- 2 November 2026: compro di `novoidminds.id`, toko di `novoidminds.com`.
+- 3 November 2026: ditukar, compro ke `novoidminds.com`, toko ke `novoidminds.id`.
+- 4 November 2026: dikembalikan, compro di `novoidminds.id`, toko di `novoidminds.com`.
+
+Kalau domain harus ditukar lagi:
+
+1. Ubah `PUBLIC_BASE_URL` di `deploy/.env`, lalu `docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build`. Build ulang perlu karena canonical dan hreflang ditanam saat build.
+2. Di Cloudflare, pindahkan route tunnel `nvm-server` dan Redirect Rule `www` ke domain compro yang baru, lalu pindahkan record A dan CNAME Shopify ke domain toko yang baru. Record email Microsoft 365 di `novoidminds.com` tetap di tempatnya.
+3. Di Shopify, ubah domain Primary.
+4. Router kantor bisa menyimpan jawaban "tidak ada" (NXDOMAIN) sekitar 30 menit. Kalau domain belum terbuka dari kantor, cek lewat Chrome dengan Secure DNS aktif atau lewat data seluler sebelum menyimpulkan ada yang salah.
 
 ## Halaman password
 
@@ -242,7 +272,7 @@ post    # gate mati: 201, sampai ke backend
 # Nyalakan lagi bila situs memang masih harus terkunci.
 ```
 
-Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.com/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
+Lewat domain, setelah route tunnel aktif: `curl -sI https://novoidminds.id/teknologi | grep -iE '^(cache-control|x-robots-tag|cf-cache-status):'`. Selama terkunci, `cf-cache-status` tidak boleh `HIT`.
 
 ## Pulihkan dari backup
 

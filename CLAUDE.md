@@ -65,7 +65,7 @@ Jangan pakai 8080, 8081, 8090, 5173, 5174 (dipakai NVM-Internal dan nvm-doomsday
 - Program member (NVM ALPHA dan ANGELS) tidak dipakai. Jangan muncul di ticker atau di mana pun.
 - Tujuan beli hanya Shopee (Sprint 19, FR-130 dan seterusnya). Toko: `https://shopee.co.id/novoidminds`. Link produk per tech dan fit di tabel `tech_links`, link koleksi collab di `collabs.url`, diisi lewat admin. Validasi: hanya `https://shopee.co.id`, disimpan apa adanya.
 - Nama tech di UI memakai simbol merek dagang di belakang nama (AEZY™). Di data dan URL tanpa simbol.
-- Domain compro: `https://novoidminds.com` (sejak 3 November 2026). `novoidminds.id` milik toko Shopify, jangan dipakai sebagai alamat compro.
+- Domain compro: `https://novoidminds.id` (keputusan final 4 November 2026). `novoidminds.com` milik toko Shopify, jangan dipakai sebagai alamat compro.
 - WhatsApp: `6282111228700`, tampil `+62 821-1122-8700`.
 - UI publik dua bahasa (SRS 14.4): Indonesia di path tanpa awalan, Inggris di `/en`. Teks UI di kamus `id.ts` dan `en.ts`. Versi Inggris memakai teks asli toko, versi Indonesia terjemahan setia tanpa menambah klaim, dicatat di `docs/terjemahan.md`. Admin tetap Indonesia.
 - Data yang belum ada (galeri, testimoni, URL Shopee/TikTok Shop/Instagram, size chart selain aezy-regular) ditangani lewat state kosong, bukan placeholder palsu.

@@ -123,9 +123,9 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 
 ## Sprint 11: Rilis publik
 
-Tertahan sampai atasan menyetujui. Domain: `novoidminds.com`.
+Tertahan sampai atasan menyetujui. Domain: `novoidminds.id`.
 
-Rencana: tanpa service cloudflared di compose. Tunnel Cloudflare yang sudah ada berjalan sebagai service sistem di VM dan diarahkan ke `http://localhost:8092`. Nginx memercayai `CF-Connecting-IP` hanya dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`), `COOKIE_SECURE=true`, `PUBLIC_BASE_URL=https://novoidminds.com`. Langkahnya di README bagian Rilis publik.
+Rencana: tanpa service cloudflared di compose. Tunnel Cloudflare yang sudah ada berjalan sebagai service sistem di VM dan diarahkan ke `http://localhost:8092`. Nginx memercayai `CF-Connecting-IP` hanya dari gateway jaringan `compro` (`COMPRO_GATEWAY_IP`), `COOKIE_SECURE=true`, `PUBLIC_BASE_URL=https://novoidminds.id`. Langkahnya di README bagian Rilis publik.
 
 ## Sprint 12: Dua tema
 
@@ -198,7 +198,7 @@ Toko Shopify belum dibuka, jadi semua tujuan beli pindah ke Shopee. Kode FR-130 
 
 - Kunci versi image `migrate/migrate` (sekarang `:latest`) di README, samakan dengan versi CLI `migrate` di laptop dev. Catatan: CLI dev mencetak `dev` pada `migrate -version` (dipasang dari source), jadi versinya perlu dipastikan dulu, misalnya dengan memasang ulang dari tag rilis.
 - Evaluasi `style-src 'unsafe-inline'` di CSP (`frontend/nginx-security-headers.conf`) sebelum rilis publik.
-- Domain compro pindah dari `novoidminds.id` ke `novoidminds.com` (3 November 2026). `novoidminds.id` sekarang dipakai toko Shopify. Kedua zona dikelola di Cloudflare, record lama di GoDaddy hanya cadangan. Zona `novoidminds.com` memuat record email Microsoft 365 (MX, SPF, DMARC `p=reject`, autodiscover, dan lainnya) yang tidak boleh dihapus atau di-proxy.
+- Domain final (4 November 2026, keputusan atasan): compro di `novoidminds.id`, toko Shopify di `novoidminds.com` (Primary), login pelanggan Shopify di `account.novoidminds.id`. Sempat ditukar pada 3 November lalu dikembalikan. Kondisi DNS dan riwayatnya di README.
 
 ## Laporan sprint
 
