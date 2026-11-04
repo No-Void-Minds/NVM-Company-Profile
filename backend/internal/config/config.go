@@ -19,6 +19,8 @@ type Config struct {
 	IPHashSalt     string
 	CookieSecure   bool
 	TrustedProxies []string
+	// Folder with openapi.yaml and Swagger UI, read only in debug mode
+	DocsDir string
 }
 
 // Load reads .env when present so dev does not need exported variables.
@@ -35,6 +37,7 @@ func Load() Config {
 		IPHashSalt:     os.Getenv("IP_HASH_SALT"),
 		CookieSecure:   os.Getenv("COOKIE_SECURE") == "true",
 		TrustedProxies: splitList(os.Getenv("TRUSTED_PROXIES")),
+		DocsDir:        env("DOCS_DIR", "../docs"),
 	}
 }
 

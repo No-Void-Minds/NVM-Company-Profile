@@ -12,6 +12,8 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
+      # Also set in the image. Written here so /api/docs (Swagger UI, debug only) stays off.
+      GIN_MODE: release
       DATABASE_URL: ${DATABASE_URL:?isi DATABASE_URL di deploy/.env}
       IP_HASH_SALT: ${IP_HASH_SALT:?isi IP_HASH_SALT di deploy/.env}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?isi PUBLIC_BASE_URL di deploy/.env}

@@ -40,6 +40,20 @@ E2E_BASE_URL=http://127.0.0.1:4180 npx playwright test
 
 Rate limit tersimpan di memori backend, jadi restart backend sebelum mengulang suite. Data uji dihapus dengan `deploy/sql/90-cleanup-test-data.sql`.
 
+## Dokumentasi API
+
+Spec OpenAPI 3.1 ada di `docs/openapi.yaml`: semua endpoint publik, admin, gate, health, sitemap, robots, dan media, beserta format error, cookie sesi, `X-CSRF-Token`, `Idempotency-Key`, rate limit, perilaku halaman password, dan Cache-Control. Spec dijaga `go test` (lewat `check.sh`):
+
+- spec harus valid menurut kin-openapi, termasuk contoh di dalamnya;
+- route di router Gin dan di spec harus sama persis, dua arah;
+- respons handler di test (API publik, inquiry, admin, gate) divalidasi terhadap skema dan header di spec.
+
+Jadi setiap perubahan route atau bentuk respons harus ikut mengubah spec.
+
+Swagger UI hanya di dev. Dengan `GIN_MODE=debug` (nilai di `backend/.env.example`), jalankan backend lalu buka `http://127.0.0.1:8082/api/docs`. Spec mentah ada di `/api/docs/openapi.yaml`. Aset Swagger UI (swagger-ui-dist 5.34.0, lisensi Apache 2.0) ada di `docs/swagger-ui/` dan dibaca dari disk lewat `DOCS_DIR` (default `../docs`), tanpa CDN. Untuk "Try it out", pilih server `http://127.0.0.1:8082`. Endpoint admin memakai cookie sesi dari login di halaman yang sama, lalu isi `X-CSRF-Token` lewat Authorize dengan `csrf_token` dari login.
+
+Di produksi `/api/docs` tidak ada: backend berjalan dengan `GIN_MODE=release` (di image dan di `deploy/docker-compose.yml`), dan route-nya tidak didaftarkan sama sekali sehingga jawabannya 404. Alasannya: halaman itu tidak dibutuhkan pengunjung, membuka peta lengkap API admin ke publik, dan butuh CSP yang lebih longgar dari API biasa. Aset dan spec juga tidak masuk image backend.
+
 ## Database
 
 Sekali di awal, sebagai superuser Postgres: jalankan `deploy/sql/00-bootstrap.sql` dengan `psql`.

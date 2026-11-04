@@ -88,6 +88,12 @@ func (s *server) routes() (*gin.Engine, error) {
 
 	r.GET("/media/:name", s.serveMedia)
 
+	// Swagger UI only in dev. In release the routes do not exist, so /api/docs is a plain 404.
+	if s.cfg.GinMode == gin.DebugMode {
+		api.GET("/docs", s.docsPage)
+		api.GET("/docs/:file", s.docsFile)
+	}
+
 	adminRoot := adminGroup(api)
 	adminRoot.POST("/login", s.login)
 

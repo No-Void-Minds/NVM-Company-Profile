@@ -20,13 +20,23 @@ import (
 const validToken = "token-sesi-valid"
 
 // gateServer runs the real routes with the gate and sessions stubbed, no database needed.
-func gateServer(t *testing.T, enabled bool) (*server, *gin.Engine) {
+// Every response is also checked against openapi.yaml.
+func gateServer(t *testing.T, enabled bool) (*server, http.Handler) {
 	t.Helper()
 	s, err := newServer(config.Config{GinMode: gin.TestMode, MediaDir: t.TempDir(), PublicBaseURL: "https://contoh.id"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	s.gateState = newGateState(func(context.Context) (bool, error) { return enabled, nil })
+	stubSessions(s)
+	r, err := s.routes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return s, validated(t, r)
+}
+
+func stubSessions(s *server) {
 	s.sessionFinder = func(_ context.Context, hash string) (sqlc.GetActiveSessionRow, error) {
 		if hash == auth.HashToken(validToken) {
 			// Seen just now, so requireSession does not write a touch to the database
@@ -34,11 +44,6 @@ func gateServer(t *testing.T, enabled bool) (*server, *gin.Engine) {
 		}
 		return sqlc.GetActiveSessionRow{}, pgx.ErrNoRows
 	}
-	r, err := s.routes()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return s, r
 }
 
 func send(r http.Handler, method, path, cookie string, headers map[string]string) *httptest.ResponseRecorder {

@@ -33,6 +33,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 17 | Deploy ke VM: git pull, migrate, compose up --build, cek ulang | M | selesai |
 | 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | selesai |
 | 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | selesai |
+| 20 | Dokumentasi API OpenAPI 3.1, test kesesuaian spec, Swagger UI khusus dev | S | selesai |
 
 ---
 
@@ -193,6 +194,15 @@ Toko Shopify belum dibuka, jadi semua tujuan beli pindah ke Shopee. Kode FR-130 
 - FR-136 Validasi link di backend dan frontend: kosong, atau `https://` dengan host persis `shopee.co.id`. Tolak skema lain, userinfo (`@`), port, host mirip, spasi, dan backslash. Disimpan apa adanya, query tidak dibuang.
 - FR-137 Admin "Tech dan collab": per tech saklar "Tampil di situs", status On the rack, link per fit (atau satu link untuk tech tanpa fit). Per collab status dan link koleksi. Semua perubahan masuk audit log, respons admin no-store.
 - FR-138 Data: migrasi `0005` menambah `tech_links` (tech_key, fit nullable, url, sort), `collabs.url`, `techs.visible` default true, MELTWRAP false, dan 21 link awal. Aman untuk produksi: tidak menghapus data, tidak menyentuh on_rack.
+
+## Sprint 20: Dokumentasi API
+
+Kontrak SRS 7.4 ditulis sebagai OpenAPI 3.1 dan dijaga test. Tidak ada perubahan perilaku API.
+
+1. `docs/openapi.yaml`: semua route di router (publik, admin, gate, health, sitemap, robots, media, dan route dev `/api/docs`). Per endpoint: method, path, ringkasan bahasa Indonesia, parameter termasuk `?lang=id|en`, body, semua status, dan skema dari tipe Go. Komponen bersama: format error dan kodenya, cookie `nvm_compro_sid` dan `X-CSRF-Token`, `Idempotency-Key`, rate limit dan 429, 401 dari Nginx saat situs dikunci, Cache-Control. Servers: `https://novoidminds.id` dan `http://127.0.0.1:8082`. Contoh hanya dari seed (tech aezy, size chart aezy-regular).
+2. Test backend: spec valid (kin-openapi), route router dan spec sama dua arah, respons handler cocok dengan skema. Berjalan di `go test` dalam `check.sh`.
+3. Swagger UI di `GET /api/docs` dan `/api/docs/openapi.yaml` hanya bila `GIN_MODE=debug`. Di release route tidak terdaftar (404). Aset lokal, bukan CDN.
+4. README bagian Dokumentasi API.
 
 ## Pekerjaan berikutnya
 
@@ -416,3 +426,11 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Hasil: `go test` lolos (validasi URL 26 kasus, link per fit, PATCH collab menolak link asing tanpa database, migrasi 0005). Vitest lolos (26 kasus URL). `check.sh` dan build 22 halaman lolos, `dist` tanpa kata shopify. Playwright di `nvm_compro_test`: dev 137 lolos, 29 dilewati karena khusus build produksi. Build produksi lewat `serve-dist`: 166/166.
 - Diperbaiki saat pengujian: client membawa setiap 401 ke login admin, termasuk 401 API publik saat situs terkunci, sehingga halaman password berpindah ke `/admin/login`. Kini hanya 401 dari `/api/admin/*`. Test admin memakai selector per baris karena tombol "Simpan link" ikut memuat nama tech.
 - Menunggu user: deploy produksi (backup, migrasi 0005 ke `nvm_compro`, compose up --build), lalu isi link koleksi collab di `/admin/katalog`.
+
+### Sprint 20
+
+- Dibuat: `docs/openapi.yaml` (40 operasi), `openapi_test.go` (validitas spec, kesamaan route dua arah, validasi respons, docs 404 di release), Swagger UI dari `docs/swagger-ui/` (swagger-ui-dist 5.34.0) lewat `DOCS_DIR`, `GIN_MODE: release` tertulis di compose.
+- Keputusan: validasi respons memakai `DBTX` palsu berisi seed, sehingga handler publik, inquiry (termasuk 429), dan admin diuji tanpa database. Router di test gate, rules, dan Shopee kini juga memvalidasi setiap respons terhadap spec.
+- Keputusan: spec dan aset Swagger dibaca dari disk, bukan di-embed, agar tidak ikut binary dan image produksi. CSP longgar (`script-src 'self'`, `style-src 'unsafe-inline'`) hanya di route docs.
+- Keputusan: kin-openapi v0.152.0 (dukung 3.1 dan JSON Schema 2020-12) hanya dipakai test. Contoh di spec ikut divalidasi, jadi contoh yang tidak cocok skema membuat test gagal.
+- Tidak perlu deploy: produksi berjalan release, `/api/docs` tetap 404.

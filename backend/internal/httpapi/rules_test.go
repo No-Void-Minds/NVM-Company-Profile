@@ -104,10 +104,11 @@ func TestAdminGroupIsNoStore(t *testing.T) {
 
 // Routes that answer without a database, through the real router.
 func TestAdminRoutesAreNoStore(t *testing.T) {
-	r, err := NewRouter(config.Config{GinMode: gin.TestMode, MediaDir: t.TempDir()}, nil)
+	engine, err := NewRouter(config.Config{GinMode: gin.TestMode, MediaDir: t.TempDir()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	r := validated(t, engine)
 	for _, tc := range []struct{ method, path string }{
 		{http.MethodPost, "/api/admin/login"},
 		{http.MethodGet, "/api/admin/me"},

@@ -1,0 +1,1467 @@
+openapi: 3.1.0
+info:
+  title: API Company Profile No Void Minds
+  version: 1.0.0
+  description: |
+    Kontrak backend dan frontend company profile NVM (SRS 7.4). Spec ini diuji terhadap router Gin
+    oleh `backend/internal/httpapi/openapi_test.go`: route yang tidak tercatat di sini, atau
+    sebaliknya, membuat `check.sh` gagal.
+
+    ## Format error
+
+    Setiap error dari backend berbentuk `{"error":{"code","message","fields"}}` dengan
+    `Cache-Control: no-store`. `fields` hanya ada bila error menyangkut isian tertentu,
+    kuncinya nama field (contoh `phone`, `links.Regular`).
+
+    | Kode | Status | Arti |
+    |---|---|---|
+    | `VALIDATION` | 400 | Isian atau parameter tidak valid |
+    | `UNAUTHORIZED` | 401 | Belum masuk, sesi habis, password salah, atau situs dikunci |
+    | `FORBIDDEN` | 403 | Header `X-CSRF-Token` tidak cocok |
+    | `NOT_FOUND` | 404 | Data atau alamat tidak ada |
+    | `CONFLICT` | 409 | Aturan bisnis menolak (testimoni tayang tanpa konfirmasi blur) |
+    | `RATE_LIMITED` | 429 | Batas permintaan terlampaui |
+    | `INTERNAL` | 500 | Kesalahan server, detail hanya di log |
+
+    ## Autentikasi admin
+
+    `POST /api/admin/login` memasang cookie sesi `nvm_compro_sid` (HttpOnly, SameSite=Lax,
+    Secure bila `COOKIE_SECURE=true`, berlaku 8 jam sejak aktivitas terakhir) dan mengembalikan
+    `csrf_token`. Setiap mutasi admin (POST, PUT, PATCH, DELETE di bawah `/api/admin/`, kecuali
+    login) wajib mengirim token itu di header `X-CSRF-Token`. `GET /api/admin/me` mengembalikan
+    token yang sama setelah halaman dimuat ulang.
+
+    ## Batas permintaan
+
+    Disimpan di memori backend, hilang saat restart.
+
+    - `POST /api/inquiries`: 5 kiriman baru per jam per IP. Mengulang kiriman dengan
+      `Idempotency-Key` yang sudah tersimpan tidak menghabiskan kuota.
+    - `POST /api/admin/login`: 10 percobaan per 15 menit per IP.
+
+    Bila terlampaui, jawabannya 429 dengan kode `RATE_LIMITED`, tanpa header `Retry-After`.
+
+    ## Halaman password
+
+    Saat halaman password aktif (`PUT /api/admin/settings/password-gate`), Nginx memeriksa
+    `GET /api/gate` sebelum meneruskan request ke `/api/*` (kecuali `/api/health`, `/api/gate`,
+    dan `/api/admin/*`) dan `/media/*`. Tanpa sesi admin, Nginx sendiri menjawab 401
+    `{"error":{"code":"UNAUTHORIZED","message":"Situs sedang dikunci."}}` dengan
+    `Cache-Control: private, no-store` dan `X-Robots-Tag: noindex`. Request ke backend langsung
+    (dev, port 8082) tidak melewati pemeriksaan ini. Dengan sesi admin, request diteruskan dan
+    backend menandai jawabannya `private, no-store` serta `noindex`.
+
+    ## Cache
+
+    - API publik: `Cache-Control: public, max-age=60`, menjadi `private, no-store` saat situs dikunci.
+    - Semua `/api/admin/*`, termasuk login: `no-store`.
+    - Semua jawaban error: `no-store`.
+    - `/sitemap.xml` dan `/robots.txt`: `public, max-age=3600`. `/media/*`: satu tahun, immutable.
+  license:
+    name: Proprietary
+servers:
+  - url: https://novoidminds.id
+    description: Produksi (lewat Nginx dan halaman password)
+  - url: http://127.0.0.1:8082
+    description: Backend dev di laptop
+tags:
+  - name: Publik
+    description: Data untuk halaman publik, dua bahasa lewat `?lang=id|en`.
+  - name: Inquiry
+    description: Formulir B2B wholesale dan kolaborasi.
+  - name: Situs
+    description: Health, gate untuk Nginx, sitemap, robots, dan gambar.
+  - name: Admin sesi
+  - name: Admin konten
+  - name: Admin inquiry
+  - name: Admin pengaturan
+  - name: Dev
+    description: Hanya terdaftar bila `GIN_MODE=debug`. Di mode release jawabannya 404.
+
+paths:
+  /api/health:
+    get:
+      tags: [Situs]
+      summary: Status backend dan koneksi database
+      operationId: health
+      responses:
+        '200':
+          description: Backend dan database sehat.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+        '503':
+          description: Database tidak bisa dihubungi dalam 3 detik.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+
+  /api/gate:
+    get:
+      tags: [Situs]
+      summary: Pemeriksaan halaman password untuk Nginx auth_request
+      description: |
+        204 meneruskan request, 401 menampilkan halaman password. Sesi admin membuka situs yang
+        terkunci untuk browser itu. Bila status tidak terbaca dari database, situs dianggap terkunci.
+      operationId: checkGate
+      parameters:
+        - $ref: '#/components/parameters/SessionCookieOptional'
+      responses:
+        '204':
+          description: Situs terbuka, atau terkunci tetapi ada sesi admin.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            X-Gate: { $ref: '#/components/headers/XGate' }
+        '401':
+          description: Situs terkunci dan tidak ada sesi admin. Tanpa body.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            X-Gate: { $ref: '#/components/headers/XGate' }
+
+  /sitemap.xml:
+    get:
+      tags: [Situs]
+      summary: Sitemap semua route publik dalam dua bahasa
+      description: Alamat memakai `PUBLIC_BASE_URL`. Saat situs dikunci jawabannya 404.
+      operationId: sitemap
+      responses:
+        '200':
+          description: Sitemap dengan hreflang id, en, dan x-default.
+          headers:
+            Cache-Control:
+              required: true
+              schema: { type: string, const: 'public, max-age=3600' }
+          content:
+            application/xml:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /robots.txt:
+    get:
+      tags: [Situs]
+      summary: robots.txt yang mengikuti halaman password
+      description: Saat terbuka melarang `/admin` dan menyebut sitemap. Saat terkunci melarang semuanya.
+      operationId: robots
+      responses:
+        '200':
+          description: Isi robots.txt.
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum: ['public, max-age=3600', 'no-store']
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /media/{name}:
+    get:
+      tags: [Situs]
+      summary: Gambar hasil unggahan (WebP)
+      description: Setiap unggahan disimpan dalam tiga lebar, 480, 960, dan 1600 px.
+      operationId: serveMedia
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-(480|960|1600)\.webp$'
+      responses:
+        '200':
+          description: File gambar.
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum: ['public, max-age=31536000, immutable', 'private, no-store']
+          content:
+            image/webp:
+              schema: { type: string, contentMediaType: image/webp }
+        '401': { $ref: '#/components/responses/Locked' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/techs:
+    get:
+      tags: [Publik]
+      summary: Daftar material system yang tampil di situs
+      description: Tech dengan `visible=false` (FR-134) tidak ikut. Teks mengikuti `lang`, kembali ke teks asli bila terjemahan belum ada.
+      operationId: listTechs
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+      responses:
+        '200':
+          description: Tech urut `sort`, lengkap dengan link Shopee per fit.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Tech' }
+              example:
+                - key: aezy
+                  name: AEZY
+                  family: AEZY
+                  generation: 1
+                  needs: [hot]
+                  tagline: Untuk hari-hari yang terasa gerah.
+                  sub: Performa, iklim, stretch
+                  description: Kain performa yang ringan. Bernapas, cepat kering, dan lembut seperti udara. Direkayasa untuk bergerak dan menjaga kenyamanan di iklim sehari-hari, dengan pemulihan elastis yang tetap stabil setelah lama dipakai.
+                  chips: [Bernapas, Cepat kering, Lembut seperti udara, Pemulihan elastis]
+                  fits: [Regular, Fitted, Polo]
+                  technology_label: Air feel technology
+                  on_rack: false
+                  visible: true
+                  sort: 1
+                  links:
+                    - fit: Regular
+                      url: https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155
+                    - fit: Polo
+                      url: https://shopee.co.id/No-Void-Minds-AEZY-Polo-Shirt-Core-i.462123491.41081865803
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/collabs:
+    get:
+      tags: [Publik]
+      summary: Daftar koleksi collab
+      operationId: listCollabs
+      responses:
+        '200':
+          description: Collab urut `sort`.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Collab' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/lab-stats:
+    get:
+      tags: [Publik]
+      summary: Angka untuk Lab index dan teks "N material system"
+      operationId: labStats
+      responses:
+        '200':
+          description: Jumlah tech yang tampil, yang on the rack, dan tahun berdiri.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LabStats' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/gallery:
+    get:
+      tags: [Publik]
+      summary: Foto galeri yang tampil
+      description: Alt dan keterangan mengikuti `lang`. Teks Inggris yang kosong diganti teks Indonesia.
+      operationId: listGallery
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - name: category
+          in: query
+          description: Hanya kategori ini. Kosong berarti semua.
+          schema: { type: string }
+      responses:
+        '200':
+          description: Foto urut `sort`.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GalleryItem' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/testimonials:
+    get:
+      tags: [Publik]
+      summary: Testimoni yang sudah tayang
+      description: Transkrip tidak diterjemahkan, bahasanya ada di field `lang`.
+      operationId: listTestimonials
+      parameters:
+        - name: source
+          in: query
+          schema: { $ref: '#/components/schemas/TestimonialSource' }
+        - name: tech
+          in: query
+          description: Key tech, contoh `aezy`.
+          schema: { type: string }
+      responses:
+        '200':
+          description: Testimoni terbaru dulu.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Testimonial' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/size-charts/{key}:
+    get:
+      tags: [Publik]
+      summary: Size chart satu kombinasi tech dan fit
+      operationId: getSizeChart
+      parameters:
+        - $ref: '#/components/parameters/SizeChartKey'
+      responses:
+        '200':
+          description: Size chart.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/PublicCache' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SizeChart' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/inquiries:
+    post:
+      tags: [Inquiry]
+      summary: Kirim inquiry wholesale atau kolaborasi
+      description: |
+        Mengirim ulang dengan `Idempotency-Key` yang sama mengembalikan kode yang sudah tersimpan,
+        tanpa menyimpan baris baru dan tanpa menghabiskan kuota. Field `website` adalah honeypot:
+        bila terisi, backend menjawab 201 dengan kode acak tanpa menyimpan apa pun.
+      operationId: createInquiry
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InquiryInput' }
+      responses:
+        '201':
+          description: Tersimpan, atau kiriman ulang dari key yang sama.
+          headers:
+            Cache-Control:
+              description: Hanya ada saat situs dikunci.
+              schema: { type: string, const: 'private, no-store' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InquiryCreated' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Locked' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/login:
+    post:
+      tags: [Admin sesi]
+      summary: Masuk admin
+      description: Memasang cookie `nvm_compro_sid`. Batas 10 percobaan per 15 menit per IP.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Berhasil masuk.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            Set-Cookie:
+              description: '`nvm_compro_sid=<token>; Path=/; Max-Age=28800; HttpOnly; SameSite=Lax`, ditambah `Secure` di produksi.'
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/me:
+    get:
+      tags: [Admin sesi]
+      summary: Sesi yang sedang aktif
+      operationId: me
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Username dan token CSRF sesi ini.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/logout:
+    post:
+      tags: [Admin sesi]
+      summary: Keluar admin
+      description: Menghapus sesi di database dan cookie di browser.
+      operationId: logout
+      security: [{ session: [], csrf: [] }]
+      responses:
+        '204':
+          description: Sesi dihapus.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/techs:
+    get:
+      tags: [Admin konten]
+      summary: Semua tech, termasuk yang disembunyikan
+      description: Bentuk sama dengan `/api/techs`, tanpa cache, sehingga perubahan langsung terlihat.
+      operationId: adminListTechs
+      security: [{ session: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+      responses:
+        '200':
+          description: Tech urut `sort`.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Tech' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/techs/{key}:
+    patch:
+      tags: [Admin konten]
+      summary: Ubah on the rack, tampil di situs, atau link Shopee satu tech
+      description: |
+        Hanya field yang dikirim yang berubah, minimal satu. `links` mengganti semua link tech itu.
+        Link kosong berarti tanpa link. Tech yang punya fit wajib memakai link per fit, tech tanpa
+        fit memakai satu link dengan `fit: null`. Error per link memakai kunci `links.<fit>` atau `links`.
+      operationId: adminPatchTech
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string, examples: [aezy] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                on_rack: { type: boolean }
+                visible: { type: boolean }
+                links:
+                  type: array
+                  items: { $ref: '#/components/schemas/TechLink' }
+            example:
+              links:
+                - fit: Regular
+                  url: https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155
+                - fit: Polo
+                  url: https://shopee.co.id/No-Void-Minds-AEZY-Polo-Shirt-Core-i.462123491.41081865803
+      responses:
+        '200':
+          description: Tech setelah disimpan, dalam bahasa Indonesia.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tech' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/collabs:
+    get:
+      tags: [Admin konten]
+      summary: Semua collab, tanpa cache
+      operationId: adminListCollabs
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Collab urut `sort`.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Collab' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/collabs/{key}:
+    patch:
+      tags: [Admin konten]
+      summary: Ubah status atau link koleksi Shopee satu collab
+      description: Minimal satu field. `url` kosong menghapus link. Link hanya boleh ke `https://shopee.co.id`.
+      operationId: adminPatchCollab
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                available: { type: boolean }
+                url: { type: string, maxLength: 2048 }
+      responses:
+        '200':
+          description: Collab setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Collab' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/gallery:
+    get:
+      tags: [Admin konten]
+      summary: Semua foto galeri, termasuk yang disembunyikan
+      operationId: adminListGallery
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Foto urut `sort`.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AdminGalleryItem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+    post:
+      tags: [Admin konten]
+      summary: Unggah foto galeri
+      description: JPG, PNG, atau WebP, maksimal 8 MB. Disimpan sebagai WebP 480, 960, dan 1600 px.
+      operationId: adminCreateGallery
+      security: [{ session: [], csrf: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, category, alt]
+              properties:
+                image: { type: string, contentMediaType: application/octet-stream }
+                category: { type: string, minLength: 1, maxLength: 60 }
+                alt: { type: string, minLength: 1, maxLength: 300 }
+                caption: { type: string, maxLength: 300 }
+                alt_en: { type: string, maxLength: 300 }
+                caption_en: { type: string, maxLength: 300 }
+                visible: { type: boolean, default: true }
+                sort: { type: integer, default: 0 }
+      responses:
+        '201':
+          description: Foto tersimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminGalleryItem' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/gallery/{id}:
+    patch:
+      tags: [Admin konten]
+      summary: Ubah teks, urutan, atau status tampil foto galeri
+      description: Field yang tidak dikirim tetap. Gambar tidak bisa diganti, unggah foto baru.
+      operationId: adminUpdateGallery
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category: { type: string, minLength: 1, maxLength: 60 }
+                alt: { type: string, minLength: 1, maxLength: 300 }
+                caption: { type: string, maxLength: 300 }
+                alt_en: { type: string, maxLength: 300 }
+                caption_en: { type: string, maxLength: 300 }
+                visible: { type: boolean }
+                sort: { type: integer }
+      responses:
+        '200':
+          description: Foto setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminGalleryItem' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+    delete:
+      tags: [Admin konten]
+      summary: Hapus foto galeri beserta filenya
+      operationId: adminDeleteGallery
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Terhapus.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/testimonials:
+    get:
+      tags: [Admin konten]
+      summary: Semua testimoni, termasuk draf
+      operationId: adminListTestimonials
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Testimoni terbaru dulu.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AdminTestimonial' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+    post:
+      tags: [Admin konten]
+      summary: Unggah screenshot testimoni
+      description: |
+        Testimoni hanya boleh tayang (`published=true`) bila `blurred_confirmed=true`, selain itu 409
+        (BR-02). JPG, PNG, atau WebP, maksimal 8 MB.
+      operationId: adminCreateTestimonial
+      security: [{ session: [], csrf: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, source, review_date, transcript]
+              properties:
+                image: { type: string, contentMediaType: application/octet-stream }
+                source: { $ref: '#/components/schemas/TestimonialSource' }
+                review_date: { type: string, format: date }
+                tech_key: { type: string }
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                transcript: { type: string, minLength: 1, maxLength: 5000 }
+                lang: { $ref: '#/components/schemas/Lang' }
+                blurred_confirmed: { type: boolean, default: false }
+                published: { type: boolean, default: false }
+      responses:
+        '201':
+          description: Testimoni tersimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminTestimonial' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/testimonials/{id}:
+    patch:
+      tags: [Admin konten]
+      summary: Ubah data atau status tayang testimoni
+      description: Field yang tidak dikirim tetap. `tech_key` atau `rating` bernilai null menghapus isinya.
+      operationId: adminUpdateTestimonial
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source: { $ref: '#/components/schemas/TestimonialSource' }
+                review_date: { type: string, format: date }
+                tech_key: { type: [string, 'null'] }
+                rating: { type: [integer, 'null'], minimum: 1, maximum: 5 }
+                transcript: { type: string, minLength: 1, maxLength: 5000 }
+                lang: { $ref: '#/components/schemas/Lang' }
+                blurred_confirmed: { type: boolean }
+                published: { type: boolean }
+      responses:
+        '200':
+          description: Testimoni setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminTestimonial' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/Internal' }
+    delete:
+      tags: [Admin konten]
+      summary: Hapus testimoni beserta screenshotnya
+      operationId: adminDeleteTestimonial
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Terhapus.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/size-charts:
+    get:
+      tags: [Admin konten]
+      summary: Semua size chart
+      operationId: adminListSizeCharts
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Size chart urut key.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SizeChart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/size-charts/{key}:
+    get:
+      tags: [Admin konten]
+      summary: Satu size chart, tanpa cache
+      operationId: adminGetSizeChart
+      security: [{ session: [] }]
+      parameters:
+        - $ref: '#/components/parameters/SizeChartKey'
+      responses:
+        '200':
+          description: Size chart.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SizeChart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+    put:
+      tags: [Admin konten]
+      summary: Buat atau ganti size chart
+      description: |
+        `rows` memakai format pipa: satu baris judul lalu minimal satu baris ukuran, jumlah kolom
+        sama. Rentang boleh memakai `-` atau `–`, juga `<` dan `>`.
+      operationId: adminPutSizeChart
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/SizeChartKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, rows]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                rows: { type: string }
+                note: { type: string, maxLength: 1000 }
+            example:
+              title: AEZY Regular T-Shirt
+              rows: "Size / Ukuran | Width / Lebar Badan | Length / Panjang Badan | Sleeve / Panjang Lengan | Height* / Tinggi Badan\nS | 48 | 66 | 21 | < 160\nM | 51 | 68.5 | 22 | 160-170\nL | 54 | 71 | 23 | 170-180\nXL | 57 | 73.5 | 24 | 180-190\nXXL | 60 | 76 | 25 | > 190"
+              note: "All measurements in cm. Tolerance 1-2 cm.\n*Height is a recommendation only. Compare with the measurements above for your best fit."
+      responses:
+        '200':
+          description: Size chart setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SizeChart' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/Internal' }
+    delete:
+      tags: [Admin konten]
+      summary: Hapus size chart
+      operationId: adminDeleteSizeChart
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/SizeChartKey'
+      responses:
+        '204':
+          description: Terhapus.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/inquiries:
+    get:
+      tags: [Admin inquiry]
+      summary: Daftar inquiry
+      operationId: adminListInquiries
+      security: [{ session: [] }]
+      parameters:
+        - name: kind
+          in: query
+          schema: { $ref: '#/components/schemas/InquiryKind' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/InquiryStatus' }
+      responses:
+        '200':
+          description: Inquiry terbaru dulu.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Inquiry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/inquiries/export:
+    get:
+      tags: [Admin inquiry]
+      summary: Ekspor semua inquiry ke CSV atau XLSX
+      description: Waktu memakai zona Asia/Jakarta.
+      operationId: adminExportInquiries
+      security: [{ session: [] }]
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema: { type: string, enum: [csv, xlsx] }
+      responses:
+        '200':
+          description: File unduhan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+            Content-Disposition:
+              required: true
+              schema: { type: string }
+          content:
+            text/csv:
+              schema: { type: string }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, contentMediaType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/inquiries/{id}:
+    get:
+      tags: [Admin inquiry]
+      summary: Detail satu inquiry
+      operationId: adminGetInquiry
+      security: [{ session: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Inquiry.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Inquiry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+    patch:
+      tags: [Admin inquiry]
+      summary: Ubah status inquiry
+      operationId: adminPatchInquiry
+      security: [{ session: [], csrf: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { $ref: '#/components/schemas/InquiryStatus' }
+      responses:
+        '200':
+          description: Inquiry setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Inquiry' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/audit-log:
+    get:
+      tags: [Admin pengaturan]
+      summary: Catatan perubahan oleh admin
+      description: Setiap mutasi admin yang berhasil tercatat (FR-96).
+      operationId: adminListAudit
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Catatan terbaru dulu.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AuditEntry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/settings:
+    get:
+      tags: [Admin pengaturan]
+      summary: Pengaturan situs
+      operationId: adminGetSettings
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Status halaman password.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [password_gate]
+                properties:
+                  password_gate: { $ref: '#/components/schemas/GateSetting' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/admin/settings/password-gate:
+    put:
+      tags: [Admin pengaturan]
+      summary: Nyalakan atau matikan halaman password
+      description: Berlaku langsung untuk pemeriksaan Nginx berikutnya, tanpa menunggu cache.
+      operationId: adminPutPasswordGate
+      security: [{ session: [], csrf: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        '200':
+          description: Pengaturan setelah disimpan.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GateSetting' }
+        '400': { $ref: '#/components/responses/Validation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/Internal' }
+
+  /api/docs:
+    get:
+      tags: [Dev]
+      summary: Swagger UI untuk spec ini
+      description: Aset dibaca dari `DOCS_DIR` (default `../docs`). Tidak ada di mode release.
+      operationId: docsPage
+      responses:
+        '200':
+          description: Halaman Swagger UI.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            text/html:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/docs/{file}:
+    get:
+      tags: [Dev]
+      summary: Spec ini dan aset Swagger UI
+      operationId: docsFile
+      parameters:
+        - name: file
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [openapi.yaml, swagger-ui.css, swagger-ui-bundle.js, swagger-init.js]
+      responses:
+        '200':
+          description: Isi file.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/yaml:
+              schema: { type: object, description: 'Spec ini.' }
+            text/css:
+              schema: { type: string }
+            text/javascript:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: nvm_compro_sid
+      description: Cookie sesi HttpOnly dari `POST /api/admin/login`, berlaku 8 jam sejak aktivitas terakhir.
+    csrf:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Nilai `csrf_token` dari login atau `GET /api/admin/me`. Wajib untuk setiap mutasi admin.
+
+  parameters:
+    Lang:
+      name: lang
+      in: query
+      description: Bahasa teks. Selain `id` dan `en` dijawab 400.
+      schema: { $ref: '#/components/schemas/Lang' }
+    SizeChartKey:
+      name: key
+      in: path
+      required: true
+      schema:
+        type: string
+        maxLength: 80
+        pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+        examples: [aezy-regular]
+    Id:
+      name: id
+      in: path
+      required: true
+      description: UUID. Nilai yang bukan UUID dijawab 404.
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID yang dibuat browser sekali per isian formulir. Wajib bila `website` kosong.
+      schema: { type: string, format: uuid }
+    SessionCookieOptional:
+      name: nvm_compro_sid
+      in: cookie
+      description: Sesi admin, bila ada.
+      schema: { type: string }
+
+  headers:
+    NoStore:
+      required: true
+      schema: { type: string, const: no-store }
+    PublicCache:
+      required: true
+      description: '`private, no-store` saat situs dikunci (FR-122).'
+      schema:
+        type: string
+        enum: ['public, max-age=60', 'private, no-store']
+    ErrorCache:
+      required: true
+      description: '`no-store` dari backend, `private, no-store` dari Nginx saat situs dikunci.'
+      schema:
+        type: string
+        enum: [no-store, 'private, no-store']
+    XGate:
+      required: true
+      description: Dibaca Nginx lewat `auth_request_set` untuk menandai halaman privat.
+      schema: { type: string, enum: ['on', 'off'] }
+
+  responses:
+    Validation:
+      description: Isian atau parameter tidak valid (`VALIDATION`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Belum masuk, sesi habis, atau username dan password salah (`UNAUTHORIZED`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Locked:
+      description: Situs dikunci halaman password. Dijawab Nginx, bukan backend (`UNAUTHORIZED`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+        X-Robots-Tag:
+          schema: { type: string, const: noindex }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Header `X-CSRF-Token` tidak ada atau tidak cocok (`FORBIDDEN`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Data atau alamat tidak ada (`NOT_FOUND`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Testimoni tayang tanpa konfirmasi blur (`CONFLICT`, BR-02).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Batas permintaan terlampaui (`RATE_LIMITED`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Internal:
+      description: Kesalahan server (`INTERNAL`). Detail hanya di log, dicari lewat header `X-Request-ID`.
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { $ref: '#/components/schemas/ErrorCode' }
+            message:
+              type: string
+              description: Pesan untuk ditampilkan ke pengguna, dalam bahasa Indonesia.
+            fields:
+              type: object
+              description: Pesan per field. Tidak ada bila error tidak menyangkut field tertentu.
+              additionalProperties: { type: string }
+    ErrorCode:
+      type: string
+      enum: [VALIDATION, NOT_FOUND, UNAUTHORIZED, FORBIDDEN, RATE_LIMITED, CONFLICT, INTERNAL]
+    Lang:
+      type: string
+      enum: [id, en]
+      default: id
+    Health:
+      type: object
+      required: [status, database]
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        database: { type: string, enum: [ok, down] }
+    Session:
+      type: object
+      required: [username, csrf_token]
+      properties:
+        username: { type: string }
+        csrf_token:
+          type: string
+          description: Dikirim kembali di header `X-CSRF-Token` untuk mutasi admin.
+    TechLink:
+      type: object
+      required: [fit, url]
+      properties:
+        fit:
+          type: [string, 'null']
+          description: Salah satu `fits` dari tech, atau null untuk tech tanpa fit.
+          examples: [Regular]
+        url:
+          type: string
+          maxLength: 2048
+          description: Kosong atau `https://shopee.co.id/...`, disimpan apa adanya.
+          examples: ['https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155']
+    Tech:
+      type: object
+      required: [key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, visible, sort, links]
+      properties:
+        key: { type: string, description: 'Tanpa simbol merek dagang.', examples: [aezy] }
+        name: { type: string, description: 'UI menambahkan simbol merek dagang di belakangnya.', examples: [AEZY] }
+        family: { type: string, examples: [AEZY] }
+        generation: { type: integer, examples: [1] }
+        needs:
+          type: array
+          items: { type: string }
+          examples: [[hot]]
+        tagline: { type: string, examples: [Untuk hari-hari yang terasa gerah.] }
+        sub: { type: string, examples: ['Performa, iklim, stretch'] }
+        description: { type: string }
+        chips:
+          type: array
+          items: { type: string }
+          examples: [[Bernapas, Cepat kering, Lembut seperti udara, Pemulihan elastis]]
+        fits:
+          type: array
+          items: { type: string }
+          examples: [[Regular, Fitted, Polo]]
+        technology_label: { type: string, examples: [Air feel technology] }
+        on_rack: { type: boolean }
+        visible:
+          type: boolean
+          description: Selalu true di `/api/techs`. Hanya `/api/admin/techs` yang memuat tech tersembunyi.
+        sort: { type: integer }
+        links:
+          type: array
+          description: Urut sesuai `fits`. Kombinasi tanpa link tidak ada di sini.
+          items: { $ref: '#/components/schemas/TechLink' }
+    Collab:
+      type: object
+      required: [key, name, available, sort, url]
+      properties:
+        key: { type: string }
+        name: { type: string }
+        available: { type: boolean, description: 'false berarti coming soon.' }
+        sort: { type: integer }
+        url:
+          type: [string, 'null']
+          description: Link koleksi Shopee, null bila belum diisi.
+    LabStats:
+      type: object
+      required: [systems, on_rack, est_year]
+      properties:
+        systems: { type: integer, description: 'Jumlah tech yang tampil.' }
+        on_rack: { type: integer, description: 'Jumlah tech tampil yang sedang on the rack.' }
+        est_year: { type: integer, description: 'Dari `BRAND_EST_YEAR`.', examples: [2021] }
+    Image:
+      type: object
+      required: [src, srcset, width, height]
+      properties:
+        src: { type: string, description: 'Varian 960 px.' }
+        srcset: { type: string, description: 'Varian 480, 960, dan 1600 px.' }
+        width: { type: integer, description: 'Lebar gambar asli.' }
+        height: { type: integer }
+    GalleryItem:
+      type: object
+      required: [id, category, alt, caption, image]
+      properties:
+        id: { type: string, format: uuid }
+        category: { type: string }
+        alt: { type: string }
+        caption: { type: string }
+        image: { $ref: '#/components/schemas/Image' }
+    AdminGalleryItem:
+      allOf:
+        - $ref: '#/components/schemas/GalleryItem'
+        - type: object
+          description: '`alt` dan `caption` selalu bahasa Indonesia.'
+          required: [alt_en, caption_en, visible, sort, created_at]
+          properties:
+            alt_en: { type: string }
+            caption_en: { type: string }
+            visible: { type: boolean }
+            sort: { type: integer }
+            created_at: { type: string, format: date-time }
+    TestimonialSource:
+      type: string
+      enum: [shopee, tiktok_shop]
+    Testimonial:
+      type: object
+      required: [id, source, review_date, tech_key, rating, transcript, lang, image]
+      properties:
+        id: { type: string, format: uuid }
+        source: { $ref: '#/components/schemas/TestimonialSource' }
+        review_date: { type: string, format: date }
+        tech_key: { type: [string, 'null'] }
+        rating: { type: [integer, 'null'], minimum: 1, maximum: 5 }
+        transcript: { type: string }
+        lang:
+          $ref: '#/components/schemas/Lang'
+          description: Bahasa transkrip, tidak diterjemahkan.
+        image: { $ref: '#/components/schemas/Image' }
+    AdminTestimonial:
+      allOf:
+        - $ref: '#/components/schemas/Testimonial'
+        - type: object
+          required: [blurred_confirmed, published, created_at]
+          properties:
+            blurred_confirmed: { type: boolean }
+            published: { type: boolean }
+            created_at: { type: string, format: date-time }
+    SizeChart:
+      type: object
+      required: [key, title, rows, note, updated_at]
+      properties:
+        key: { type: string, examples: [aezy-regular] }
+        title: { type: string, examples: [AEZY Regular T-Shirt] }
+        rows:
+          type: string
+          description: Format pipa, baris pertama judul kolom.
+          examples: ["Size / Ukuran | Width / Lebar Badan | Length / Panjang Badan | Sleeve / Panjang Lengan | Height* / Tinggi Badan\nS | 48 | 66 | 21 | < 160\nM | 51 | 68.5 | 22 | 160-170\nL | 54 | 71 | 23 | 170-180\nXL | 57 | 73.5 | 24 | 180-190\nXXL | 60 | 76 | 25 | > 190"]
+        note:
+          type: string
+          examples: ["All measurements in cm. Tolerance 1-2 cm.\n*Height is a recommendation only. Compare with the measurements above for your best fit."]
+        updated_at: { type: string, format: date-time }
+    InquiryKind:
+      type: string
+      enum: [wholesale, collaboration]
+    InquiryStatus:
+      type: string
+      enum: [new, contacted, done, spam]
+    InquiryInput:
+      type: object
+      required: [kind, name, org, city, message, consent]
+      description: Isi `phone` atau `email`, minimal salah satu. Spasi di awal dan akhir dibuang.
+      properties:
+        kind: { $ref: '#/components/schemas/InquiryKind' }
+        name: { type: string, minLength: 2, maxLength: 80 }
+        org: { type: string, minLength: 2, maxLength: 120 }
+        city: { type: string, minLength: 2, maxLength: 80 }
+        phone:
+          type: string
+          description: Diawali 08 atau +62, 10 sampai 15 digit. Spasi, tanda hubung, titik, dan kurung dibuang.
+        email: { type: string, format: email, maxLength: 254 }
+        channels: { type: string, maxLength: 200 }
+        techs:
+          type: array
+          maxItems: 20
+          items: { type: string, pattern: '^[a-z0-9-]{1,40}$' }
+          examples: [[aezy]]
+        quantity_note: { type: string, maxLength: 200 }
+        message: { type: string, minLength: 10, maxLength: 1000 }
+        consent: { type: boolean, const: true }
+        website:
+          type: string
+          description: Honeypot. Dibiarkan kosong oleh manusia.
+    InquiryCreated:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          pattern: '^B2B-[0-9A-HJKMNP-TV-Z]{6}$'
+          description: Kode untuk dikutip pengirim saat menghubungi NVM.
+    Inquiry:
+      type: object
+      description: Tanpa hash IP dan Idempotency-Key.
+      required: [id, code, kind, name, org, city, phone, email, channels, techs, quantity_note, message, consent_at, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, pattern: '^B2B-[0-9A-HJKMNP-TV-Z]{6}$' }
+        kind: { $ref: '#/components/schemas/InquiryKind' }
+        name: { type: string }
+        org: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        channels: { type: string }
+        techs:
+          type: array
+          items: { type: string }
+        quantity_note: { type: string }
+        message: { type: string }
+        consent_at: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/InquiryStatus' }
+        created_at: { type: string, format: date-time }
+    AuditEntry:
+      type: object
+      required: [id, action, entity, entity_id, at, username]
+      properties:
+        id: { type: integer }
+        action: { type: string, enum: [create, update, save, delete] }
+        entity:
+          type: string
+          description: Segmen pertama path admin, contoh `techs`, `collabs`, `settings`.
+        entity_id: { type: string }
+        at: { type: string, format: date-time }
+        username:
+          type: [string, 'null']
+          description: Null bila user admin sudah dihapus.
+    GateSetting:
+      type: object
+      required: [enabled, updated_at, updated_by]
+      properties:
+        enabled: { type: boolean }
+        updated_at: { type: string, format: date-time }
+        updated_by: { type: [string, 'null'] }
