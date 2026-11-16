@@ -1,4 +1,4 @@
--- Menghapus data hasil Sprint 10. Dijalankan user sebagai compro_app, sekali, setelah pengujian:
+-- Menghapus data uji (awalan UJI dan akun uji-admin). Dijalankan user sebagai compro_app, sekali, setelah pengujian:
 --   psql "$DATABASE_URL" -f deploy/sql/90-cleanup-test-data.sql
 -- Laptop dev tidak punya psql, jadi dari folder repo di VM bisa memakai container Postgres:
 --   docker exec -i -e PGPASSWORD=<password> <container> psql -U compro_app -d nvm_compro < deploy/sql/90-cleanup-test-data.sql
@@ -10,8 +10,7 @@
 -- File media hasil uji, dijalankan dari root repo setelah skrip ini:
 --   Git Bash:   rm -f backend/var/media/*.webp
 --   PowerShell: Remove-Item backend\var\media\*.webp
--- Saat Sprint 10 selesai folder itu sudah kosong. Lewati perintah ini bila sesudahnya sudah
--- ada foto asli yang diunggah lewat backend dev, karena perintahnya menghapus semua file di sana.
+-- Lewati perintah ini bila backend dev sudah menyimpan foto asli, karena semua file di sana ikut terhapus.
 
 \set ON_ERROR_STOP on
 

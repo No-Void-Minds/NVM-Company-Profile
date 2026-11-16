@@ -1,9 +1,5 @@
-// Proves that nginx takes the visitor IP from CF-Connecting-IP only when the request comes
-// from the compose gateway (the host side, where the Cloudflare Tunnel connects), and that
-// the backend receives that address in X-Real-IP and X-Forwarded-For.
-//
-// Runs the real nginx.conf with a real nginx: NGINX_BIN=/path/to/nginx node scripts/test-real-ip.mjs
-// 127.0.0.1 stands in for the gateway and 127.0.0.2 for a LAN client.
+// Static checks of nginx.conf. With NGINX_BIN a real nginx also proves CF-Connecting-IP is trusted
+// only from the compose gateway (127.0.0.1 here) and not from a LAN client (127.0.0.2).
 import { spawnSync } from 'node:child_process'
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer, request } from 'node:http'

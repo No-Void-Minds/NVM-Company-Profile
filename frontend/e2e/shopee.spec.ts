@@ -1,6 +1,6 @@
-import AxeBuilder from '@axe-core/playwright'
 import {
   adminPage,
+  axeViolations,
   expect,
   horizontalOverflow,
   settled,
@@ -10,7 +10,7 @@ import {
   useTheme,
 } from './support'
 
-// Sprint 19: every buy link goes to Shopee (FR-130 to FR-138)
+// Every buy link goes to Shopee (FR-130 to FR-138)
 const AEZY_REGULAR =
   'https://shopee.co.id/No-Void-Minds-AEZY-Regular-T-Shirt-Core-i.462123491.25438116155'
 const AEZY_POLO = 'https://shopee.co.id/No-Void-Minds-AEZY-Polo-Shirt-Core-i.462123491.41081865803'
@@ -237,14 +237,10 @@ test.describe('FR-136, FR-137 admin link Shopee', () => {
   })
 })
 
-test.describe('FR-132 Produk dan Teknologi di dua tema dan dua bahasa', () => {
+// Produk at 320 px is covered by AC-13 in public.spec, an open tech panel is not
+test.describe('FR-133 panel tech terbuka di dua tema dan dua bahasa', () => {
   for (const theme of THEMES) {
-    for (const path of [
-      '/produk',
-      '/en/produk',
-      '/teknologi#lab-aezy',
-      '/en/teknologi#lab-therco',
-    ]) {
+    for (const path of ['/teknologi#lab-aezy', '/en/teknologi#lab-therco']) {
       test(`${path} tema ${theme}: axe, 320 px, target 44 px`, async ({ page }) => {
         await useTheme(page, theme)
         await page.setViewportSize({ width: 320, height: 800 })
@@ -252,10 +248,7 @@ test.describe('FR-132 Produk dan Teknologi di dua tema dan dua bahasa', () => {
         await settled(page)
         expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0)
         expect(await smallTargets(page)).toEqual([])
-        const axe = await new AxeBuilder({ page })
-          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-          .analyze()
-        expect(axe.violations.map((v) => `${v.id} ${v.nodes[0]?.target.join(' ')}`)).toEqual([])
+        expect(await axeViolations(page)).toEqual([])
         expect((await page.content()).toLowerCase()).not.toContain('shopify')
       })
     }

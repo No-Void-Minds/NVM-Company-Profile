@@ -16,7 +16,6 @@ const { en } = await import(pathToFileURL(join(root, 'src', 'i18n', 'en.ts')).hr
 // Keys whose source text is the original English (store copy or SRS); the Indonesian is the translation.
 const ENGLISH_SOURCE = [
   /^home\.lead$/,
-  /^tech\.lead$/,
   /^needs\./,
   /^brand\.(statement|engineeredBody|stages\.)/,
   /^b2b\.(wholesale|collaboration)\.(audience|body|points)/,
@@ -74,22 +73,15 @@ for (const [section, rows] of sections) {
 
 // Tech copy comes from the seeds: techs.json is the English source, techs_id.json the translation.
 const techs = JSON.parse(await readFile(join(seedDir, 'techs.json'), 'utf8'))
-let techsId = null
-try {
-  techsId = JSON.parse(await readFile(join(seedDir, 'techs_id.json'), 'utf8'))
-} catch {
-  // Added in Sprint 14, the dictionaries alone are listed until then.
-}
-if (techsId) {
-  lines.push('', '## tech (seed)', '', '| Kunci | Teks EN | Teks ID |', '|---|---|---|')
-  for (const tech of techs) {
-    const translated = techsId.find((t) => t.key === tech.key)
-    for (const field of ['tagline', 'sub', 'description', 'chips']) {
-      const enText = Array.isArray(tech[field]) ? tech[field].join(', ') : tech[field]
-      const idValue = translated?.[field] ?? ''
-      const idText = Array.isArray(idValue) ? idValue.join(', ') : idValue
-      lines.push(`| \`${tech.key}.${field}\` * | ${cell(enText)} | ${cell(idText)} |`)
-    }
+const techsId = JSON.parse(await readFile(join(seedDir, 'techs_id.json'), 'utf8'))
+lines.push('', '## tech (seed)', '', '| Kunci | Teks EN | Teks ID |', '|---|---|---|')
+for (const tech of techs) {
+  const translated = techsId.find((t) => t.key === tech.key)
+  for (const field of ['tagline', 'sub', 'description', 'chips']) {
+    const enText = Array.isArray(tech[field]) ? tech[field].join(', ') : tech[field]
+    const idValue = translated?.[field] ?? ''
+    const idText = Array.isArray(idValue) ? idValue.join(', ') : idValue
+    lines.push(`| \`${tech.key}.${field}\` * | ${cell(enText)} | ${cell(idText)} |`)
   }
 }
 

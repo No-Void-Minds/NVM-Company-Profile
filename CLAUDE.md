@@ -7,9 +7,7 @@ Rencana kerja: `docs/sprint.md`. Kerjakan berurutan, satu sprint selesai baru la
 
 ## Aturan hemat kuota (wajib)
 
-- Bangun semua fitur dulu. Pengujian hanya di Sprint 10.
-- Sebelum Sprint 10: jangan menulis unit test, jangan menjalankan dev server, browser, Playwright, curl ke API, atau screenshot.
-- Satu-satunya pemeriksaan sebelum Sprint 10 adalah `./scripts/check.sh`, dijalankan sekali di akhir tiap sprint, bukan setelah tiap file.
+- Pemeriksaan wajib di akhir tiap batch atau sprint: `./scripts/check.sh` dan `npm run build`. Unit test dan Playwright ditulis dan dijalankan bila sprint memintanya.
 - Kalau `check.sh` gagal, perbaiki lalu jalankan ulang. Jangan memperbaiki hal di luar pesan gagalnya.
 - Jangan membaca ulang file yang baru ditulis. Jangan menjelajah folder di luar repo ini.
 - Laporan akhir sprint maksimal 10 baris: apa yang dibuat, keputusan yang diambil, hal yang menunggu user.
@@ -40,9 +38,13 @@ nvm-company-profile/
     src/ api/ components/ composables/ motion/ pages/ router/ styles/
     public/fonts/  public/brand/
     fonts-src/                      sumber OTF, tidak ikut dist
+    e2e/                            Playwright
+    scripts/                        prerender, terjemahan, favicon, cek nginx
+    brand-src/                      sumber favicon, tidak ikut dist
     nginx.conf  Dockerfile  package.json  vite.config.ts
   deploy/docker-compose.yml
   docs/sprint.md  docs/terjemahan.md  docs/SRS-NVM-CompanyProfile-v1.2.docx
+  docs/openapi.yaml  docs/swagger-ui/
   scripts/check.sh  scripts/dev-db-tunnel.sh
   .gitignore  .editorconfig  .gitattributes  README.md  CLAUDE.md
 ```
@@ -85,7 +87,7 @@ Jangan pakai 8080, 8081, 8090, 5173, 5174 (dipakai NVM-Internal dan nvm-doomsday
 - Fokus terlihat lewat `:focus-visible` (outline 2px signal, offset 2px). Jangan `outline: none` tanpa pengganti.
 - Keyboard penuh: Tab, Enter/Space, Escape untuk menu, dialog, lightbox.
 - Setiap tampilan berbasis data punya state loading, kosong, error (komponen bersama di `components/state/`).
-- CTA spesifik (contoh "Lihat 11 material system", "Kirim inquiry wholesale"). Jangan "Get Started" atau "Learn More".
+- CTA spesifik (contoh "Lihat semua material system", "Kirim inquiry wholesale"). Jangan "Get Started" atau "Learn More".
 - Hover selalu punya padanan tap dengan feedback `:active`.
 - Komentar kode: pendek, sentence case, menjelaskan kenapa. Hapus banner dekoratif, label CAPS, komentar yang mengulang kode, TODO tanpa tugas.
 

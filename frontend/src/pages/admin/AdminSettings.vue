@@ -5,18 +5,13 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { useAsync } from '@/composables/useAsync'
+import { formatDateTime } from '@/i18n'
 
 const settings = useAsync(() => adminApi.settings())
 const gate = computed(() => settings.data.value?.password_gate ?? null)
 const confirming = ref(false)
 const saving = ref(false)
 const actionError = ref('')
-
-const timeFormatter = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'long',
-  timeStyle: 'short',
-  timeZone: 'Asia/Jakarta',
-})
 
 // Both directions change who can see the site at once, so each needs a confirmation (FR-125).
 const dialog = computed(() =>
@@ -85,7 +80,7 @@ async function apply() {
           <dt class="spec-label">Terakhir diubah</dt>
           <dd class="mt-1">
             <template v-if="gate.updated_by">
-              {{ timeFormatter.format(new Date(gate.updated_at)) }} oleh {{ gate.updated_by }}
+              {{ formatDateTime(gate.updated_at) }} oleh {{ gate.updated_by }}
             </template>
             <template v-else>Belum pernah diubah sejak dipasang</template>
           </dd>

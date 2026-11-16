@@ -52,6 +52,17 @@ export function formatDate(value: string, lang: Lang): string {
   }).format(date)
 }
 
+const adminTime = new Intl.DateTimeFormat('id-ID', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Jakarta',
+})
+
+// Admin timestamps, always Indonesian and Jakarta time
+export function formatDateTime(value: string): string {
+  return `${adminTime.format(new Date(value))} WIB`
+}
+
 export function formatNumber(value: number, lang: Lang): string {
   return value.toLocaleString(DATE_LOCALE[lang], { maximumFractionDigits: 1 })
 }

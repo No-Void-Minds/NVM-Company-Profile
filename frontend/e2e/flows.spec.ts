@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import AxeBuilder from '@axe-core/playwright'
 import {
   ADMIN_ROUTES,
   adminPage,
   brightSignalUses,
   expect,
   focusRing,
+  axeViolations,
   horizontalOverflow,
   settled,
   smallTargets,
@@ -418,13 +418,7 @@ for (const theme of THEMES) {
         const overflow = await horizontalOverflow(page)
         if (overflow > 0) problems.push(`${route}: overflow ${overflow}px`)
         for (const small of await smallTargets(page)) problems.push(`${route}: kecil ${small}`)
-        const axe = await new AxeBuilder({ page })
-          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-          .analyze()
-        for (const violation of axe.violations) {
-          const target = violation.nodes[0]?.target.join(' ')
-          problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
-        }
+        for (const v of await axeViolations(page)) problems.push(`${route}: axe ${v}`)
       }
       expect(problems).toEqual([])
       await context.close()

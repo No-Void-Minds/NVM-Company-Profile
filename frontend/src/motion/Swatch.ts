@@ -1,7 +1,5 @@
 // Procedural fabric swatch per tech (SRS 14.5), an illustration and not a test result.
-// Density comes from the generation, the stitch from the needs, and small variations from
-// the key, so two techs with the same needs still look different. It draws one still
-// frame and only moves when asked: a demo on hover or focus, or a re-weave on tech change.
+// Generation sets density, needs the stitch, the key small variations. Still until hovered, focused, or re-woven.
 
 import { onThemeChange, token } from './theme'
 

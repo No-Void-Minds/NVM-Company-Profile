@@ -10,6 +10,7 @@ import StateLoading from '@/components/state/StateLoading.vue'
 import { techName } from '@/composables/site'
 import { formatDate } from '@/i18n'
 import { useAsync } from '@/composables/useAsync'
+import { useDeleteConfirm } from '@/composables/useDeleteConfirm'
 
 const SOURCE_LABEL: Record<TestimonialSource, string> = {
   shopee: 'Shopee',
@@ -37,8 +38,15 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const fields = ref<Record<string, string>>({})
 const formError = ref('')
 const saving = ref(false)
-const deleting = ref<AdminTestimonial | null>(null)
-const listError = ref('')
+const {
+  target: deleting,
+  error: listError,
+  confirm: confirmDelete,
+} = useDeleteConfirm<AdminTestimonial>(async (item) => {
+  await adminApi.deleteTestimonial(item.id)
+  if (editingId.value === item.id) resetForm()
+  await run()
+})
 
 // BR-02: withdrawing the blur confirmation also withdraws publication.
 watch(
@@ -124,20 +132,6 @@ async function togglePublished(item: AdminTestimonial) {
   listError.value = ''
   try {
     await adminApi.updateTestimonial(item.id, { published: !item.published })
-    await run()
-  } catch (err) {
-    listError.value = errorMessage(err)
-  }
-}
-
-async function confirmDelete() {
-  const target = deleting.value
-  deleting.value = null
-  if (!target) return
-  listError.value = ''
-  try {
-    await adminApi.deleteTestimonial(target.id)
-    if (editingId.value === target.id) resetForm()
     await run()
   } catch (err) {
     listError.value = errorMessage(err)

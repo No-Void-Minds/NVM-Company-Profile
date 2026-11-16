@@ -1,9 +1,9 @@
-import AxeBuilder from '@axe-core/playwright'
 import {
   brightSignalUses,
   EN_ROUTES,
   expect,
   focusRing,
+  axeViolations,
   horizontalOverflow,
   PUBLIC_ROUTES,
   settled,
@@ -400,13 +400,7 @@ test.describe('AC-13, AC-18 target sentuh, axe, kontras', () => {
             for (const use of await brightSignalUses(page))
               problems.push(`${route}: #FF5A36 ${use}`)
           }
-          const axe = await new AxeBuilder({ page })
-            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-            .analyze()
-          for (const violation of axe.violations) {
-            const target = violation.nodes[0]?.target.join(' ')
-            problems.push(`${route}: axe ${violation.id} (${violation.nodes.length}) ${target}`)
-          }
+          for (const v of await axeViolations(page)) problems.push(`${route}: axe ${v}`)
         }
         expect(problems).toEqual([])
       })

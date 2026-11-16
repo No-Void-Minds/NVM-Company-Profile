@@ -1,9 +1,8 @@
 import { readonly, ref } from 'vue'
 import { api } from '@/api/client'
 
-// Number of visible material systems (FR-134), read from the Lab index once per page load.
-// Null until known: prerendered HTML and a failed request use wording without a number,
-// so a static page never states a count that the admin has since changed.
+// Visible material systems (FR-134), read once per page load. Null in prerendered HTML and on
+// failure, so a static page never states a count the admin has since changed.
 const count = ref<number | null>(null)
 let loading: Promise<void> | null = null
 

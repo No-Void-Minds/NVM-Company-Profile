@@ -8,6 +8,7 @@ import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { useAsync } from '@/composables/useAsync'
+import { useDeleteConfirm } from '@/composables/useDeleteConfirm'
 
 const { data, error, loading, run } = useAsync(() => adminApi.gallery())
 const items = computed(() => data.value ?? [])
@@ -29,8 +30,15 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const fields = ref<Record<string, string>>({})
 const formError = ref('')
 const saving = ref(false)
-const deleting = ref<AdminGalleryItem | null>(null)
-const listError = ref('')
+const {
+  target: deleting,
+  error: listError,
+  confirm: confirmDelete,
+} = useDeleteConfirm<AdminGalleryItem>(async (item) => {
+  await adminApi.deleteGallery(item.id)
+  if (editingId.value === item.id) resetForm()
+  await run()
+})
 
 function resetForm() {
   Object.assign(form, blank())
@@ -97,20 +105,6 @@ async function toggleVisible(item: AdminGalleryItem) {
   listError.value = ''
   try {
     await adminApi.updateGallery(item.id, { visible: !item.visible })
-    await run()
-  } catch (err) {
-    listError.value = errorMessage(err)
-  }
-}
-
-async function confirmDelete() {
-  const target = deleting.value
-  deleting.value = null
-  if (!target) return
-  listError.value = ''
-  try {
-    await adminApi.deleteGallery(target.id)
-    if (editingId.value === target.id) resetForm()
     await run()
   } catch (err) {
     listError.value = errorMessage(err)

@@ -99,6 +99,7 @@ export const en: Messages = {
     failed: 'Data failed to load',
     retry: 'Try again',
     optional: '(optional)',
+    shopFallback: 'You can still browse NVM products on the Shopee store.',
   },
 
   apiErrors: {
@@ -175,7 +176,6 @@ export const en: Messages = {
   },
 
   tech: {
-    lead: 'Most brands draw the shirt, then go looking for a fabric. We do it the other way round.',
     loading: 'Loading material systems',
     empty: 'The material system list is not available yet',
     filterLabel: 'Your day',

@@ -66,7 +66,14 @@ const systemCount = useSystemCount()
       class="mt-3"
       @retry="stats.run"
     />
-    <StateEmpty v-else-if="stats.data.value?.systems === 0" :title="t.home.labEmpty" class="mt-3" />
+    <StateEmpty
+      v-else-if="stats.data.value?.systems === 0"
+      :title="t.home.labEmpty"
+      :message="t.state.shopFallback"
+      class="mt-3"
+    >
+      <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
+    </StateEmpty>
     <dl v-else-if="stats.data.value" class="mt-3 flex flex-wrap gap-x-8 gap-y-4">
       <div>
         <dd class="text-h1 leading-none">{{ pad2(stats.data.value.systems) }}</dd>

@@ -7,6 +7,7 @@ import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { useAsync } from '@/composables/useAsync'
+import { formatDateTime } from '@/i18n'
 
 const STATUS_LABEL: Record<InquiryStatus, string> = {
   new: 'Baru',
@@ -16,13 +17,6 @@ const STATUS_LABEL: Record<InquiryStatus, string> = {
 }
 const KIND_LABEL = { wholesale: 'Wholesale', collaboration: 'Collaboration' }
 const STATUSES = Object.keys(STATUS_LABEL) as InquiryStatus[]
-
-const timeFormatter = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'Asia/Jakarta',
-})
-const formatTime = (value: string) => `${timeFormatter.format(new Date(value))} WIB`
 
 const kind = ref('')
 const status = ref('')
@@ -115,7 +109,7 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
             <th scope="row" class="font-normal">
               <button
                 type="button"
-                class="text-link cursor-pointer font-mono"
+                class="text-link font-mono"
                 :aria-pressed="selectedId === item.id"
                 @click="selectedId = item.id"
               >
@@ -127,7 +121,7 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
             <td :class="{ 'text-signal': item.status === 'new' }">
               {{ STATUS_LABEL[item.status] }}
             </td>
-            <td class="whitespace-nowrap">{{ formatTime(item.created_at) }}</td>
+            <td class="whitespace-nowrap">{{ formatDateTime(item.created_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -172,7 +166,7 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
         <dt>Pesan</dt>
         <dd class="whitespace-pre-line">{{ selected.message }}</dd>
         <dt>Persetujuan</dt>
-        <dd>{{ formatTime(selected.consent_at) }}</dd>
+        <dd>{{ formatDateTime(selected.consent_at) }}</dd>
       </dl>
     </section>
   </div>

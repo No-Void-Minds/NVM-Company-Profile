@@ -87,7 +87,8 @@ const askWhatsapp = computed(() =>
     t.value.size
       .askMessage(tech.value?.name ?? '', fit.value, selected.value)
       .replace(/\s+/g, ' ')
-      .replace(' ,', ','),
+      .replace(' ,', ',')
+      .replace(' .', '.'),
   ),
 )
 
@@ -139,7 +140,17 @@ if (!import.meta.env.SSR) {
       class="mt-6"
       @retry="techs.run"
     />
-    <StateEmpty v-else-if="!tech" :title="t.size.empty" class="mt-6" />
+    <StateEmpty
+      v-else-if="!tech"
+      :title="t.size.empty"
+      :message="t.size.chartEmptyBody"
+      class="mt-6"
+    >
+      <AppButton :href="askWhatsapp">
+        <IconSvg name="chat" />
+        {{ t.size.ask }}
+      </AppButton>
+    </StateEmpty>
 
     <div v-else class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6">
       <div class="grid content-start gap-3">
@@ -358,7 +369,6 @@ if (!import.meta.env.SSR) {
   padding: 8px;
   color: var(--muted);
   border-bottom: 2px solid transparent;
-  cursor: pointer;
 }
 
 .tab-button:active {

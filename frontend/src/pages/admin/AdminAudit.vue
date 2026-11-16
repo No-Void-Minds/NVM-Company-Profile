@@ -4,6 +4,7 @@ import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { useAsync } from '@/composables/useAsync'
+import { formatDateTime } from '@/i18n'
 
 const ACTION_LABEL: Record<string, string> = {
   create: 'Membuat',
@@ -11,12 +12,6 @@ const ACTION_LABEL: Record<string, string> = {
   save: 'Menyimpan',
   delete: 'Menghapus',
 }
-
-const timeFormatter = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'Asia/Jakarta',
-})
 
 const { data, error, loading, run } = useAsync(() => adminApi.auditLog())
 </script>
@@ -47,7 +42,7 @@ const { data, error, loading, run } = useAsync(() => adminApi.auditLog())
       </thead>
       <tbody>
         <tr v-for="row in data" :key="row.id">
-          <td class="whitespace-nowrap">{{ timeFormatter.format(new Date(row.at)) }}</td>
+          <td class="whitespace-nowrap">{{ formatDateTime(row.at) }}</td>
           <td>{{ row.username ?? 'Akun terhapus' }}</td>
           <td>{{ ACTION_LABEL[row.action] ?? row.action }}</td>
           <td>{{ row.entity }}</td>

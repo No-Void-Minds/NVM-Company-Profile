@@ -101,6 +101,8 @@ export const id = {
     failed: 'Data gagal dimuat',
     retry: 'Coba lagi',
     optional: '(opsional)',
+    // Next step on an empty catalog view, the store keeps selling while the list is empty
+    shopFallback: 'Produk NVM tetap bisa dilihat di toko Shopee.',
   },
 
   // FR-116: shown by error code, never the backend wording
@@ -130,6 +132,7 @@ export const id = {
   },
 
   home: {
+    // The Lab concept, also the lead of Teknologi
     lead: 'Kebanyakan brand menggambar kausnya dulu, baru mencari kainnya. Kami melakukannya sebaliknya.',
     labIndex: 'Lab index',
     labLoading: 'Memuat Lab index',
@@ -178,7 +181,6 @@ export const id = {
   },
 
   tech: {
-    lead: 'Kebanyakan brand menggambar kausnya dulu, baru mencari kainnya. Kami melakukannya sebaliknya.',
     loading: 'Memuat material system',
     empty: 'Daftar material system belum tersedia',
     filterLabel: 'Harimu',

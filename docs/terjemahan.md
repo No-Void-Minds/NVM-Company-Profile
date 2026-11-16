@@ -81,6 +81,7 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `state.failed` | Data failed to load | Data gagal dimuat |
 | `state.retry` | Try again | Coba lagi |
 | `state.optional` | (optional) | (opsional) |
+| `state.shopFallback` | You can still browse NVM products on the Shopee store. | Produk NVM tetap bisa dilihat di toko Shopee. |
 
 ## apiErrors
 
@@ -156,7 +157,6 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 
 | Kunci | Teks EN | Teks ID |
 |---|---|---|
-| `tech.lead` * | Most brands draw the shirt, then go looking for a fabric. We do it the other way round. | Kebanyakan brand menggambar kausnya dulu, baru mencari kainnya. Kami melakukannya sebaliknya. |
 | `tech.loading` | Loading material systems | Memuat material system |
 | `tech.empty` | The material system list is not available yet | Daftar material system belum tersedia |
 | `tech.filterLabel` | Your day | Harimu |

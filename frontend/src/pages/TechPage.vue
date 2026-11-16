@@ -2,13 +2,14 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api/client'
+import AppButton from '@/components/AppButton.vue'
 import IconSvg from '@/components/IconSvg.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import TechDetail from '@/components/TechDetail.vue'
-import { NEED_KEYS, pad2, techName } from '@/composables/site'
+import { NEED_KEYS, pad2, SHOPEE_URL, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useI18n } from '@/i18n'
@@ -71,11 +72,18 @@ function choose(key: string) {
 
 <template>
   <div class="wrap section">
-    <SectionHeading level="h1" number="The Lab" title="Fabric first." :lead="t.tech.lead" />
+    <SectionHeading level="h1" number="The Lab" title="Fabric first." :lead="t.home.lead" />
 
     <StateLoading v-if="loading" :label="t.tech.loading" height="480px" class="mt-6" />
     <StateError v-else-if="error" :message="error" class="mt-6" @retry="run" />
-    <StateEmpty v-else-if="techs.length === 0" :title="t.tech.empty" class="mt-6" />
+    <StateEmpty
+      v-else-if="techs.length === 0"
+      :title="t.tech.empty"
+      :message="t.state.shopFallback"
+      class="mt-6"
+    >
+      <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
+    </StateEmpty>
 
     <template v-else>
       <div class="mt-6">
@@ -171,7 +179,6 @@ function choose(key: string) {
   padding: 8px 16px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
-  cursor: pointer;
 }
 
 .filter-button:active {
@@ -191,7 +198,6 @@ function choose(key: string) {
   gap: 16px;
   padding-block: 8px;
   text-align: left;
-  cursor: pointer;
   transition: color 160ms ease;
 }
 

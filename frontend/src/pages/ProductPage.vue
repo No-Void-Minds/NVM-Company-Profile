@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { api } from '@/api/client'
+import AppButton from '@/components/AppButton.vue'
 import ExternalLink from '@/components/ExternalLink.vue'
 import SectionHeading from '@/components/SectionHeading.vue'
 import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import SwatchView from '@/components/SwatchView.vue'
-import { techLink, techName } from '@/composables/site'
+import { SHOPEE_URL, techLink, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
 import { useI18n } from '@/i18n'
 
@@ -52,8 +53,11 @@ const fits = computed(() =>
         <StateEmpty
           v-else-if="(techs.data.value ?? []).length === 0"
           :title="t.product.techEmpty"
+          :message="t.state.shopFallback"
           class="mt-3"
-        />
+        >
+          <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
+        </StateEmpty>
         <div
           v-else
           class="scroll-x mt-3 border border-line"
@@ -146,8 +150,11 @@ const fits = computed(() =>
         <StateEmpty
           v-else-if="(collabs.data.value ?? []).length === 0"
           :title="t.product.collabEmpty"
+          :message="t.state.shopFallback"
           class="mt-3"
-        />
+        >
+          <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
+        </StateEmpty>
         <ul v-else class="mt-3 border-t border-line">
           <li
             v-for="collab in collabs.data.value"

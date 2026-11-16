@@ -136,7 +136,7 @@ const average = computed(() => {
             class="mt-2 h-auto w-full"
           />
           <details class="mt-2">
-            <summary class="text-link cursor-pointer">{{ t.testimonial.transcript }}</summary>
+            <summary class="text-link">{{ t.testimonial.transcript }}</summary>
             <p class="mt-1 whitespace-pre-line" :lang="item.lang">{{ item.transcript }}</p>
           </details>
         </li>

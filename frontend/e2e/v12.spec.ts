@@ -225,7 +225,7 @@ test.describe('AC-21 prerender dan sitemap', () => {
 })
 
 test.describe('AC-22 swatch', () => {
-  // The Home strip was removed in Sprint 18, the Produk rows carry all 10 swatches
+  // Home has no swatch strip, the Produk rows carry all 10 swatches
   async function rowImages(page: import('@playwright/test').Page) {
     return page
       .locator('tr[data-swatch-host] canvas')
@@ -259,7 +259,7 @@ test.describe('AC-22 swatch', () => {
     expect(await link.evaluate(canvasImage, 'canvas')).toBe(rest)
   })
 
-  // Sprint 18: the ANTSHELL shell is striped fabric, not a blank box over the knit
+  // The ANTSHELL shell is striped fabric, not a blank box over the knit
   for (const theme of ['light', 'dark'] as const) {
     test(`ANTSHELL menampilkan pola cangkang, tema ${theme}`, async ({ page }) => {
       await useTheme(page, theme)

@@ -1,10 +1,10 @@
-import AxeBuilder from '@axe-core/playwright'
 import type { APIRequestContext, Page } from '@playwright/test'
 import {
   adminPage,
   adminPassword,
   brightSignalUses,
   expect,
+  axeViolations,
   horizontalOverflow,
   settled,
   smallTargets,
@@ -121,11 +121,7 @@ test.describe('FR-123 halaman password di dua tema dan dua bahasa', () => {
             for (const use of await brightSignalUses(page))
               problems.push(`${width}: #FF5A36 ${use}`)
           }
-          const axe = await new AxeBuilder({ page })
-            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-            .analyze()
-          for (const v of axe.violations)
-            problems.push(`${width}: axe ${v.id} ${v.nodes[0]?.target.join(' ')}`)
+          for (const v of await axeViolations(page)) problems.push(`${width}: axe ${v}`)
         }
         expect(problems).toEqual([])
       })

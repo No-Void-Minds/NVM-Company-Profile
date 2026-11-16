@@ -21,7 +21,11 @@ npx vue-tsc --noEmit
 npx vitest run
 npx eslint .
 npx prettier --check .
-node scripts/terjemahan.mjs --check
+# A missing seed or dictionary is a failure too, not a shorter docs/terjemahan.md
+node scripts/terjemahan.mjs --check || {
+  echo "check.sh: terjemahan.mjs gagal, lihat pesan di atas (file seed atau kamus hilang, atau docs/terjemahan.md belum diperbarui)." >&2
+  exit 1
+}
 # Static real_ip checks. The nginx behavior part also runs when NGINX_BIN is set.
 node scripts/test-real-ip.mjs
 

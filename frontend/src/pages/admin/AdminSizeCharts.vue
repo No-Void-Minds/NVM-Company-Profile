@@ -9,6 +9,7 @@ import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { sizeChartKey } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { useDeleteConfirm } from '@/composables/useDeleteConfirm'
 import { parseSizeChart } from '@/composables/useSizeRecommendation'
 
 const { data, error, loading, run } = useAsync(() => adminApi.sizeCharts())
@@ -29,8 +30,15 @@ const editing = ref(false)
 const fields = ref<Record<string, string>>({})
 const formError = ref('')
 const saving = ref(false)
-const deleting = ref<SizeChart | null>(null)
-const listError = ref('')
+const {
+  target: deleting,
+  error: listError,
+  confirm: confirmDelete,
+} = useDeleteConfirm<SizeChart>(async (item) => {
+  await adminApi.deleteSizeChart(item.key)
+  if (form.key === item.key) resetForm()
+  await run()
+})
 
 const preview = computed(() => (form.rows.trim() ? parseSizeChart(form.rows) : null))
 
@@ -68,20 +76,6 @@ async function save() {
     if (err instanceof ApiError) fields.value = err.fields
   } finally {
     saving.value = false
-  }
-}
-
-async function confirmDelete() {
-  const target = deleting.value
-  deleting.value = null
-  if (!target) return
-  listError.value = ''
-  try {
-    await adminApi.deleteSizeChart(target.key)
-    if (form.key === target.key) resetForm()
-    await run()
-  } catch (err) {
-    listError.value = errorMessage(err)
   }
 }
 </script>

@@ -109,6 +109,22 @@
     outline-offset: 2px;
   }
 
+  /* Preflight gives buttons the arrow cursor, every control gets the pointer here once */
+  button,
+  summary,
+  select,
+  label[for],
+  label:has(input[type='checkbox'], input[type='radio']),
+  input[type='checkbox'],
+  input[type='radio'],
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  :disabled {
+    cursor: not-allowed;
+  }
+
   /* Set for 150 ms by useTheme only, so other transitions keep their own timing */
   html.theme-switching,
   html.theme-switching * {

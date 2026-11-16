@@ -119,7 +119,7 @@ function onPointerUp(event: PointerEvent) {
         <li v-for="(item, index) in filtered" :key="item.id" class="mb-2 break-inside-avoid">
           <button
             type="button"
-            class="block w-full cursor-pointer active:opacity-80"
+            class="block w-full active:opacity-80"
             :aria-label="t.gallery.enlarge(item.alt)"
             @click="lightboxIndex = index"
           >
@@ -173,6 +173,8 @@ function onPointerUp(event: PointerEvent) {
         :src="current.image.src"
         :srcset="current.image.srcset"
         sizes="100vw"
+        :width="current.image.width"
+        :height="current.image.height"
         :alt="current.alt"
         draggable="false"
         class="max-h-full max-w-full object-contain"
@@ -199,7 +201,6 @@ function onPointerUp(event: PointerEvent) {
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 }
 
 .tap-icon:active {

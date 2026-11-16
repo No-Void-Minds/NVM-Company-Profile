@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test as base, type Browser, type Page } from '@playwright/test'
 
 export const WIDTHS = [320, 375, 768, 1024, 1440]
@@ -148,6 +149,14 @@ export async function adminPage(browser: Browser, width = 1440) {
 export async function settled(page: Page) {
   await page.waitForLoadState('networkidle')
   await expect(page.locator('[role="status"].knit-bg')).toHaveCount(0)
+}
+
+// One WCAG 2.2 AA tag set for every axe run, each violation as "id (count) first target"
+export async function axeViolations(page: Page): Promise<string[]> {
+  const axe = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze()
+  return axe.violations.map((v) => `${v.id} (${v.nodes.length}) ${v.nodes[0]?.target.join(' ')}`)
 }
 
 export async function horizontalOverflow(page: Page): Promise<number> {
