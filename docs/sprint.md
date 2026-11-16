@@ -34,6 +34,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 18 | Halaman password (site gate), pengaturan admin, Beranda tanpa strip swatch, perbaikan swatch ANTSHELL | M | selesai |
 | 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | selesai |
 | 20 | Dokumentasi API OpenAPI 3.1, test kesesuaian spec, Swagger UI khusus dev | S | selesai |
+| 21 | Audit dan revisi dengan ponytail, anti-slop, ui-ux-pro-max | S | selesai (commit oleh user) |
 
 ---
 
@@ -204,11 +205,20 @@ Kontrak SRS 7.4 ditulis sebagai OpenAPI 3.1 dan dijaga test. Tidak ada perubahan
 3. Swagger UI di `GET /api/docs` dan `/api/docs/openapi.yaml` hanya bila `GIN_MODE=debug`. Di release route tidak terdaftar (404). Aset lokal, bukan CDN.
 4. README bagian Dokumentasi API.
 
+## Sprint 21: Audit dan revisi
+
+Audit seluruh repo dengan tiga skill, lalu revisi hanya temuan yang disetujui. Fitur, perilaku, kontrak API (`docs/openapi.yaml`), skema database, dan domain tidak berubah tanpa persetujuan. Identitas desain v1.2 tetap. Agen tidak commit dan tidak push.
+
+1. Tahap 1, audit tanpa mengubah kode: `/ponytail-audit` (fokus duplikasi), anti-slop mode After (ui, human, copywriting, code), ui-ux-pro-max (design system, ux, typography, stack vue) sebagai pembanding. Hasil di `docs/audit-sprint21.md`.
+2. Tahap 2, revisi per batch kecil untuk nomor yang disetujui, `check.sh` dan `npm run build` tiap batch. Yang ditunda ditandai komentar `shortcut:`.
+3. Setelah semua batch: Playwright penuh di dev dan build produksi (`nvm_compro_test`), axe di dua tema, Lighthouse mobile Beranda ID dan EN, uji OpenAPI, `/ponytail-review` atas seluruh diff.
+4. Laporan: status per nomor temuan, baris sebelum dan sesudah per folder, hasil test, Delivery Gate anti-slop, daftar `shortcut:`, file per batch, usulan pesan commit.
+
 ## Pekerjaan berikutnya
 
 - Kunci versi image `migrate/migrate` (sekarang `:latest`) di README, samakan dengan versi CLI `migrate` di laptop dev. Catatan: CLI dev mencetak `dev` pada `migrate -version` (dipasang dari source), jadi versinya perlu dipastikan dulu, misalnya dengan memasang ulang dari tag rilis.
 - Evaluasi `style-src 'unsafe-inline'` di CSP (`frontend/nginx-security-headers.conf`) sebelum rilis publik.
-- Domain final (4 November 2026, keputusan atasan): compro di `novoidminds.id`, toko Shopify di `novoidminds.com` (Primary), login pelanggan Shopify di `account.novoidminds.id`. Sempat ditukar pada 3 November lalu dikembalikan. Kondisi DNS dan riwayatnya di README.
+- Domain dan DNS: lihat README bagian Rilis publik dan Riwayat domain.
 
 ## Laporan sprint
 
@@ -434,3 +444,11 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Keputusan: spec dan aset Swagger dibaca dari disk, bukan di-embed, agar tidak ikut binary dan image produksi. CSP longgar (`script-src 'self'`, `style-src 'unsafe-inline'`) hanya di route docs.
 - Keputusan: kin-openapi v0.152.0 (dukung 3.1 dan JSON Schema 2020-12) hanya dipakai test. Contoh di spec ikut divalidasi, jadi contoh yang tidak cocok skema membuat test gagal.
 - Tidak perlu deploy: produksi berjalan release, `/api/docs` tetap 404.
+
+### Sprint 21
+
+- Dibuat: 15 dari 16 temuan `docs/audit-sprint21.md` (14 batal karena FR-42 sudah memenuhi WCAG). Batas body JSON seragam: 9 route menjawab 413 VALIDATION, tercatat di `docs/openapi.yaml` dan diuji `TestJSONBodyTooLarge`. Upload multipart tetap 400 dengan field `image`.
+- Dibuat: `cursor: pointer` di base layer, ukuran gambar lightbox, `formatDateTime` dan `useDeleteConfirm` untuk admin, helper `axeViolations` untuk e2e, langkah berikutnya di 5 state kosong, CLAUDE.md diperbarui. Dihapus: query `ListTechs`, 2 test ganda, 4 tes axe `/produk` ganda, fallback `terjemahan.mjs`, kunci `tech.lead`, `docs/design-system/`.
+- Keputusan: domain tidak disentuh. Satu cacat dari revisi ikut diperbaiki: pesan WhatsApp Size tanpa tech berakhir " .".
+- Hasil: Playwright dev 133 lolos (29 khusus produksi), produksi 162/162. Lighthouse mobile build lokal, Beranda ID dan EN tiga kali: performa 99, aksesibilitas 100, best practices 100, SEO 83 (canonical relatif tanpa `VITE_PUBLIC_BASE_URL`, sama seperti Sprint 16).
+- Audit UX untuk Sprint 22 di `docs/audit-sprint22.md` (12 temuan, 80 screenshot di `docs/audit-sprint22/`), belum dikerjakan.
