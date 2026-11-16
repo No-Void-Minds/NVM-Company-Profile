@@ -35,6 +35,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 | 19 | Shopify dihapus, tujuan beli ke Shopee, link per tech dan fit, MELTWRAP disembunyikan | M | selesai |
 | 20 | Dokumentasi API OpenAPI 3.1, test kesesuaian spec, Swagger UI khusus dev | S | selesai |
 | 21 | Audit dan revisi dengan ponytail, anti-slop, ui-ux-pro-max | S | selesai (commit oleh user) |
+| 22 | Perbaikan UI/UX dari audit Sprint 22 | S | selesai (commit oleh user) |
 
 ---
 
@@ -45,7 +46,7 @@ Acuan kebutuhan: SRS v1.2 (`docs/SRS-NVM-CompanyProfile-v1.2.docx`). Sprint 0 sa
 3. Frontend: Vite Vue TS di `frontend/`, Tailwind v4 (`@tailwindcss/vite`), Vue Router, ESLint flat config, Prettier, vue-tsc. Proxy dev sesuai CLAUDE.md. Port 5175.
 4. `src/styles/tokens.css`: `@theme` warna, font, radius, jarak dari CLAUDE.md. `@font-face` D-DIN dari `/fonts/D-DIN.ttf` (dan `D-DIN-Bold.ttf` bila ada), `@fontsource/space-grotesk`, `@fontsource/jetbrains-mono`. Gaya fokus global dan `prefers-reduced-motion` global.
 5. `scripts/check.sh`: `set -euo pipefail`; backend: `gofmt -l` harus kosong, `go vet ./...`, `go build ./...`, `go test ./...`; frontend: `npx vue-tsc --noEmit`, `npx eslint .`, `npx prettier --check .`.
-6. `scripts/dev-db-tunnel.sh`: `ssh -N -L 15432:127.0.0.1:5432 nvmadmin@192.168.68.144` (port Postgres di VM dibaca dari env `NVM_PG_REMOTE_PORT`, default 5432).
+6. `scripts/dev-db-tunnel.sh`: `ssh -N -L 15432:127.0.0.1:5432 nvmadmin@192.168.68.69` (port Postgres di VM dibaca dari env `NVM_PG_REMOTE_PORT`, default 5432).
 
 ## Sprint 1: Database
 
@@ -213,6 +214,22 @@ Audit seluruh repo dengan tiga skill, lalu revisi hanya temuan yang disetujui. F
 2. Tahap 2, revisi per batch kecil untuk nomor yang disetujui, `check.sh` dan `npm run build` tiap batch. Yang ditunda ditandai komentar `shortcut:`.
 3. Setelah semua batch: Playwright penuh di dev dan build produksi (`nvm_compro_test`), axe di dua tema, Lighthouse mobile Beranda ID dan EN, uji OpenAPI, `/ponytail-review` atas seluruh diff.
 4. Laporan: status per nomor temuan, baris sebelum dan sesudah per folder, hasil test, Delivery Gate anti-slop, daftar `shortcut:`, file per batch, usulan pesan commit.
+
+## Sprint 22: Perbaikan UI/UX
+
+Temuan `docs/audit-sprint22.md` dikerjakan kecuali 9 (pagination Inquiry dan Log audit, ditunda karena butuh perubahan API). Kontrak API, database, domain, dan identitas v1.2 tetap. Anti-slop mode During, ui-ux-pro-max sebagai pedoman, ponytail untuk ukuran kode. Agen tidak commit dan tidak push.
+
+1. Produk: daftar per tech di bawah 1024 px (swatch, nama, link per fit, fit tanpa link tetap terlihat), matriks di layar lebar.
+2. Size: kolom ukuran menempel saat tabel digeser, petunjuk geser yang terlihat, baris terpilih tetap ditandai.
+3. Size: petunjuk tanpa kata arah.
+4. Size: hasil digulir ke layar setelah isian selesai (Enter atau keluar dari isian), tanpa animasi saat reduced motion, `aria-live`, `enterkeyhint`. Fokus tetap di isian.
+5. Size: catatan asli toko di dalam `<details>` di versi ID.
+6. Beranda: hero lebih pendek di HP, Knit Field tetap.
+7. B2B: checkbox tech dalam grid responsif, satu fieldset.
+8. Admin: navigasi dilipat ke tombol menu di HP (Escape menutup, fokus kembali).
+10, 11, 12. Admin Inquiry sebagai kartu di HP, lompatan ke tech di Katalog, judul kolom tabel memakai skala teks yang ada.
+
+Setelah itu: `check.sh`, build, Playwright dev dan produksi dengan test baru, axe dua tema, Lighthouse Beranda ID dan EN, checklist ui-ux-pro-max, screenshot sebelum dan sesudah di `docs/audit-sprint22/sesudah/` (tidak masuk git), `/ponytail-review`.
 
 ## Pekerjaan berikutnya
 
@@ -452,3 +469,11 @@ Dikerjakan user di `nvm-server`, laporan dicatat dari keterangan user.
 - Keputusan: domain tidak disentuh. Satu cacat dari revisi ikut diperbaiki: pesan WhatsApp Size tanpa tech berakhir " .".
 - Hasil: Playwright dev 133 lolos (29 khusus produksi), produksi 162/162. Lighthouse mobile build lokal, Beranda ID dan EN tiga kali: performa 99, aksesibilitas 100, best practices 100, SEO 83 (canonical relatif tanpa `VITE_PUBLIC_BASE_URL`, sama seperti Sprint 16).
 - Audit UX untuk Sprint 22 di `docs/audit-sprint22.md` (12 temuan, 80 screenshot di `docs/audit-sprint22/`), belum dikerjakan.
+
+### Sprint 22
+
+- Dibuat: daftar per tech di Produk di bawah 1024 px (fit tanpa link tetap tampil "Belum ada link"), kolom ukuran Size menempel dengan petunjuk geser, petunjuk Size tanpa kata arah, hasil Size digulir ke layar setelah isian selesai (`enterkeyhint="done"`, `aria-live`, fokus tetap di isian), catatan asli toko di `<details>`, hero Beranda `min(60svh, 520px)` di bawah 768 px, checkbox tech B2B `auto-fit`, menu admin dilipat di bawah 1024 px, kartu inquiry di bawah 768 px, lompatan ke tech di Katalog, judul kolom tabel 15 px huruf biasa.
+- Ditunda: temuan 9 (pagination Inquiry dan Log audit) karena butuh perubahan API.
+- Keputusan: catatan asli toko dilipat di kedua bahasa, karena di versi EN isinya juga mengulang baris kamus. Teks baru hanya `size.scrollHint` dan `size.storeNote`, teks `size.prompt` ID disejajarkan dengan EN.
+- Diperbaiki dari `/ponytail-review`: setelah memilih halaman dari menu admin di HP, fokus pindah ke `#admin-main`, tidak hilang ke body.
+- Test: `e2e/sprint22.spec.ts` (7 tes). Helper login menunggu 15 detik karena verifikasi argon2 lambat saat mesin sibuk. Backend tidak berubah, deploy cukup build frontend.
