@@ -43,7 +43,11 @@ func (s *server) login(c *gin.Context) {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
-	if err := c.ShouldBindJSON(&body); err != nil {
+	err := c.ShouldBindJSON(&body)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Isi username dan password.", nil)
 		return
 	}

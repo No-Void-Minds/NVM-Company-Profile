@@ -225,7 +225,11 @@ func (s *server) adminUpdateGallery(c *gin.Context) {
 		Sort:      current.Sort,
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
-	if err := c.ShouldBindJSON(&in); err != nil {
+	err = c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Data tidak bisa dibaca.", nil)
 		return
 	}
@@ -414,7 +418,11 @@ func (s *server) adminUpdateTestimonial(c *gin.Context) {
 		Published:        current.Published,
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
-	if err := c.ShouldBindJSON(&in); err != nil {
+	err = c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Data tidak bisa dibaca.", nil)
 		return
 	}

@@ -157,7 +157,11 @@ func (s *server) adminPutPasswordGate(c *gin.Context) {
 		Enabled *bool `json:"enabled"`
 	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
-	if err := c.ShouldBindJSON(&in); err != nil || in.Enabled == nil {
+	err := c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil || in.Enabled == nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Kirim nilai enabled.", nil)
 		return
 	}

@@ -310,18 +310,24 @@ func seedDB(t *testing.T) fakeDB {
 	db["UpsertSizeChart"] = db["GetSizeChart"]
 
 	tech, rating := "aezy", int16(5)
-	gallery := sqlc.GalleryItem{ID: uuid.New(), Category: "uji", Alt: "UJI alt", ImageKey: uuid.New(),
+	gallery := sqlc.GalleryItem{ID: testGalleryID, Category: "uji", Alt: "UJI alt", ImageKey: uuid.New(),
 		Width: 1600, Height: 1200, Visible: true, CreatedAt: now}
-	testimonial := sqlc.Testimonial{ID: uuid.New(), Source: "shopee", ReviewDate: now, TechKey: &tech, Rating: &rating,
+	testimonial := sqlc.Testimonial{ID: testTestimonialID, Source: "shopee", ReviewDate: now, TechKey: &tech, Rating: &rating,
 		Transcript: "UJI transkrip", ImageKey: uuid.New(), Width: 1080, Height: 1920, Published: true, CreatedAt: now, Lang: "id"}
 	db["ListVisibleGallery"] = []any{gallery}
 	db["ListAllGallery"] = []any{gallery}
 	db["ListPublishedTestimonials"] = []any{testimonial}
 	db["ListAllTestimonials"] = []any{testimonial}
+	db["GetGalleryItem"] = []any{gallery}
+	db["GetTestimonial"] = []any{testimonial}
 	return db
 }
 
-var testInquiryID = uuid.MustParse("00000000-0000-4000-8000-000000000001")
+var (
+	testInquiryID     = uuid.MustParse("00000000-0000-4000-8000-000000000001")
+	testGalleryID     = uuid.MustParse("00000000-0000-4000-8000-000000000002")
+	testTestimonialID = uuid.MustParse("00000000-0000-4000-8000-000000000003")
+)
 
 func testInquiry(now time.Time) sqlc.Inquiry {
 	return sqlc.Inquiry{ID: testInquiryID, Code: "B2B-TEST00", Kind: "wholesale", Name: "UJI Nama", Org: "UJI Usaha",
@@ -453,9 +459,38 @@ func TestAdminResponsesMatchSpec(t *testing.T) {
 		{method: http.MethodPut, path: "/api/admin/settings/password-gate", body: `{"enabled":true}`, admin: true, want: http.StatusOK},
 		{method: http.MethodPost, path: "/api/admin/gallery", admin: true, want: http.StatusBadRequest},
 		{method: http.MethodDelete, path: "/api/admin/gallery/bukan-uuid", admin: true, want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/api/admin/login", body: "{", want: http.StatusBadRequest},
 		{method: http.MethodPost, path: "/api/admin/logout", admin: true, want: http.StatusNoContent},
 		{method: http.MethodPost, path: "/api/admin/logout", headers: map[string]string{"Cookie": auth.CookieName + "=" + validToken}, want: http.StatusForbidden},
 	} {
 		run(t, r, tc)
+	}
+}
+
+// Every JSON route caps its body and answers 413 with the standard error when it is too big.
+func TestJSONBodyTooLarge(t *testing.T) {
+	r := fakeServer(t, seedDB(t))
+	big := `{"status":"` + strings.Repeat("x", maxJSONBody) + `"}`
+	for _, tc := range []struct {
+		method, path string
+		admin        bool
+	}{
+		{http.MethodPost, "/api/inquiries", false},
+		{http.MethodPost, "/api/admin/login", false},
+		{http.MethodPatch, "/api/admin/techs/aezy", true},
+		{http.MethodPatch, "/api/admin/collabs/marvel", true},
+		{http.MethodPatch, "/api/admin/inquiries/" + testInquiryID.String(), true},
+		{http.MethodPatch, "/api/admin/gallery/" + testGalleryID.String(), true},
+		{http.MethodPatch, "/api/admin/testimonials/" + testTestimonialID.String(), true},
+		{http.MethodPut, "/api/admin/size-charts/aezy-regular", true},
+		{http.MethodPut, "/api/admin/settings/password-gate", true},
+	} {
+		rec := run(t, r, specCase{method: tc.method, path: tc.path, body: big, admin: tc.admin, want: http.StatusRequestEntityTooLarge})
+		var parsed struct {
+			Error errorBody `json:"error"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &parsed); err != nil || parsed.Error.Code != codeValidation || parsed.Error.Message == "" {
+			t.Errorf("%s %s: isi error %.200s", tc.method, tc.path, rec.Body)
+		}
 	}
 }

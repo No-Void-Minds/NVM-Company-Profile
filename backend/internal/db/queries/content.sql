@@ -1,6 +1,3 @@
--- name: ListTechs :many
-SELECT * FROM techs ORDER BY sort;
-
 -- Falls back to the techs columns, so a tech without a translation still shows (FR-113).
 -- name: ListTechsByLang :many
 SELECT t.key, t.name, t.family, t.generation, t.needs,

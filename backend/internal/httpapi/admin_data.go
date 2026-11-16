@@ -45,7 +45,11 @@ func (s *server) adminPutSizeChart(c *gin.Context) {
 		Rows  string `json:"rows"`
 		Note  string `json:"note"`
 	}
-	if err := c.ShouldBindJSON(&in); err != nil {
+	err := c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Data tidak bisa dibaca.", nil)
 		return
 	}
@@ -150,7 +154,12 @@ func fitSort(fits []string, fit *string) int32 {
 
 func (s *server) adminPatchTech(c *gin.Context) {
 	var in techPatch
-	if err := c.ShouldBindJSON(&in); err != nil || (in.OnRack == nil && in.Visible == nil && in.Links == nil) {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
+	err := c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil || (in.OnRack == nil && in.Visible == nil && in.Links == nil) {
 		respondError(c, http.StatusBadRequest, codeValidation, "Kirim on_rack, visible, atau links.", nil)
 		return
 	}
@@ -224,7 +233,12 @@ func (s *server) adminPatchCollab(c *gin.Context) {
 		Available *bool   `json:"available"`
 		URL       *string `json:"url"`
 	}
-	if err := c.ShouldBindJSON(&in); err != nil || (in.Available == nil && in.URL == nil) {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
+	err := c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil || (in.Available == nil && in.URL == nil) {
 		respondError(c, http.StatusBadRequest, codeValidation, "Kirim available atau url.", nil)
 		return
 	}
@@ -319,7 +333,12 @@ func (s *server) adminPatchInquiry(c *gin.Context) {
 	var in struct {
 		Status string `json:"status"`
 	}
-	if err := c.ShouldBindJSON(&in); err != nil {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxJSONBody)
+	err := c.ShouldBindJSON(&in)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Data tidak bisa dibaca.", nil)
 		return
 	}

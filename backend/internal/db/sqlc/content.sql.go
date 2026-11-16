@@ -500,45 +500,6 @@ func (q *Queries) ListTechLinks(ctx context.Context) ([]TechLink, error) {
 	return items, nil
 }
 
-const listTechs = `-- name: ListTechs :many
-SELECT key, name, family, generation, needs, tagline, sub, description, chips, fits, technology_label, on_rack, sort, visible FROM techs ORDER BY sort
-`
-
-func (q *Queries) ListTechs(ctx context.Context) ([]Tech, error) {
-	rows, err := q.db.Query(ctx, listTechs)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Tech{}
-	for rows.Next() {
-		var i Tech
-		if err := rows.Scan(
-			&i.Key,
-			&i.Name,
-			&i.Family,
-			&i.Generation,
-			&i.Needs,
-			&i.Tagline,
-			&i.Sub,
-			&i.Description,
-			&i.Chips,
-			&i.Fits,
-			&i.TechnologyLabel,
-			&i.OnRack,
-			&i.Sort,
-			&i.Visible,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listTechsByLang = `-- name: ListTechsByLang :many
 SELECT t.key, t.name, t.family, t.generation, t.needs,
        COALESCE(i.tagline, t.tagline)::text AS tagline,

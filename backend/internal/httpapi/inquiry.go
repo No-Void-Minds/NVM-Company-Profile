@@ -21,7 +21,11 @@ func (s *server) createInquiry(c *gin.Context) {
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxInquiryBody)
 
 	var input inquiry.Input
-	if err := c.ShouldBindJSON(&input); err != nil {
+	err := c.ShouldBindJSON(&input)
+	if tooLarge(c, err) {
+		return
+	}
+	if err != nil {
 		respondError(c, http.StatusBadRequest, codeValidation, "Isi formulir tidak bisa dibaca.", nil)
 		return
 	}

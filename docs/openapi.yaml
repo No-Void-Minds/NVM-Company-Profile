@@ -15,7 +15,7 @@ info:
 
     | Kode | Status | Arti |
     |---|---|---|
-    | `VALIDATION` | 400 | Isian atau parameter tidak valid |
+    | `VALIDATION` | 400, 413 | Isian atau parameter tidak valid, atau body terlalu besar |
     | `UNAUTHORIZED` | 401 | Belum masuk, sesi habis, password salah, atau situs dikunci |
     | `FORBIDDEN` | 403 | Header `X-CSRF-Token` tidak cocok |
     | `NOT_FOUND` | 404 | Data atau alamat tidak ada |
@@ -364,6 +364,7 @@ paths:
               schema: { $ref: '#/components/schemas/InquiryCreated' }
         '400': { $ref: '#/components/responses/Validation' }
         '401': { $ref: '#/components/responses/Locked' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/Internal' }
 
@@ -396,6 +397,7 @@ paths:
               schema: { $ref: '#/components/schemas/Session' }
         '400': { $ref: '#/components/responses/Validation' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/Internal' }
 
@@ -501,6 +503,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
 
   /api/admin/collabs:
@@ -556,6 +559,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
 
   /api/admin/gallery:
@@ -646,6 +650,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
     delete:
       tags: [Admin konten]
@@ -758,6 +763,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
     delete:
       tags: [Admin konten]
@@ -850,6 +856,7 @@ paths:
         '400': { $ref: '#/components/responses/Validation' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
     delete:
       tags: [Admin konten]
@@ -970,6 +977,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
 
   /api/admin/audit-log:
@@ -1041,6 +1049,7 @@ paths:
         '400': { $ref: '#/components/responses/Validation' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/TooLarge' }
         '500': { $ref: '#/components/responses/Internal' }
 
   /api/docs:
@@ -1185,6 +1194,13 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
     NotFound:
       description: Data atau alamat tidak ada (`NOT_FOUND`).
+      headers:
+        Cache-Control: { $ref: '#/components/headers/ErrorCache' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    TooLarge:
+      description: Body JSON melewati batas (64 KB, login 4 KB). Kode `VALIDATION`, tanpa `fields`.
       headers:
         Cache-Control: { $ref: '#/components/headers/ErrorCache' }
       content:
