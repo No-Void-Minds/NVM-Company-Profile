@@ -107,6 +107,15 @@ function onTabKeydown(event: KeyboardEvent) {
 // Size marker: one bar slides to the chosen rows instead of each row lighting up alone.
 const tableWrap = ref<HTMLElement | null>(null)
 const markerStyle = ref<Record<string, string> | null>(null)
+const resultLine = ref<HTMLElement | null>(null)
+
+// Runs on change (Enter or leaving the field), never while typing, and only scrolls, so focus
+// stays put. CSS scroll-behavior makes it instant under reduced motion.
+function showResult() {
+  void nextTick(() => {
+    if (result.value) resultLine.value?.scrollIntoView({ block: 'start' })
+  })
+}
 
 function placeMarker() {
   const wrap = tableWrap.value
@@ -206,10 +215,12 @@ if (!import.meta.env.SSR) {
                 v-model.number="height"
                 type="number"
                 inputmode="decimal"
+                enterkeyhint="done"
                 min="50"
                 max="260"
                 class="field-input"
                 :aria-describedby="f.describedby"
+                @change="showResult"
               />
             </FormField>
           </div>
@@ -227,10 +238,12 @@ if (!import.meta.env.SSR) {
                 v-model.number="garmentWidth"
                 type="number"
                 inputmode="decimal"
+                enterkeyhint="done"
                 min="1"
                 step="0.5"
                 class="field-input"
                 :aria-describedby="f.describedby"
+                @change="showResult"
               />
             </FormField>
             <FormField id="size-length" v-slot="f" :label="t.size.length">
@@ -239,10 +252,12 @@ if (!import.meta.env.SSR) {
                 v-model.number="garmentLength"
                 type="number"
                 inputmode="decimal"
+                enterkeyhint="done"
                 min="1"
                 step="0.5"
                 class="field-input"
                 :aria-describedby="f.describedby"
+                @change="showResult"
               />
             </FormField>
           </div>
@@ -272,7 +287,7 @@ if (!import.meta.env.SSR) {
         </StateEmpty>
 
         <template v-else>
-          <p class="mt-2 min-h-[56px]" role="status">
+          <p ref="resultLine" class="mt-2 min-h-[56px]" role="status" aria-live="polite">
             <template v-if="result && result.between">
               {{ t.size.betweenBefore }}
               <strong class="font-normal text-signal">{{ selected[0] }}</strong>
@@ -310,7 +325,7 @@ if (!import.meta.env.SSR) {
               :style="markerStyle"
               aria-hidden="true"
             ></div>
-            <table class="spec-table relative min-w-[560px]">
+            <table class="spec-table size-table relative min-w-[560px]">
               <caption class="sr-only">
                 {{
                   chart.data.value?.title
@@ -341,13 +356,18 @@ if (!import.meta.env.SSR) {
             </table>
           </div>
 
+          <p class="field-hint sm:hidden">{{ t.size.scrollHint }}</p>
           <ul class="field-hint">
             <li>{{ t.size.tolerance }}</li>
             <li>{{ t.size.heightNote }}</li>
           </ul>
-          <p v-if="chart.data.value?.note" class="field-hint whitespace-pre-line" lang="en">
-            {{ chart.data.value.note }}
-          </p>
+          <!-- The store note repeats the lines above, so it stays one tap away and untranslated -->
+          <details v-if="chart.data.value?.note" class="field-hint">
+            <summary class="text-link min-h-[44px] py-2">
+              {{ t.size.storeNote }}
+            </summary>
+            <p class="whitespace-pre-line" lang="en">{{ chart.data.value.note }}</p>
+          </details>
 
           <div class="mt-3 flex flex-wrap gap-2">
             <AppButton v-if="shopUrl" :href="shopUrl">{{ t.size.shopCta }}</AppButton>
@@ -392,6 +412,20 @@ if (!import.meta.env.SSR) {
   transition:
     transform 240ms ease 400ms,
     height 240ms ease 400ms;
+}
+
+/* The size column stays in view while the other columns scroll under it */
+.size-table th:first-child,
+.size-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+}
+
+.size-table tr[data-selected='true'] td:first-child {
+  background: var(--raised);
+  box-shadow: inset 2px 0 var(--signal);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -159,4 +159,11 @@ const systemCount = useSystemCount()
   display: flex;
   align-items: flex-end;
 }
+
+/* On a phone the field stays behind the text, but the next section starts in the first screen */
+@media (max-width: 47.99rem) {
+  .hero {
+    min-height: min(60svh, 520px);
+  }
+}
 </style>

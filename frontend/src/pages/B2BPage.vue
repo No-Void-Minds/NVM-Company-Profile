@@ -240,7 +240,8 @@ async function submit() {
           <legend class="field-label">
             {{ t.b2b.techs }} <span class="text-muted">{{ t.state.optional }}</span>
           </legend>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Two columns from 336 px, one on the narrowest phones -->
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-x-2">
             <label v-for="tech in techs.data.value" :key="tech.key" class="check-row">
               <input v-model="form.techs" type="checkbox" :value="tech.key" />
               {{ techName(tech.name) }}

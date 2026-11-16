@@ -121,7 +121,8 @@ export async function login(page: Page) {
   await page.getByLabel('Username').fill('uji-admin')
   await page.getByLabel('Password').fill(adminPassword())
   await page.getByRole('button', { name: 'Masuk ke panel admin' }).click()
-  await expect(page.getByRole('heading', { name: 'Inquiry B2B' })).toBeVisible()
+  // argon2 verification can take several seconds on a busy machine
+  await expect(page.getByRole('heading', { name: 'Inquiry B2B' })).toBeVisible({ timeout: 15_000 })
 }
 
 // Logs in once: the login limit is 10 per 15 minutes and each test would burn one.

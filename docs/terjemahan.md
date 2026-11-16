@@ -330,11 +330,13 @@ Tolong cek bahwa terjemahan setia dan tidak menambah klaim (FR-114).
 | `size.and` | and | dan |
 | `size.betweenAfter` | . Ask us on WhatsApp which one suits you best. | . Tanyakan pilihan terbaiknya lewat WhatsApp. |
 | `size.recommendation` | Recommendation: | Rekomendasi: |
-| `size.prompt` | Fill in the form to see a recommendation. | Isi data di samping untuk melihat rekomendasi. |
+| `size.prompt` | Fill in the form to see a recommendation. | Isi formulir untuk melihat rekomendasi. |
 | `size.tableRegion` | Size chart table, scrolls sideways | Tabel size chart, bisa digeser ke samping |
 | `size.difference` | Difference (cm) | Selisih (cm) |
 | `size.selected` | (selected size) | (ukuran terpilih) |
 | `size.tolerance` | Tolerance of 1 to 2 cm. | Toleransi 1 sampai 2 cm. |
+| `size.scrollHint` | Swipe the table to see every column. | Geser tabel untuk melihat semua kolom. |
+| `size.storeNote` | Original store note | Catatan asli toko (bahasa Inggris) |
 | `size.heightNote` | Height is a recommendation only. | Tinggi badan hanya rekomendasi. |
 | `size.shopCta` | See this size on Shopee | Lihat ukuran ini di Shopee |
 | `size.askMessage` | Hi NVM, I have a question about sizing for {name} {fit}, my result was {sizes}. | Halo NVM, saya ingin bertanya ukuran {name} {fit}, hasilnya {sizes}. |

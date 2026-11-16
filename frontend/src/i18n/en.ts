@@ -347,6 +347,8 @@ export const en: Messages = {
     difference: 'Difference (cm)',
     selected: '(selected size)',
     tolerance: 'Tolerance of 1 to 2 cm.',
+    scrollHint: 'Swipe the table to see every column.',
+    storeNote: 'Original store note',
     heightNote: 'Height is a recommendation only.',
     shopCta: 'See this size on Shopee',
     askMessage: (name: string, fit: string, sizes: string[]) =>

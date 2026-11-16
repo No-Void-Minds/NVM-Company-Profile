@@ -225,12 +225,11 @@
     vertical-align: middle;
   }
 
+  /* Column headings are data a reader matches values against, so they use the hint scale
+     instead of the 12 px uppercase spec label */
   .spec-table thead th {
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
+    font-size: 0.9375rem;
     font-weight: 400;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
     color: var(--muted);
   }
 

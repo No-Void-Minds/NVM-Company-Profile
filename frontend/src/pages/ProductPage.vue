@@ -10,6 +10,7 @@ import StateLoading from '@/components/state/StateLoading.vue'
 import SwatchView from '@/components/SwatchView.vue'
 import { SHOPEE_URL, techLink, techName } from '@/composables/site'
 import { useAsync } from '@/composables/useAsync'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useI18n } from '@/i18n'
 
 const FIT_ORDER = ['Regular', 'Fitted', 'Mini Fitted', 'Oversized', 'Boxy', 'Polo']
@@ -17,6 +18,8 @@ const FIT_ORDER = ['Regular', 'Fitted', 'Mini Fitted', 'Oversized', 'Boxy', 'Pol
 const { lang, t, to } = useI18n()
 const techs = useAsync(() => api.techs(lang.value))
 const collabs = useAsync(() => api.collabs())
+// Same breakpoint as lg, where the 720 px matrix fits without sideways scrolling
+const wide = useMediaQuery('(min-width: 64rem)', true)
 
 const fits = computed(() =>
   FIT_ORDER.filter((fit) => (techs.data.value ?? []).some((t) => t.fits.includes(fit))),
@@ -58,6 +61,51 @@ const fits = computed(() =>
         >
           <AppButton variant="secondary" :href="SHOPEE_URL">{{ t.layout.shop }}</AppButton>
         </StateEmpty>
+        <!-- Below lg the matrix would need sideways scrolling, so each tech lists its own fits -->
+        <ul v-else-if="!wide" class="mt-3 border-t border-line" data-testid="tech-list">
+          <li
+            v-for="tech in techs.data.value"
+            :key="tech.key"
+            class="border-b border-line py-2"
+            data-swatch-host
+          >
+            <span class="flex min-h-[44px] items-center gap-2">
+              <span class="block h-4 w-6 flex-none border border-line">
+                <SwatchView :tech="tech" />
+              </span>
+              <RouterLink :to="`${to('/teknologi')}#lab-${tech.key}`" class="text-link">
+                {{ techName(tech.name) }}
+              </RouterLink>
+            </span>
+            <p v-if="tech.fits.length === 0" class="flex flex-wrap items-center gap-x-3">
+              <ExternalLink
+                v-if="techLink(tech, null)"
+                :href="techLink(tech, null)!"
+                :label="t.product.noFitLabel(techName(tech.name))"
+                class="tap inline-flex items-center text-link"
+              >
+                {{ t.product.see }}
+              </ExternalLink>
+              <span v-else class="text-muted">{{ t.product.noLink }}</span>
+              <span class="text-muted">{{ t.product.noFit }}</span>
+            </p>
+            <ul v-else class="flex flex-wrap gap-x-4">
+              <li v-for="fit in tech.fits" :key="fit">
+                <ExternalLink
+                  v-if="techLink(tech, fit)"
+                  :href="techLink(tech, fit)!"
+                  class="tap inline-flex items-center text-link"
+                >
+                  {{ fit }}<span class="sr-only">, {{ techName(tech.name) }}</span>
+                </ExternalLink>
+                <!-- A fit without a link stays listed, so no fit disappears from view -->
+                <span v-else class="tap inline-flex items-center text-muted"
+                  >{{ fit }}: {{ t.product.noLink }}</span
+                >
+              </li>
+            </ul>
+          </li>
+        </ul>
         <div
           v-else
           class="scroll-x mt-3 border border-line"

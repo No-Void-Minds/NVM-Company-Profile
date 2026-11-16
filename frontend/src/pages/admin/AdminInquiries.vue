@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { adminApi, errorMessage } from '@/api/client'
 import type { Inquiry, InquiryStatus } from '@/api/types'
 import FormField from '@/components/FormField.vue'
@@ -7,6 +7,7 @@ import StateEmpty from '@/components/state/StateEmpty.vue'
 import StateError from '@/components/state/StateError.vue'
 import StateLoading from '@/components/state/StateLoading.vue'
 import { useAsync } from '@/composables/useAsync'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { formatDateTime } from '@/i18n'
 
 const STATUS_LABEL: Record<InquiryStatus, string> = {
@@ -29,6 +30,15 @@ const items = computed(() => data.value ?? [])
 const selectedId = ref<string | null>(null)
 const selected = computed(() => items.value.find((item) => item.id === selectedId.value) ?? null)
 const actionError = ref('')
+// The 640 px table fits from md, a phone gets one card per inquiry instead
+const wide = useMediaQuery('(min-width: 48rem)', true)
+const detail = ref<HTMLElement | null>(null)
+
+// On a phone the detail sits below the whole list, so it is brought into view
+function select(id: string) {
+  selectedId.value = id
+  if (!wide.value) void nextTick(() => detail.value?.scrollIntoView({ block: 'start' }))
+}
 
 async function setStatus(item: Inquiry, next: InquiryStatus) {
   actionError.value = ''
@@ -88,7 +98,27 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
   />
 
   <div v-else class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    <ul v-if="!wide" aria-label="Daftar inquiry" class="border-t border-line">
+      <li v-for="item in items" :key="item.id" class="grid gap-1 border-b border-line py-2">
+        <button
+          type="button"
+          class="tap text-link inline-flex items-center justify-self-start font-mono"
+          :aria-pressed="selectedId === item.id"
+          @click="select(item.id)"
+        >
+          {{ item.code }}
+        </button>
+        <p>{{ KIND_LABEL[item.kind] }}, {{ item.name }}</p>
+        <p class="text-muted">
+          <span :class="{ 'text-signal': item.status === 'new' }">{{
+            STATUS_LABEL[item.status]
+          }}</span
+          >, {{ formatDateTime(item.created_at) }}
+        </p>
+      </li>
+    </ul>
     <div
+      v-else
       class="scroll-x border border-line"
       tabindex="0"
       role="region"
@@ -127,7 +157,12 @@ async function setStatus(item: Inquiry, next: InquiryStatus) {
       </table>
     </div>
 
-    <section v-if="selected" aria-labelledby="inquiry-detail" class="border border-line p-3">
+    <section
+      v-if="selected"
+      ref="detail"
+      aria-labelledby="inquiry-detail"
+      class="border border-line p-3"
+    >
       <h2 id="inquiry-detail" class="font-mono text-h3">{{ selected.code }}</h2>
       <FormField id="detail-status" v-slot="f" label="Status" class="mt-2">
         <select

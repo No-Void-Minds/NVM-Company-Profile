@@ -168,79 +168,97 @@ async function saveCollabLink(collab: Collab) {
       title="Belum ada tech"
       class="mt-2"
     />
-    <ul v-else class="mt-2 border-t border-line">
-      <li
-        v-for="tech in techs.data.value"
-        :key="tech.key"
-        class="border-b border-line py-3"
-        :data-tech="tech.key"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="text-h3">
-            {{ techName(tech.name) }}
-            <span v-if="!tech.visible" class="spec-label ml-1">Tersembunyi</span>
-          </h3>
-          <div class="flex flex-wrap items-center gap-2">
-            <label class="check-row">
-              <input
-                type="checkbox"
-                :checked="tech.visible"
-                :aria-busy="saving.has(`tech:${tech.key}`)"
-                @change="toggleVisible(tech)"
-              />
-              Tampil di situs
-            </label>
-            <button
-              type="button"
-              class="btn btn-secondary min-h-[44px]"
-              :aria-busy="saving.has(`tech:${tech.key}`)"
-              @click="toggleOnRack(tech)"
-            >
-              <span class="sr-only">{{ tech.name }}: </span>
-              {{ tech.on_rack ? 'On the rack' : 'Belum tersedia' }}
-            </button>
-          </div>
-        </div>
-
-        <form
-          class="mt-2 grid gap-2 md:grid-cols-2"
-          novalidate
-          @submit.prevent="saveTechLinks(tech)"
+    <template v-else>
+      <!-- Eleven long rows: a jump list saves scrolling past the rest to reach one tech -->
+      <nav aria-label="Lompat ke tech" class="mt-2">
+        <ul class="flex flex-wrap gap-x-3">
+          <li v-for="tech in techs.data.value" :key="tech.key">
+            <a :href="`#tech-${tech.key}`" class="text-link inline-flex min-h-[44px] items-center">
+              {{ techName(tech.name) }}
+            </a>
+          </li>
+          <li>
+            <a href="#catalog-collab" class="text-link inline-flex min-h-[44px] items-center">
+              Collab
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <ul class="mt-2 border-t border-line">
+        <li
+          v-for="tech in techs.data.value"
+          :id="`tech-${tech.key}`"
+          :key="tech.key"
+          class="border-b border-line py-3"
+          :data-tech="tech.key"
         >
-          <FormField
-            v-for="fit in slots(tech)"
-            :id="fieldId(tech.key, fit)"
-            :key="fit ?? ''"
-            v-slot="f"
-            :label="fit ? `Link Shopee ${fit}` : 'Link Shopee (tanpa fit)'"
-            :error="fieldErrors[fieldId(tech.key, fit)]"
-            optional
-          >
-            <input
-              :id="fieldId(tech.key, fit)"
-              v-model="techDrafts[tech.key]![fit ?? '']"
-              type="url"
-              inputmode="url"
-              autocomplete="off"
-              spellcheck="false"
-              class="field-input"
-              placeholder="https://shopee.co.id/..."
-              :aria-describedby="f.describedby"
-              :aria-invalid="f.invalid"
-            />
-          </FormField>
-          <div class="md:col-span-2">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :aria-busy="saving.has(`tech:${tech.key}`)"
-            >
-              Simpan link {{ techName(tech.name) }}
-            </button>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-h3">
+              {{ techName(tech.name) }}
+              <span v-if="!tech.visible" class="spec-label ml-1">Tersembunyi</span>
+            </h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="check-row">
+                <input
+                  type="checkbox"
+                  :checked="tech.visible"
+                  :aria-busy="saving.has(`tech:${tech.key}`)"
+                  @change="toggleVisible(tech)"
+                />
+                Tampil di situs
+              </label>
+              <button
+                type="button"
+                class="btn btn-secondary min-h-[44px]"
+                :aria-busy="saving.has(`tech:${tech.key}`)"
+                @click="toggleOnRack(tech)"
+              >
+                <span class="sr-only">{{ tech.name }}: </span>
+                {{ tech.on_rack ? 'On the rack' : 'Belum tersedia' }}
+              </button>
+            </div>
           </div>
-        </form>
-      </li>
-    </ul>
+
+          <form
+            class="mt-2 grid gap-2 md:grid-cols-2"
+            novalidate
+            @submit.prevent="saveTechLinks(tech)"
+          >
+            <FormField
+              v-for="fit in slots(tech)"
+              :id="fieldId(tech.key, fit)"
+              :key="fit ?? ''"
+              v-slot="f"
+              :label="fit ? `Link Shopee ${fit}` : 'Link Shopee (tanpa fit)'"
+              :error="fieldErrors[fieldId(tech.key, fit)]"
+              optional
+            >
+              <input
+                :id="fieldId(tech.key, fit)"
+                v-model="techDrafts[tech.key]![fit ?? '']"
+                type="url"
+                inputmode="url"
+                autocomplete="off"
+                spellcheck="false"
+                class="field-input"
+                placeholder="https://shopee.co.id/..."
+                :aria-describedby="f.describedby"
+                :aria-invalid="f.invalid"
+              />
+            </FormField>
+            <div class="md:col-span-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                :aria-busy="saving.has(`tech:${tech.key}`)"
+              >
+                Simpan link {{ techName(tech.name) }}
+              </button>
+            </div>
+          </form>
+        </li>
+      </ul>
+    </template>
   </section>
 
   <section aria-labelledby="catalog-collab" class="mt-6">
